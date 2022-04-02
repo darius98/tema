@@ -4,12 +4,15 @@ project(tema)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-
-set(SANITIZER_COMPILE_OPTIONS -fsanitize=address,undefined -fno-sanitize-recover=undefined)
-set(SANITIZER_LINK_OPTIONS -fsanitize=address,undefined)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+    add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=undefined)
+    add_link_options(-fsanitize=address,undefined)
+else ()
+    set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+    set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif ()
 
 set(CLANG_WARNINGS
         -Werror
@@ -56,23 +59,11 @@ include(FetchContent)
 FetchContent_Declare(mcga_cli URL https://github.com/darius98/mcga-cli/archive/refs/heads/master.zip)
 FetchContent_MakeAvailable(mcga_cli)
 
-FetchContent_Declare(mcga_matchers URL https://github.com/darius98/mcga-matchers/archive/refs/heads/master.zip)
-FetchContent_MakeAvailable(mcga_matchers)
-
-FetchContent_Declare(mcga_test URL https://github.com/darius98/mcga-test/archive/refs/heads/master.zip)
-FetchContent_MakeAvailable(mcga_test)
-
 add_library(tema
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/scope.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/statement.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/variable.cpp
         )
 target_include_directories(tema PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
-enable_testing()
-function(add_tema_test NAME)
-    add_executable(${NAME} ${ARGN})
-    target_link_libraries(${NAME} tema mcga_test mcga_matchers)
-    add_test(${NAME} ${NAME})
-endfunction()
-
-add_tema_test(test_statement tests/test_statement.cpp)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)
