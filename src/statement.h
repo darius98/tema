@@ -1,16 +1,16 @@
 #pragma once
 
 #include <memory>
-#include <variant>
 #include <vector>
 
-#include "type_list.h"
+#include "util/overload.h"
+#include "util/pack.h"
 #include "variable.h"
 
 namespace tema {
 
-struct test_statement {
-    using statement_ptr = std::shared_ptr<const test_statement>;
+struct statement {
+    using statement_ptr = std::shared_ptr<const statement>;
 
     struct truth {};
 
@@ -48,25 +48,25 @@ struct test_statement {
         std::vector<statement_ptr> inner;
     };
 
-    using types = meta::type_list<truth, contradiction, forall, exists, implies, equiv, neg, conj, disj, variable_ptr>;
+    using types = util::pack<truth, contradiction, forall, exists, implies, equiv, neg, conj, disj, variable_ptr>;
 
 private:
-    types::variant data;
+    util::variant_for_pack<types> data;
 
     // Ensure that statements are only created through the friend factories below
     struct private_tag {};
 
 public:
     template<class T>
-    requires meta::type_list_contains<types, T>
-    explicit test_statement(private_tag, T t)
+    requires util::pack_contains<types, T>
+    explicit statement(private_tag, T t)
         : data(std::move(t)) {}
 
-    test_statement(const test_statement&) = delete;
-    test_statement& operator=(const test_statement&) = delete;
-    test_statement(test_statement&&) = delete;
-    test_statement& operator=(test_statement&&) = delete;
-    ~test_statement() = default;
+    statement(const statement&) = delete;
+    statement& operator=(const statement&) = delete;
+    statement(statement&&) = delete;
+    statement& operator=(statement&&) = delete;
+    ~statement() = default;
 
     [[nodiscard]] bool is_truth() const noexcept;
     [[nodiscard]] const truth& as_truth() const;
@@ -98,6 +98,11 @@ public:
     [[nodiscard]] bool is_disj() const noexcept;
     [[nodiscard]] const disj& as_disj() const;
 
+    template<class V>
+    void accept(V&& visitor) const {
+        std::visit(std::forward<V>(visitor), data);
+    }
+
     friend statement_ptr truth();
     friend statement_ptr contradiction();
     friend statement_ptr var_stmt(variable_ptr var);
@@ -110,7 +115,7 @@ public:
     friend statement_ptr disj(std::vector<statement_ptr> stmts);
 };
 
-using statement_ptr = test_statement::statement_ptr;
+using statement_ptr = statement::statement_ptr;
 
 statement_ptr truth();
 

@@ -31,7 +31,9 @@ TEST_CASE("scope") {
             const auto x = var("X");
             s.add_var(x);
             expect(s.own_vars(), std::set<variable_ptr>{x});
+            expect(s.has_var(x), isTrue);
             expect(s.has_var("X"), isTrue);
+            expect(s.has_own_var(x), isTrue);
             expect(s.has_own_var("X"), isTrue);
             expect(s.get_var("X"), x);
             expect(s.get_own_var("X"), x);
@@ -79,7 +81,9 @@ TEST_CASE("scope") {
 
             scope s{&p};
             expect(s.own_vars(), isEmpty);
+            expect(s.has_var(x), isTrue);
             expect(s.has_var("X"), isTrue);
+            expect(s.has_own_var(x), isFalse);
             expect(s.has_own_var("X"), isFalse);
             expect(s.get_var("X"), x);
             expect([&s] { (void) s.get_own_var("X"); }, throwsA<var_not_found>);
@@ -98,12 +102,16 @@ TEST_CASE("scope") {
             scope s{&p};
             s.add_var(x);
             expect(s.own_vars(), std::set<variable_ptr>{x});
+            expect(s.has_var(x), isTrue);
             expect(s.has_var("X"), isTrue);
+            expect(s.has_own_var(x), isTrue);
             expect(s.has_own_var("X"), isTrue);
             expect(s.get_var("X"), x);
             expect(s.get_own_var("X"), x);
             // Check parent variable is still accessible
+            expect(s.has_var(y), isTrue);
             expect(s.has_var("Y"), isTrue);
+            expect(s.has_own_var(y), isFalse);
             expect(s.has_own_var("Y"), isFalse);
             expect(s.get_var("Y"), y);
             expect([&s] { (void) s.get_own_var("Y"); }, throwsA<var_not_found>);
@@ -119,13 +127,19 @@ TEST_CASE("scope") {
             scope p;
             p.add_var(x);
             scope s{&p};
+            expect(s.has_var(x), isTrue);
             expect(s.has_var("X"), isTrue);
+            expect(s.has_own_var(x), isFalse);
             expect(s.has_own_var("X"), isFalse);
             expect(s.get_var("X"), x);
             expect([&s] { (void) s.get_own_var("X"); }, throwsA<var_not_found>);
             const auto x2 = var("X");
             s.add_var(x2);
+            expect(s.has_var(x), isTrue);// TODO: should this be true? This variable cannot be accessed through the symbol API...
+            expect(s.has_var(x2), isTrue);
             expect(s.has_var("X"), isTrue);
+            expect(s.has_own_var(x), isFalse);
+            expect(s.has_own_var(x2), isTrue);
             expect(s.has_own_var("X"), isTrue);
             expect(s.get_var("X"), x2);
             expect(s.get_own_var("X"), x2);
