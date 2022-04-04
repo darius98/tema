@@ -14,6 +14,7 @@ function(add_tema_test NAME)
 endfunction()
 
 add_tema_test(unittests
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_module.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/test_print.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/test_statement.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/test_scope.cpp)

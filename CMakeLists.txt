@@ -60,6 +60,8 @@ FetchContent_Declare(mcga_cli URL https://github.com/darius98/mcga-cli/archive/r
 FetchContent_MakeAvailable(mcga_cli)
 
 add_library(tema
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/modules/propositional_logic.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/module.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/print.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/scope.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/statement.cpp

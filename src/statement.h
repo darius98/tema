@@ -3,7 +3,6 @@
 #include <memory>
 #include <vector>
 
-#include "util/overload.h"
 #include "util/pack.h"
 #include "variable.h"
 
@@ -135,16 +134,14 @@ statement_ptr neg(statement_ptr stmt);
 
 statement_ptr conj(std::vector<statement_ptr> stmts);
 
-template<class... T>
-requires(std::is_same_v<T, statement_ptr>&&...) auto conj(T... stmts) {
-    return conj({std::move(stmts)...});
+auto conj(auto&&... stmts) requires(std::is_same_v<std::remove_cvref_t<decltype(stmts)>, statement_ptr>&&...) {
+    return conj({std::forward<decltype(stmts)>(stmts)...});
 }
 
 statement_ptr disj(std::vector<statement_ptr> stmts);
 
-template<class... T>
-requires(std::is_same_v<T, statement_ptr>&&...) auto disj(T... stmts) {
-    return disj({std::move(stmts)...});
+auto disj(auto&&... stmts) requires(std::is_same_v<std::remove_cvref_t<decltype(stmts)>, statement_ptr>&&...) {
+    return disj({std::forward<decltype(stmts)>(stmts)...});
 }
 
 }// namespace tema
