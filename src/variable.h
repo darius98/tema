@@ -5,12 +5,12 @@
 
 namespace tema {
 
-// In the future, this will become more complex (e.g. to support greek symbols).
+// TODO: In the future, this will become more complex
+//  (e.g. support greek symbols, sub/super-script etc.).
 using symbol = std::string;
 
 struct variable {
     symbol name;
-    // set_ptr type;  // TODO
 
     explicit variable(symbol name);
 };

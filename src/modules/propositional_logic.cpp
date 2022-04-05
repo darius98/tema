@@ -7,7 +7,7 @@ namespace tema::modules {
 // TODO: Have a way to write these in a text file. Write a minimal parser for statements
 // TODO: Have a way to name things in a module.
 
-static module PL_impl() {
+static module pl_impl() {
     scope s;
     const auto p = var("p");
     const auto p_stmt = var_stmt(p);
@@ -61,8 +61,8 @@ static module PL_impl() {
     return module{std::move(s)};
 }
 
-module PL() {
-    static module pl = PL_impl();
+module pl() {
+    static module pl = pl_impl();
     return pl;
 }
 

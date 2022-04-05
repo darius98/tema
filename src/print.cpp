@@ -22,33 +22,34 @@ struct print_visitor {
         to << var->name;
     }
     void operator()(const statement::forall& expr) {
-        to << "\\/" << expr.var->name << "(";
-        expr.inner->accept(*this);
-        to << ")";
+        to << "\\/" << expr.var->name << " ";
+        if (expr.inner->is_forall() || expr.inner->is_exists()) {
+            expr.inner->accept(*this);
+        } else {
+            visit_sub_statement(*expr.inner);
+        }
     }
     void operator()(const statement::exists& expr) {
-        to << "E" << expr.var->name << "(";
-        expr.inner->accept(*this);
-        to << ")";
+        to << "E" << expr.var->name << " ";
+        if (expr.inner->is_forall() || expr.inner->is_exists()) {
+            expr.inner->accept(*this);
+        } else {
+            visit_sub_statement(*expr.inner);
+        }
     }
     void operator()(const statement::implies& expr) {
-        to << "(";
-        expr.from->accept(*this);
-        to << ")->(";
-        expr.to->accept(*this);
-        to << ")";
+        visit_sub_statement(*expr.from);
+        to << "->";
+        visit_sub_statement(*expr.to);
     }
     void operator()(const statement::equiv& expr) {
-        to << "(";
-        expr.left->accept(*this);
-        to << ")<->(";
-        expr.right->accept(*this);
-        to << ")";
+        visit_sub_statement(*expr.left);
+        to << "<->";
+        visit_sub_statement(*expr.right);
     }
     void operator()(const statement::neg& expr) {
-        to << "~(";
-        expr.inner->accept(*this);
-        to << ")";
+        to << "~";
+        visit_sub_statement(*expr.inner);
     }
     void operator()(const statement::conj& expr) {
         bool first = true;
@@ -58,9 +59,7 @@ struct print_visitor {
             } else {
                 first = false;
             }
-            to << "(";
-            term->accept(*this);
-            to << ")";
+            visit_sub_statement(*term);
         }
     }
     void operator()(const statement::disj& expr) {
@@ -71,8 +70,17 @@ struct print_visitor {
             } else {
                 first = false;
             }
+            visit_sub_statement(*term);
+        }
+    }
+
+private:
+    void visit_sub_statement(const statement& expr) {
+        if (expr.is_var() || expr.is_neg()) {
+            expr.accept(*this);
+        } else {
             to << "(";
-            term->accept(*this);
+            expr.accept(*this);
             to << ")";
         }
     }
