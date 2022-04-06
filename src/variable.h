@@ -7,7 +7,7 @@ namespace tema {
 
 // TODO: In the future, this will become more complex
 //  (e.g. support greek symbols, sub/super-script etc.).
-using symbol = std::string;
+using symbol = std::string;  // TODO: symbol_view
 
 struct variable {
     symbol name;

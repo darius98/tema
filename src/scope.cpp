@@ -2,7 +2,11 @@
 
 namespace tema {
 
-var_not_found::var_not_found(): std::runtime_error{"variable not found"} {}
+var_not_found::var_not_found()
+    : std::runtime_error{"variable not found"} {}
+
+statement_not_found::statement_not_found()
+    : std::runtime_error{"statement not found"} {}
 
 scope::scope(scope* parent)
     : parent_(parent) {}
@@ -79,12 +83,63 @@ variable_ptr scope::get_var(const symbol& sym) const {
     throw var_not_found{};
 }
 
-void scope::add_statement(statement_ptr statement) {
+const std::vector<named_statement>& scope::own_statements() const {
+    return statements;
+}
+
+// TODO: Better (or additional) data structure for this.
+static auto find_statement_it(const std::vector<named_statement>& statements, const statement_name& name) {
+    return std::find_if(statements.begin(), statements.end(), [&name](const named_statement& stmt) {
+        return stmt.name == name;
+    });
+}
+
+bool scope::has_statement(const statement_name& name) const {
+    const scope* current = this;
+    while (current != nullptr) {
+        if (current->has_own_statement(name)) {
+            return true;
+        }
+        current = current->parent_;
+    }
+    return false;
+}
+
+bool scope::has_own_statement(const statement_name& name) const {
+    return find_statement_it(statements, name) != statements.end();
+}
+
+const named_statement& scope::get_statement(const statement_name& name) const {
+    const scope* current = this;
+    while (current != nullptr) {
+        const auto it = find_statement_it(current->statements, name);
+        if (it != current->statements.end()) {
+            return *it;
+        }
+        current = current->parent_;
+    }
+    // TODO: same as in get_own_var
+    throw statement_not_found{};
+}
+
+const named_statement& scope::get_own_statement(const statement_name& name) const {
+    const auto it = find_statement_it(statements, name);
+    if (it == statements.end()) {
+        // TODO: Same as in get_own_var
+        throw statement_not_found{};
+    }
+    return *it;
+}
+
+void scope::add_statement(named_statement statement) {
     statements.push_back(std::move(statement));
 }
 
-const std::vector<statement_ptr>& scope::own_statements() const {
-    return statements;
+void scope::add_statement(std::string name, statement_ptr stmt) {
+    add_statement(named_statement{
+            .name = std::move(name),
+            .stmt = std::move(stmt),
+    });
 }
 
 }// namespace tema

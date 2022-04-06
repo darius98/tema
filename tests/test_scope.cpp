@@ -11,8 +11,16 @@ void expect_var_not_found(const symbol& sym, scope& s) {
     expect(s.has_own_var(sym), isFalse);
     expect(s.has_var(var(sym)), isFalse);
     expect(s.has_own_var(var(sym)), isFalse);
-    expect([&sym, &s] { (void) s.get_var(sym); }, throwsA<var_not_found>);
-    expect([&sym, &s] { (void) s.get_own_var(sym); }, throwsA<var_not_found>);
+    expect([&] { (void) s.get_var(sym); }, throwsA<var_not_found>);
+    expect([&] { (void) s.get_own_var(sym); }, throwsA<var_not_found>);
+}
+
+void expect_statement_not_found(const statement_name& name, scope& s) {
+    using mcga::test::expect;
+    expect(s.has_statement(name), isFalse);
+    expect(s.has_own_statement(name), isFalse);
+    expect([&] { (void) s.get_statement(name); }, throwsA<statement_not_found>);
+    expect([&] { (void) s.get_own_statement(name); }, throwsA<statement_not_found>);
 }
 
 TEST_CASE("scope") {
@@ -24,6 +32,7 @@ TEST_CASE("scope") {
             expect(s.own_vars(), isEmpty);
             expect_var_not_found("P", s);
             expect(s.own_statements(), isEmpty);
+            expect_statement_not_found("truth", s);
         });
 
         test("add a variable", [] {
@@ -45,13 +54,35 @@ TEST_CASE("scope") {
 
             // Doesn't change statements
             expect(s.own_statements(), isEmpty);
+            expect_statement_not_found("truth", s);
         });
 
         test("add a statement", [] {
             scope s;
-            s.add_statement(truth());
+            s.add_statement("truth", truth());
             expect(s.own_statements(), hasSize(1));
-            expect(s.own_statements()[0], truth());
+            expect(s.own_statements()[0], named_statement{"truth", truth()});
+            expect(s.has_statement("truth"), isTrue);
+            expect(s.has_own_statement("truth"), isTrue);
+            expect(s.get_statement("truth"), named_statement{"truth", truth()});
+            expect(s.get_own_statement("truth"), named_statement{"truth", truth()});
+            expect_statement_not_found("other", s);
+
+            // No variables added.
+            expect(s.own_vars(), isEmpty);
+            expect_var_not_found("P", s);
+        });
+
+        test("add a statement by direct construction", [] {
+            scope s;
+            s.add_statement(named_statement{"truth", truth()});
+            expect(s.own_statements(), hasSize(1));
+            expect(s.own_statements()[0], named_statement{"truth", truth()});
+            expect(s.has_statement("truth"), isTrue);
+            expect(s.has_own_statement("truth"), isTrue);
+            expect(s.get_statement("truth"), named_statement{"truth", truth()});
+            expect(s.get_own_statement("truth"), named_statement{"truth", truth()});
+            expect_statement_not_found("other", s);
 
             // No variables added.
             expect(s.own_vars(), isEmpty);
@@ -63,13 +94,14 @@ TEST_CASE("scope") {
         test("constructor", [] {
             scope p;
             p.add_var(var("X"));
-            p.add_statement(truth());
+            p.add_statement("truth", truth());
             scope s{&p};
             expect(s.has_parent(), isTrue);
             expect(s.parent(), &p);
             expect(s.own_vars(), isEmpty);
             expect_var_not_found("P", s);
             expect(s.own_statements(), isEmpty);
+            expect_statement_not_found("other", s);
         });
 
         test("variable from parent", [] {
@@ -77,7 +109,7 @@ TEST_CASE("scope") {
 
             scope p;
             p.add_var(x);
-            p.add_statement(truth());
+            p.add_statement("truth", truth());
 
             scope s{&p};
             expect(s.own_vars(), isEmpty);
@@ -143,6 +175,55 @@ TEST_CASE("scope") {
             expect(s.has_own_var("X"), isTrue);
             expect(s.get_var("X"), x2);
             expect(s.get_own_var("X"), x2);
+        });
+
+        test("statement from parent", [] {
+            scope p;
+            p.add_statement("truth", truth());
+
+            scope s{&p};
+            expect(s.own_statements(), isEmpty);
+            expect(s.has_statement("truth"), isTrue);
+            expect(s.has_own_statement("truth"), isFalse);
+            expect(s.get_statement("truth"), named_statement{"truth", truth()});
+            expect([&s] { (void) s.get_own_statement("truth"); }, throwsA<statement_not_found>);
+            // Different statement doesn't exist.
+            expect_statement_not_found("other", s);
+        });
+
+        test("add a statement", [] {
+            scope p;
+            p.add_statement("truth", truth());
+            scope s{&p};
+            s.add_statement("contra", contradiction());
+            expect(s.own_statements(), std::vector<named_statement>{{"contra", contradiction()}});
+            expect(s.has_statement("contra"), isTrue);
+            expect(s.has_own_statement("contra"), isTrue);
+            expect(s.get_statement("contra"), named_statement{"contra", contradiction()});
+            expect(s.get_own_statement("contra"), named_statement{"contra", contradiction()});
+            // Check parent statement is still accessible
+            expect(s.has_statement("truth"), isTrue);
+            expect(s.has_own_statement("truth"), isFalse);
+            expect(s.get_statement("truth"), named_statement{"truth", truth()});
+            // Different statement doesn't exist.
+            expect_statement_not_found("other", s);
+        });
+
+        test("shadow statement from parent", [] {
+            const auto stmt = implies(contradiction(), truth());
+            scope p;
+            p.add_statement("stmt", stmt);
+            scope s{&p};
+            expect(s.has_statement("stmt"), isTrue);
+            expect(s.has_own_statement("stmt"), isFalse);
+            expect(s.get_statement("stmt"), named_statement{"stmt", stmt});
+            expect([&s] { (void) s.get_own_statement("stmt"); }, throwsA<statement_not_found>);
+            const auto stmt2 = equiv(truth(), neg(contradiction()));
+            s.add_statement("stmt", stmt2);
+            expect(s.has_statement("stmt"), isTrue);
+            expect(s.has_own_statement("stmt"), isTrue);
+            expect(s.get_statement("stmt"), named_statement{"stmt", stmt2});
+            expect(s.get_own_statement("stmt"), named_statement{"stmt", stmt2});
         });
     });
 }
