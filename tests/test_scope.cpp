@@ -5,17 +5,17 @@
 using namespace tema;
 using namespace mcga::matchers;
 
-void expect_var_not_found(const symbol& sym, scope& s) {
+void expect_var_not_found(symbol_view sym, scope& s) {
     using mcga::test::expect;
     expect(s.has_var(sym), isFalse);
     expect(s.has_own_var(sym), isFalse);
-    expect(s.has_var(var(sym)), isFalse);
-    expect(s.has_own_var(var(sym)), isFalse);
+    expect(s.has_var(var(symbol{sym})), isFalse);
+    expect(s.has_own_var(var(symbol{sym})), isFalse);
     expect([&] { (void) s.get_var(sym); }, throwsA<var_not_found>);
     expect([&] { (void) s.get_own_var(sym); }, throwsA<var_not_found>);
 }
 
-void expect_statement_not_found(const statement_name& name, scope& s) {
+void expect_statement_not_found(statement_name_view name, scope& s) {
     using mcga::test::expect;
     expect(s.has_statement(name), isFalse);
     expect(s.has_own_statement(name), isFalse);

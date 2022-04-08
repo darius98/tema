@@ -19,15 +19,19 @@ const scope* scope::parent() const {
     return parent_;
 }
 
-const std::set<variable_ptr>& scope::own_vars() const {
+std::set<variable_ptr> scope::own_vars() const {
+    std::set<variable_ptr> vars;
+    std::transform(vars_by_symbol.begin(), vars_by_symbol.end(), std::inserter(vars, vars.end()), [](const auto& p) {
+        return p.second;
+    });
     return vars;
 }
 
-bool scope::has_own_var(const symbol& sym) const {
+bool scope::has_own_var(symbol_view sym) const {
     return vars_by_symbol.find(sym) != vars_by_symbol.end();
 }
 
-bool scope::has_var(const symbol& sym) const {
+bool scope::has_var(symbol_view sym) const {
     const scope* current = this;
     while (current != nullptr) {
         if (current->has_own_var(sym)) {
@@ -39,7 +43,8 @@ bool scope::has_var(const symbol& sym) const {
 }
 
 bool scope::has_own_var(const variable_ptr& var) const {
-    return vars.find(var) != vars.end();
+    const auto it = vars_by_symbol.find(var->name);
+    return it != vars_by_symbol.end() && it->second == var;
 }
 
 bool scope::has_var(const variable_ptr& var) const {
@@ -57,10 +62,9 @@ void scope::add_var(variable_ptr var) {
     // TODO: Maybe check that it doesn't exist already? Not sure, this is a
     //  low level API atm, will see how usage evolves.
     vars_by_symbol.emplace(var->name, var);
-    vars.insert(std::move(var));
 }
 
-variable_ptr scope::get_own_var(const symbol& sym) const {
+variable_ptr scope::get_own_var(symbol_view sym) const {
     const auto it = vars_by_symbol.find(sym);
     if (it == vars_by_symbol.end()) {
         // TODO: Maybe return nullptr instead? More efficient, but would set a
@@ -70,7 +74,7 @@ variable_ptr scope::get_own_var(const symbol& sym) const {
     return it->second;
 }
 
-variable_ptr scope::get_var(const symbol& sym) const {
+variable_ptr scope::get_var(symbol_view sym) const {
     const scope* current = this;
     while (current != nullptr) {
         const auto it = current->vars_by_symbol.find(sym);
@@ -88,13 +92,13 @@ const std::vector<named_statement>& scope::own_statements() const {
 }
 
 // TODO: Better (or additional) data structure for this.
-static auto find_statement_it(const std::vector<named_statement>& statements, const statement_name& name) {
+static auto find_statement_it(const std::vector<named_statement>& statements, statement_name_view name) {
     return std::find_if(statements.begin(), statements.end(), [&name](const named_statement& stmt) {
         return stmt.name == name;
     });
 }
 
-bool scope::has_statement(const statement_name& name) const {
+bool scope::has_statement(statement_name_view name) const {
     const scope* current = this;
     while (current != nullptr) {
         if (current->has_own_statement(name)) {
@@ -105,11 +109,11 @@ bool scope::has_statement(const statement_name& name) const {
     return false;
 }
 
-bool scope::has_own_statement(const statement_name& name) const {
+bool scope::has_own_statement(statement_name_view name) const {
     return find_statement_it(statements, name) != statements.end();
 }
 
-const named_statement& scope::get_statement(const statement_name& name) const {
+const named_statement& scope::get_statement(statement_name_view name) const {
     const scope* current = this;
     while (current != nullptr) {
         const auto it = find_statement_it(current->statements, name);
@@ -122,7 +126,7 @@ const named_statement& scope::get_statement(const statement_name& name) const {
     throw statement_not_found{};
 }
 
-const named_statement& scope::get_own_statement(const statement_name& name) const {
+const named_statement& scope::get_own_statement(statement_name_view name) const {
     const auto it = find_statement_it(statements, name);
     if (it == statements.end()) {
         // TODO: Same as in get_own_var
