@@ -3,7 +3,8 @@
 #include <memory>
 #include <vector>
 
-#include "util/pack.h"
+#include "util/cvref_same_as.h"
+#include "util/tpack.h"
 #include "variable.h"
 
 namespace tema {
@@ -37,17 +38,16 @@ struct statement : std::enable_shared_from_this<statement> {
         std::vector<statement_ptr> inner;
     };
 
-    using types = util::pack<truth, contradiction, implies, equiv, neg, conj, disj, variable_ptr>;
+    using types = util::tpack<truth, contradiction, implies, equiv, neg, conj, disj, variable_ptr>;
 
 private:
-    util::variant_for_pack<types> data;
+    util::variant_for<types> data;
 
     // Ensure that statements are only created through the friend factories below
     struct private_tag {};
 
 public:
-    template<util::one_of<types> T>
-    explicit statement(private_tag, T t)
+    statement(private_tag, util::one_of<types> auto t)
         : data(std::move(t)) {}
 
     statement(const statement&) = delete;
@@ -102,27 +102,27 @@ public:
 
 using statement_ptr = statement::statement_ptr;
 
-statement_ptr truth();
+[[nodiscard]] statement_ptr truth();
 
-statement_ptr contradiction();
+[[nodiscard]] statement_ptr contradiction();
 
-statement_ptr var_stmt(variable_ptr var);
+[[nodiscard]] statement_ptr var_stmt(variable_ptr var);
 
-statement_ptr implies(statement_ptr from, statement_ptr to);
+[[nodiscard]] statement_ptr implies(statement_ptr from, statement_ptr to);
 
-statement_ptr equiv(statement_ptr left, statement_ptr right);
+[[nodiscard]] statement_ptr equiv(statement_ptr left, statement_ptr right);
 
-statement_ptr neg(statement_ptr stmt);
+[[nodiscard]] statement_ptr neg(statement_ptr stmt);
 
-statement_ptr conj(std::vector<statement_ptr> stmts);
+[[nodiscard]] statement_ptr conj(std::vector<statement_ptr> stmts);
 
-auto conj(auto&&... stmts) requires(std::is_same_v<std::remove_cvref_t<decltype(stmts)>, statement_ptr>&&...) {
+[[nodiscard]] statement_ptr conj(util::cvref_same_as<statement_ptr> auto&&... stmts) {
     return conj({std::forward<decltype(stmts)>(stmts)...});
 }
 
-statement_ptr disj(std::vector<statement_ptr> stmts);
+[[nodiscard]] statement_ptr disj(std::vector<statement_ptr> stmts);
 
-auto disj(auto&&... stmts) requires(std::is_same_v<std::remove_cvref_t<decltype(stmts)>, statement_ptr>&&...) {
+[[nodiscard]] statement_ptr disj(util::cvref_same_as<statement_ptr> auto&&... stmts) {
     return disj({std::forward<decltype(stmts)>(stmts)...});
 }
 
