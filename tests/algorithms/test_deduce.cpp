@@ -1,6 +1,9 @@
-#include "algorithms.h"
+#include "algorithms/deduce.h"
 
 #include "mcga/test_ext/matchers.hpp"
+
+#include "algorithms/equals.h"
+#include "algorithms/print_ascii.h"
 
 using namespace tema;
 using namespace mcga::matchers;

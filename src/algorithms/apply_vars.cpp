@@ -1,12 +1,13 @@
-#include "algorithms.h"
+#include "apply_vars.h"
 
 namespace tema {
 
 struct apply_vars_visitor {
-    const match_result& replacements;
+    const std::map<variable_ptr, statement_ptr>& replacements;
     std::set<variable_ptr> unmatched_vars;
 
-    explicit apply_vars_visitor(const match_result& replacements): replacements(replacements) {}
+    explicit apply_vars_visitor(const std::map<variable_ptr, statement_ptr>& replacements)
+        : replacements(replacements) {}
 
     statement_ptr operator()(const statement::truth&) const {
         return nullptr;
@@ -86,7 +87,7 @@ struct apply_vars_visitor {
     }
 };
 
-apply_vars_result apply_vars(const statement* law, const match_result& replacements) {
+apply_vars_result apply_vars(const statement* law, const std::map<variable_ptr, statement_ptr>& replacements) {
     apply_vars_visitor visitor{replacements};
     apply_vars_result result;
     result.stmt = law->accept_r<statement_ptr>(visitor);

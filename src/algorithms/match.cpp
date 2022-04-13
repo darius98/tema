@@ -1,6 +1,6 @@
-#include "algorithms.h"
+#include "match.h"
 
-#include <map>
+#include "algorithms/equals.h"
 
 namespace tema {
 

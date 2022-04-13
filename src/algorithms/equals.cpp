@@ -1,4 +1,4 @@
-#include "statement.h"
+#include "equals.h"
 
 namespace tema {
 
@@ -7,7 +7,8 @@ namespace tema {
 struct equals_visitor {
     const statement* b;
 
-    explicit equals_visitor(const statement* b): b(b) {}
+    explicit equals_visitor(const statement* b)
+        : b(b) {}
 
     bool operator()(const statement::truth&) const {
         // As truth is a singleton, this would be the same pointer, covered below.

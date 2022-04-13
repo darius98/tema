@@ -8,7 +8,7 @@
 
 namespace tema {
 
-struct statement: std::enable_shared_from_this<statement> {
+struct statement : std::enable_shared_from_this<statement> {
     using statement_ptr = std::shared_ptr<const statement>;
 
     struct truth {};
@@ -46,8 +46,7 @@ private:
     struct private_tag {};
 
 public:
-    template<class T>
-    requires util::pack_contains<types, T>
+    template<util::one_of<types> T>
     explicit statement(private_tag, T t)
         : data(std::move(t)) {}
 

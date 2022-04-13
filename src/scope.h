@@ -14,12 +14,12 @@ public:
     var_not_found();
 };
 
-class statement_not_found: public std::runtime_error {
+class statement_not_found : public std::runtime_error {
 public:
     statement_not_found();
 };
 
-using statement_name = std::string; // TODO: In the future, this will become more complex.
+using statement_name = std::string;// TODO: In the future, this will become more complex.
 using statement_name_view = std::string_view;
 
 struct named_statement {

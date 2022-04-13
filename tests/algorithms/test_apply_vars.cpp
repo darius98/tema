@@ -1,12 +1,15 @@
-#include "algorithms.h"
+#include "algorithms/apply_vars.h"
 
 #include "mcga/test_ext/matchers.hpp"
+
+#include "algorithms/equals.h"
+#include "algorithms/print_ascii.h"
 
 using namespace tema;
 using namespace mcga::matchers;
 using namespace mcga::test;
 
-void expect_apply_vars(const statement_ptr& law, const match_result& replacements, const statement_ptr& expected_application, std::set<variable_ptr> expected_unmatched_vars, Context context = Context()) {
+void expect_apply_vars(const statement_ptr& law, const std::map<variable_ptr, statement_ptr>& replacements, const statement_ptr& expected_application, std::set<variable_ptr> expected_unmatched_vars, Context context = Context()) {
     const auto result = apply_vars(law.get(), replacements);
     expectMsg(equals(result.stmt.get(), expected_application.get()),
               print_ascii(law.get()) + " ===> " + print_ascii(expected_application.get()),

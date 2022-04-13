@@ -1,4 +1,4 @@
-#include "algorithms.h"
+#include "algorithms/print_ascii.h"
 
 #include "mcga/test_ext/matchers.hpp"
 

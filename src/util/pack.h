@@ -29,6 +29,9 @@ struct variant_for_pack_impl<pack<Ts...>> {
     using type = std::variant<Ts...>;
 };
 
+template<class T, class TypeList>
+concept one_of = pack_contains<TypeList, T>;
+
 template<class T>
 using variant_for_pack = typename variant_for_pack_impl<T>::type;
 
