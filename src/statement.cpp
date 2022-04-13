@@ -23,20 +23,6 @@ variable_ptr statement::as_var() const {
     return std::get<variable_ptr>(data);
 }
 
-bool statement::is_forall() const noexcept {
-    return std::holds_alternative<forall>(data);
-}
-const statement::forall& statement::as_forall() const {
-    return std::get<forall>(data);
-}
-
-bool statement::is_exists() const noexcept {
-    return std::holds_alternative<exists>(data);
-}
-const statement::exists& statement::as_exists() const {
-    return std::get<exists>(data);
-}
-
 bool statement::is_implies() const noexcept {
     return std::holds_alternative<implies>(data);
 }
@@ -84,14 +70,6 @@ statement_ptr contradiction() {
 
 statement_ptr var_stmt(variable_ptr var) {
     return std::make_shared<const statement>(statement::private_tag{}, var);
-}
-
-statement_ptr forall(variable_ptr var, statement_ptr stmt) {
-    return std::make_shared<const statement>(statement::private_tag{}, statement::forall{std::move(var), std::move(stmt)});
-}
-
-statement_ptr exists(variable_ptr var, statement_ptr stmt) {
-    return std::make_shared<const statement>(statement::private_tag{}, statement::exists{std::move(var), std::move(stmt)});
 }
 
 statement_ptr implies(statement_ptr from, statement_ptr to) {

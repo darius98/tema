@@ -1,0 +1,20 @@
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(-fprofile-instr-generate -fcoverage-mapping)
+    add_link_options(-fprofile-instr-generate -fcoverage-mapping)
+endif ()
+
+add_library(tema
+        module.cpp
+        scope.cpp
+        statement.cpp
+        variable.cpp
+
+        algorithms/apply_vars.cpp
+        algorithms/deduce.cpp
+        algorithms/equals.cpp
+        algorithms/match.cpp
+        algorithms/print_ascii.cpp
+
+        modules/propositional_logic.cpp
+        )
+target_include_directories(tema PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/)

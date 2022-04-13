@@ -8,22 +8,12 @@
 
 namespace tema {
 
-struct statement {
+struct statement: std::enable_shared_from_this<statement> {
     using statement_ptr = std::shared_ptr<const statement>;
 
     struct truth {};
 
     struct contradiction {};
-
-    struct forall {
-        variable_ptr var;
-        statement_ptr inner;
-    };
-
-    struct exists {
-        variable_ptr var;
-        statement_ptr inner;
-    };
 
     struct implies {
         statement_ptr from;
@@ -47,7 +37,7 @@ struct statement {
         std::vector<statement_ptr> inner;
     };
 
-    using types = util::pack<truth, contradiction, forall, exists, implies, equiv, neg, conj, disj, variable_ptr>;
+    using types = util::pack<truth, contradiction, implies, equiv, neg, conj, disj, variable_ptr>;
 
 private:
     util::variant_for_pack<types> data;
@@ -76,12 +66,6 @@ public:
     [[nodiscard]] bool is_var() const noexcept;
     [[nodiscard]] variable_ptr as_var() const;
 
-    [[nodiscard]] bool is_forall() const noexcept;
-    [[nodiscard]] const forall& as_forall() const;
-
-    [[nodiscard]] bool is_exists() const noexcept;
-    [[nodiscard]] const exists& as_exists() const;
-
     [[nodiscard]] bool is_implies() const noexcept;
     [[nodiscard]] const implies& as_implies() const;
 
@@ -102,11 +86,14 @@ public:
         std::visit(std::forward<V>(visitor), data);
     }
 
+    template<class R, class V>
+    R accept_r(V&& visitor) const {
+        return std::visit<R>(std::forward<V>(visitor), data);
+    }
+
     friend statement_ptr truth();
     friend statement_ptr contradiction();
     friend statement_ptr var_stmt(variable_ptr var);
-    friend statement_ptr forall(variable_ptr var, statement_ptr stmt);
-    friend statement_ptr exists(variable_ptr var, statement_ptr stmt);
     friend statement_ptr implies(statement_ptr from, statement_ptr to);
     friend statement_ptr equiv(statement_ptr left, statement_ptr right);
     friend statement_ptr neg(statement_ptr stmt);
@@ -121,10 +108,6 @@ statement_ptr truth();
 statement_ptr contradiction();
 
 statement_ptr var_stmt(variable_ptr var);
-
-statement_ptr forall(variable_ptr var, statement_ptr stmt);
-
-statement_ptr exists(variable_ptr var, statement_ptr stmt);
 
 statement_ptr implies(statement_ptr from, statement_ptr to);
 

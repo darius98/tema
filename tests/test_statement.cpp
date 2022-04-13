@@ -46,33 +46,6 @@ TEST_CASE("statement") {
         expect([&] { (void) a->as_truth(); }, throwsA<std::bad_variant_access>);
     });
 
-    test("universality", [] {
-        const auto p = var("P");
-
-        const auto a = forall(p, disj(var_stmt(p), neg(var_stmt(p))));
-        expect(a->is_forall(), isTrue);
-        expect(a->as_forall().var, p);
-        expect(a->as_forall().inner->is_disj(), isTrue);
-        expect(a->as_forall().inner->as_disj().inner[0]->as_var(), p);
-        expect(a->as_forall().inner->as_disj().inner[1]->as_neg().inner->as_var(), p);
-
-        expect(a->is_exists(), isFalse);
-        expect([&] { (void) a->as_exists(); }, throwsA<std::bad_variant_access>);
-    });
-
-    test("existence", [] {
-        const auto p = var("P");
-
-        const auto a = exists(p, var_stmt(p));
-        expect(a->is_exists(), isTrue);
-        expect(a->as_exists().var, p);
-        expect(a->as_exists().inner->is_var(), isTrue);
-        expect(a->as_exists().inner->as_var(), p);
-
-        expect(a->is_forall(), isFalse);
-        expect([&] { (void) a->as_forall(); }, throwsA<std::bad_variant_access>);
-    });
-
     test("implication", [] {
         const auto a = implies(contradiction(), truth());
         expect(a->is_implies(), isTrue);

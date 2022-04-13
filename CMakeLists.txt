@@ -46,27 +46,18 @@ set(GCC_WARNINGS
         -Wuseless-cast # warn if you perform a cast to the same type
         )
 
-if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+if (CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
     add_compile_options(${CLANG_WARNINGS})
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_compile_options(${GCC_WARNINGS})
-else()
+else ()
     message(AUTHOR_WARNING "No compiler warnings set for '${CMAKE_CXX_COMPILER_ID}' compiler.")
-endif()
+endif ()
 
 include(FetchContent)
 
 FetchContent_Declare(mcga_cli URL https://github.com/darius98/mcga-cli/archive/refs/heads/master.zip)
 FetchContent_MakeAvailable(mcga_cli)
 
-add_library(tema
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/modules/propositional_logic.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/module.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/print.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/scope.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/statement.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/variable.cpp
-        )
-target_include_directories(tema PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/)
-
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)

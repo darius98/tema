@@ -1,4 +1,4 @@
-#include "print.h"
+#include "algorithms.h"
 
 #include <sstream>
 
@@ -20,22 +20,6 @@ struct print_visitor {
     }
     void operator()(const variable_ptr& var) {
         to << var->name;
-    }
-    void operator()(const statement::forall& expr) {
-        to << "\\/" << expr.var->name << " ";
-        if (expr.inner->is_forall() || expr.inner->is_exists()) {
-            expr.inner->accept(*this);
-        } else {
-            visit_sub_statement(*expr.inner);
-        }
-    }
-    void operator()(const statement::exists& expr) {
-        to << "E" << expr.var->name << " ";
-        if (expr.inner->is_forall() || expr.inner->is_exists()) {
-            expr.inner->accept(*this);
-        } else {
-            visit_sub_statement(*expr.inner);
-        }
     }
     void operator()(const statement::implies& expr) {
         visit_sub_statement(*expr.from);

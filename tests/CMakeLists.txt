@@ -10,11 +10,19 @@ enable_testing()
 function(add_tema_test NAME)
     add_executable(${NAME} ${ARGN})
     target_link_libraries(${NAME} tema mcga_test mcga_matchers)
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_link_options(${NAME} PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+    endif ()
+
     add_test(${NAME} ${NAME})
 endfunction()
 
 add_tema_test(unittests
-        ${CMAKE_CURRENT_SOURCE_DIR}/test_module.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/test_print.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/test_statement.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/test_scope.cpp)
+        algorithms/test_apply_vars.cpp
+        algorithms/test_deduce.cpp
+        algorithms/test_equals.cpp
+        algorithms/test_match.cpp
+        algorithms/test_print_ascii.cpp
+        test_module.cpp
+        test_statement.cpp
+        test_scope.cpp)
