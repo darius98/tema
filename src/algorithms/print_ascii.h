@@ -7,6 +7,6 @@
 namespace tema {
 
 void print_ascii_to(const statement* statement, std::ostream& to);
-[[nodiscard]] auto print_ascii(const statement* statement) -> std::string;
+[[nodiscard]] std::string print_ascii(const statement* statement);
 
 }// namespace tema

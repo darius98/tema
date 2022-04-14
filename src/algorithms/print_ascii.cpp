@@ -6,10 +6,10 @@ namespace tema {
 
 namespace {
 
-struct print_visitor {
+struct print_ascii_visitor {
     std::ostream& to;
 
-    explicit print_visitor(std::ostream& to)
+    explicit print_ascii_visitor(std::ostream& to)
         : to{to} {}
 
     void operator()(const statement::truth&) {
@@ -60,7 +60,7 @@ struct print_visitor {
 
 private:
     void visit_sub_statement(const statement& expr) {
-        if (expr.is_var() || expr.is_neg()) {
+        if (expr.is_var() || expr.is_neg() || expr.is_truth() || expr.is_contradiction()) {
             expr.accept(*this);
         } else {
             to << "(";
@@ -73,7 +73,7 @@ private:
 }// namespace
 
 void print_ascii_to(const statement* statement, std::ostream& to) {
-    statement->accept(print_visitor{to});
+    statement->accept(print_ascii_visitor{to});
 }
 
 std::string print_ascii(const statement* statement) {
