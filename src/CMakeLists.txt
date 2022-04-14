@@ -4,6 +4,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif ()
 
 add_library(tema
+        expression.cpp
         module.cpp
         scope.cpp
         statement.cpp
