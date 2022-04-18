@@ -1,11 +1,19 @@
 #include "equals.h"
 
+#include <map>
+
 namespace tema {
 
 // TODO: Should this return true even if some simple transformations such as commutativity are needed?
 //  e.g. equals(a<->b, b<->a) or equals(a&b, b&a)
+
+// TODO: Optimize via some hashes in statements
+
 struct equals_visitor {
     const statement* b;
+
+    // TODO: This will contain like 1-2 variables at most, do a flat map / vector for it.
+    std::map<const variable*, const variable*> bound_vars_mapping;// For forall
 
     explicit equals_visitor(const statement* b)
         : b(b) {}
@@ -19,7 +27,14 @@ struct equals_visitor {
         return false;
     }
     bool operator()(const variable_ptr& a) const {
-        return b->is_var() && b->as_var() == a;
+        if (!b->is_var()) {
+            return false;
+        }
+        if (a == b->as_var()) {
+            return true;
+        }
+        const auto it = bound_vars_mapping.find(a.get());
+        return it != bound_vars_mapping.end() && it->second == b->as_var().get();
     }
     bool operator()(const statement::implies& a) {
         return b->is_implies() &&
@@ -58,6 +73,18 @@ struct equals_visitor {
             }
         }
         return true;
+    }
+    bool operator()(const statement::forall& a) {
+        if (!b->is_forall()) {
+            return false;
+        }
+        if (bound_vars_mapping.contains(a.var.get())) {
+            throw std::runtime_error("Invalid statement, forall twice with the same variable");
+        }
+        const auto [it, inserted] = bound_vars_mapping.emplace(a.var.get(), b->as_forall().var.get());
+        const auto result = visit_recursive(a.inner.get(), b->as_forall().inner.get());
+        bound_vars_mapping.erase(it);
+        return result;
     }
 
     bool visit_recursive(const statement* a, const statement* new_b) {

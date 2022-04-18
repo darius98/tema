@@ -37,7 +37,7 @@ static module pl_impl() {
     s.add_statement("Idempotence of conjunction", equiv(conj(p, p), p));
     s.add_statement("Idempotence of disjunction", equiv(disj(p, p), p));
     s.add_statement("Weakening of conjunction", implies(p_and_q, p));
-    s.add_statement("Weakening of disjunction", implies(p, p_or_q));
+    s.add_statement("Weakening of disjunction", implies(p, forall(q_var, p_or_q)));
     s.add_statement("Commutativity of conjunction", equiv(p_and_q, conj(q, p)));
     s.add_statement("Commutativity of disjunction", equiv(p_or_q, disj(q, p)));
     s.add_statement("Associativity of conjunction", equiv(conj(p_and_q, r), conj(p, conj(q, r))));

@@ -9,7 +9,7 @@ using namespace tema;
 using namespace mcga::matchers;
 using namespace mcga::test;
 
-void expect_matches(const statement_ptr& law, const statement_ptr& application, const match_result& expected_match, const Context& context = Context()) {
+void expect_matches(const statement_ptr& law, const statement_ptr& application, const match_result& expected_repls, const Context& context = Context()) {
     const auto result = match(law.get(), application.get());
     expectMsg(result.has_value(),
               print_ascii(application.get()) +
@@ -17,8 +17,10 @@ void expect_matches(const statement_ptr& law, const statement_ptr& application, 
                       print_ascii(law.get()),
               context);
     for (const auto& [var, repl]: result.value()) {
-        expect(equals(repl.get(), expected_match.find(var)->second.get()), context);
+        expectMsg(expected_repls.contains(var), "Unexpected replacement " + var->name + " (replaced with '" + print_ascii(repl.get()) + "')", context);
+        expect(equals(repl.get(), expected_repls.find(var)->second.get()), context);
     }
+    expect(result.value(), hasSize(expected_repls.size()), context);
 }
 
 void expect_not_matches(const statement_ptr& law, const statement_ptr& application, Context context = Context()) {
@@ -63,6 +65,12 @@ TEST_CASE("algorithms.match") {
             const auto law = equiv(var_stmt(p), neg(neg(var_stmt(p))));
             const auto application = equiv(var_stmt(q), neg(neg(var_stmt(q))));
             expect_matches(law, application, {{p, var_stmt(q)}});
+        });
+
+        test("ignore variable (forall)", [&] {
+            const auto law = equiv(var_stmt(q), forall(p, disj(var_stmt(p), neg(var_stmt(q)))));
+            const auto application = equiv(truth(), forall(p, disj(var_stmt(p), neg(truth()))));
+            expect_matches(law, application, {{q, truth()}});
         });
     });
 
@@ -119,6 +127,12 @@ TEST_CASE("algorithms.match") {
             const auto law = neg(conj(var_stmt(p), var_stmt(p)));
             expect_not_matches(law, truth());
             expect_not_matches(law, neg(disj(var_stmt(p), var_stmt(p))));
+        });
+
+        test("non-matching pattern - non-matching forall node", [&] {
+            const auto law = equiv(var_stmt(q), forall(p, disj(var_stmt(p), neg(var_stmt(q)))));
+            expect_not_matches(law, equiv(var_stmt(p), truth()));
+            expect_not_matches(law, equiv(var_stmt(p), disj(var_stmt(p), neg(var_stmt(q)))));
         });
 
         test("different variable replacements", [&] {

@@ -57,8 +57,11 @@ struct print_ascii_visitor {
             visit_sub_statement(*term);
         }
     }
+    void operator()(const statement::forall& expr) {
+        to << "@" << expr.var->name << " ";
+        visit_sub_statement(*expr.inner);
+    }
 
-private:
     void visit_sub_statement(const statement& expr) {
         if (expr.is_var() || expr.is_neg() || expr.is_truth() || expr.is_contradiction()) {
             expr.accept(*this);

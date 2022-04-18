@@ -143,4 +143,17 @@ TEST_CASE("statement") {
         expect(b->as_disj().inner[4], truth());
         expect(b->as_disj().inner[5], contradiction());
     });
+
+    test("forall", [] {
+        const auto p = var("P");
+
+        const auto a = forall(p, disj(var_stmt(p), truth()));
+
+        expect(a->is_forall(), isTrue);
+        expect(a->as_forall().var, p);
+        expect(a->as_forall().inner->is_disj(), isTrue);
+
+        expect(a->is_conj(), isFalse);
+        expect([&] { (void) a->as_conj(); }, throwsA<std::bad_variant_access>);
+    });
 }

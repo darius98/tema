@@ -38,7 +38,12 @@ struct statement : std::enable_shared_from_this<statement> {
         std::vector<statement_ptr> inner;
     };
 
-    using types = util::tpack<truth, contradiction, implies, equiv, neg, conj, disj, variable_ptr>;
+    struct forall {
+        variable_ptr var;
+        statement_ptr inner;
+    };
+
+    using types = util::tpack<truth, contradiction, implies, equiv, neg, conj, disj, forall, variable_ptr>;
 
 private:
     util::variant_for<types> data;
@@ -80,6 +85,9 @@ public:
     [[nodiscard]] bool is_disj() const noexcept;
     [[nodiscard]] const disj& as_disj() const;
 
+    [[nodiscard]] bool is_forall() const noexcept;
+    [[nodiscard]] const forall& as_forall() const;
+
     template<class V>
     void accept(V&& visitor) const {
         std::visit(std::forward<V>(visitor), data);
@@ -98,6 +106,7 @@ public:
     friend statement_ptr neg(statement_ptr stmt);
     friend statement_ptr conj(std::vector<statement_ptr> stmts);
     friend statement_ptr disj(std::vector<statement_ptr> stmts);
+    friend statement_ptr forall(variable_ptr var, statement_ptr inner);
 };
 
 using statement_ptr = statement::statement_ptr;
@@ -125,5 +134,7 @@ using statement_ptr = statement::statement_ptr;
 [[nodiscard]] statement_ptr disj(util::cvref_same_as<statement_ptr> auto&&... stmts) {
     return disj({std::forward<decltype(stmts)>(stmts)...});
 }
+
+[[nodiscard]] statement_ptr forall(variable_ptr var, statement_ptr inner);
 
 }// namespace tema

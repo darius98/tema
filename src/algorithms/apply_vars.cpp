@@ -5,6 +5,7 @@ namespace tema {
 struct apply_vars_visitor {
     const std::map<variable_ptr, statement_ptr>& replacements;
     std::set<variable_ptr> unmatched_vars;
+    std::set<const variable*> bound_vars;// These are not unmatched because they are bound by a forall/exists statement.
 
     explicit apply_vars_visitor(const std::map<variable_ptr, statement_ptr>& replacements)
         : replacements(replacements) {}
@@ -18,7 +19,9 @@ struct apply_vars_visitor {
     statement_ptr operator()(const variable_ptr& var) {
         const auto it = replacements.find(var);
         if (it == replacements.end()) {
-            unmatched_vars.insert(var);
+            if (!bound_vars.contains(var.get())) {
+                unmatched_vars.insert(var);
+            }
             return nullptr;
         }
         return it->second;
@@ -84,6 +87,23 @@ struct apply_vars_visitor {
             }
         }
         return disj(std::move(new_children));
+    }
+    statement_ptr operator()(const statement::forall& expr) {
+        if (bound_vars.contains(expr.var.get())) {
+            throw std::runtime_error("Invalid statement, forall twice with the same variable");
+        }
+        bound_vars.insert(expr.var.get());
+        auto inner = expr.inner->accept_r<statement_ptr>(*this);
+        bound_vars.erase(expr.var.get());
+        const auto it = replacements.find(expr.var);
+        if (it != replacements.end()) {
+            // If we replaced this variable with something, there is no longer a need for this forall.
+            return inner;
+        }
+        if (inner == nullptr) {
+            return nullptr;
+        }
+        return forall(expr.var, inner);
     }
 };
 

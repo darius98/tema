@@ -20,6 +20,7 @@ void expect_apply_vars(const statement_ptr& law, const std::map<variable_ptr, st
 TEST_CASE("algorithms.apply_vars") {
     const auto p = var("P");
     const auto q = var("Q");
+    const auto r = var("R");
 
     test("replace no variables (none used)", [] {
         const auto law = implies(neg(contradiction()), truth());
@@ -106,5 +107,38 @@ TEST_CASE("algorithms.apply_vars") {
                                   {q, neg(truth())},
                           },
                           equiv(implies(var_stmt(q), truth()), neg(neg(neg(truth())))), {});
+    });
+
+    test("forall", [&] {
+        // replace variable from forall expression
+        const auto law = equiv(disj(var_stmt(p), var_stmt(r)), forall(q, disj(var_stmt(q), var_stmt(p))));
+        expect_apply_vars(law,
+                          {
+                                  {p, truth()},
+                                  {q, neg(truth())},
+                          },
+                          equiv(disj(truth(), var_stmt(r)), disj(neg(truth()), truth())), {r});
+        // Replace something inside forall (not the q variable though).
+        expect_apply_vars(law,
+                          {
+                                  {p, truth()},
+                          },
+                          equiv(disj(truth(), var_stmt(r)), forall(q, disj(var_stmt(q), truth()))), {r});
+        // Keep the forall the same
+        expect_apply_vars(law,
+                          {
+                                  {r, contradiction()},
+                          },
+                          equiv(disj(var_stmt(p), contradiction()), forall(q, disj(var_stmt(q), var_stmt(p)))), {p});
+
+        // Invalid IR coming in
+        expect([&] {
+            expect_apply_vars(forall(p, forall(p, disj(var_stmt(p), var_stmt(p)))),
+                              {
+                                      {p, contradiction()},
+                              },
+                              disj(contradiction(), contradiction()), {});
+        },
+               throwsA<std::runtime_error>);
     });
 }

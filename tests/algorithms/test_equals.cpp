@@ -92,4 +92,36 @@ TEST_CASE("algorithms.equals") {
                 disj(equiv(v_stmt, truth()), implies(v_stmt, truth()), disj(v_stmt, v_stmt)),
                 disj(equiv(var_stmt(v), truth()), implies(var_stmt(v), truth()), conj(var_stmt(v), var_stmt(v))));
     });
+
+    test("forall", [&] {
+        const auto p = var("P");
+        const auto p_stmt = var_stmt(p);
+        const auto w = var("W");
+        const auto w_stmt = var_stmt(w);
+
+        expect_equals(forall(v, v_stmt), forall(v, v_stmt));                            // Same variable
+        expect_equals(forall(v, p_stmt), forall(w, p_stmt));                            // Different variable used
+        expect_equals(forall(v, truth()), forall(w, truth()));                          // Different variable (not used inside)
+        expect_equals(forall(v, disj(p_stmt, v_stmt)), forall(w, disj(p_stmt, w_stmt)));// Different variable (used inside)
+        expect_equals(forall(v, forall(w, disj(v_stmt, w_stmt))),
+                      forall(w, forall(v, disj(w_stmt, v_stmt))));// Recursive
+
+        expect_not_equals(forall(v, v_stmt), v_stmt);
+        expect_not_equals(forall(v, v_stmt), truth());
+
+        // Two mappings
+        const auto x = var("X");
+        const auto y = var("Y");
+        expect_equals(forall(v, forall(w, disj(v_stmt, w_stmt))),
+                      forall(x, forall(y, disj(var_stmt(x), var_stmt(y)))));
+        expect_not_equals(forall(v, forall(w, disj(v_stmt, w_stmt))),
+                          forall(x, forall(y, disj(var_stmt(y), var_stmt(x)))));
+
+        // Invalid IR coming in
+        expect([&] {
+            expect_not_equals(forall(v, forall(v, disj(v_stmt, p_stmt))),
+                              forall(w, forall(w, disj(w_stmt, p_stmt))));
+        },
+               throwsA<std::runtime_error>);
+    });
 }

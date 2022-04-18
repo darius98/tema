@@ -32,6 +32,12 @@ TEST("algorithms.print_ascii") {
 
     const auto f5 = equiv(p_stmt, var_stmt(q));
     expect(print_ascii(f5.get()), "p<->q");
+
+    const auto f6 = forall(p, var_stmt(q));
+    expect(print_ascii(f6.get()), "@p q");
+
+    const auto f7 = forall(p, disj(var_stmt(p), var_stmt(q)));
+    expect(print_ascii(f7.get()), "@p (p|q)");
 }
 
 TEST("algorithms.print_ascii_to") {
