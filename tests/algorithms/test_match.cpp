@@ -135,6 +135,23 @@ TEST_CASE("algorithms.match") {
             expect_not_matches(law, equiv(var_stmt(p), disj(var_stmt(p), neg(var_stmt(q)))));
         });
 
+        test("invalid forall matching", [&] {
+            const auto x = var("X");
+            const auto y = var("Y");
+
+            expect_not_matches(forall(p, forall(q, implies(var_stmt(p), var_stmt(q)))),
+                               forall(x, forall(y, implies(var_stmt(y), var_stmt(x)))));
+            expect_not_matches(forall(p, forall(q, implies(var_stmt(p), var_stmt(q)))),
+                               forall(x, forall(y, implies(var_stmt(x), truth()))));
+
+            // Invalid IR coming in
+            expect([&] {
+                expect_not_matches(forall(p, forall(p, disj(var_stmt(p), var_stmt(p)))),
+                                   forall(q, forall(q, disj(var_stmt(q), var_stmt(q)))));
+            },
+                   throwsA<std::runtime_error>);
+        });
+
         test("different variable replacements", [&] {
             const auto law = conj(var_stmt(p), implies(var_stmt(p), var_stmt(q)));
             const auto application = conj(implies(truth(), contradiction()), implies(implies(truth(), truth()), contradiction()));

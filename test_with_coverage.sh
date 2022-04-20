@@ -8,4 +8,5 @@ llvm-cov show ./.build/debug/tests/unittests -instr-profile=.build/unittests.pro
   -show-line-counts \
   -use-color -Xdemangler c++filt -Xdemangler -n \
   -format=html > .build/coverage.html
+llvm-cov report ./.build/debug/tests/unittests -instr-profile=.build/unittests.profdata
 open .build/coverage.html

@@ -74,7 +74,6 @@ struct match_visitor {
             // TODO: Are we sure? There may be other cases when we can still match.
             return false;
         }
-        // TODO: Test.
         if (bound_vars_mapping.contains(expr.var.get())) {
             throw std::runtime_error("Invalid statement, forall twice with the same variable");
         }
