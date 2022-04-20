@@ -13,8 +13,8 @@ TEST_CASE("module") {
         s.add_var(x);
         s.add_statement("truth", truth());
         module m(std::move(s));
-        expect(m.scope().own_vars(), std::set<variable_ptr>{x});
-        expect(m.scope().own_statements(), std::vector<named_statement>{{"truth", truth()}});
+        expect(m.get_scope().own_vars(), std::set<variable_ptr>{x});
+        expect(m.get_scope().own_statements(), std::vector<named_statement>{{"truth", truth()}});
     });
 
     test("invalid constructor", [] {

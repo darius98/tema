@@ -15,7 +15,7 @@ module::module(class scope&& data) {
     this->data = std::make_shared<const class scope>(std::move(data));
 }
 
-const scope& module::scope() const {
+const scope& module::get_scope() const {
     return *data;
 }
 

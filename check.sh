@@ -2,15 +2,18 @@
 
 set -e
 
+CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Debug}"
+BUILD_DIR="${BUILD_DIR:-${CMAKE_BUILD_TYPE}}"
+
+BUILD_DIR_FULL=.build/${BUILD_DIR}
+
 echo "\nConfigure & build project\n"
-mkdir -p .build/debug
-cmake -DCMAKE_BUILD_TYPE=Debug -B.build/debug -H.
-cmake --build .build/debug -j8
+mkdir -p ${BUILD_DIR_FULL}
+cmake -DCMAKE_BUILD_TYPE=Debug -B${BUILD_DIR_FULL} -H.
+cmake --build ${BUILD_DIR_FULL} -j8
 
 echo "\nRun tests\n"
-.build/debug/tests/run_tests.sh
-cmake --build .build/debug --target coverage_collect
-cmake --build .build/debug --target coverage
+${BUILD_DIR_FULL}/tests/run_tests.sh
 
 echo "\nLLVM Coverage Report:\n"
-cmake --build .build/debug --target coverage_summary
+cmake --build ${BUILD_DIR_FULL} --target coverage

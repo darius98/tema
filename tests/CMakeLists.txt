@@ -42,11 +42,15 @@ add_tema_test(unittests
 
 if (COLLECT_COVERAGE)
     add_custom_target(coverage_collect COMMAND llvm-profdata merge -sparse ${TEST_PROFRAW_FILES} -o ${CMAKE_CURRENT_BINARY_DIR}/merged.profdata)
-    add_custom_target(coverage COMMAND llvm-cov show ${TEST_BINARY_FILES}
+    add_custom_target(coverage_report COMMAND llvm-cov show ${TEST_BINARY_FILES}
             -instr-profile=${CMAKE_CURRENT_BINARY_DIR}/merged.profdata
             -show-branches=count
             -show-line-counts
             -use-color -Xdemangler c++filt -Xdemangler -n
             -format=html > ${CMAKE_CURRENT_BINARY_DIR}/coverage.html)
-    add_custom_target(coverage_summary COMMAND llvm-cov report ${TEST_BINARY_FILES} -instr-profile=${CMAKE_CURRENT_BINARY_DIR}/merged.profdata)
+    add_dependencies(coverage_report coverage_collect)
+    add_custom_target(coverage COMMAND llvm-cov report ${TEST_BINARY_FILES} -instr-profile=${CMAKE_CURRENT_BINARY_DIR}/merged.profdata)
+    add_dependencies(coverage coverage_report)
+else ()
+    add_custom_target(coverage COMMAND echo "coverage not supported in this build")
 endif ()

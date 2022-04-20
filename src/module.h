@@ -17,7 +17,7 @@ class module {
 public:
     explicit module(scope&& data);
 
-    [[nodiscard]] const scope& scope() const;
+    [[nodiscard]] const scope& get_scope() const;
 };
 
 }// namespace tema

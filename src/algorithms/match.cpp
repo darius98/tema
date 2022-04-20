@@ -93,7 +93,11 @@ struct match_visitor {
 };
 
 std::optional<match_result> match(const statement* law, const statement* application) {
-    match_visitor visitor{.app_node = application->shared_from_this()};
+    match_visitor visitor{
+            .app_node = application->shared_from_this(),
+            .replacements = {},
+            .bound_vars_mapping = {},
+    };
     if (!law->accept_r<bool>(visitor)) {
         return std::nullopt;
     }

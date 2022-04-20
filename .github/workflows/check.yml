@@ -5,15 +5,16 @@ on:
   pull_request:
     branches: [ master ]
 jobs:
-  build:
-    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
-    # You can convert this to a matrix build if you need cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: ubuntu-latest
+  check-clang:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, macos-latest ]
+        build_type: [ Debug, Release ]
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install LLVM and Clang
+    - name: Install LLVM
       uses: KyleMayes/install-llvm-action@v1
       with:
         version: "14.0"
@@ -23,3 +24,28 @@ jobs:
       env:
         CC: clang
         CXX: clang++
+        CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
+        BUILD_DIR: ${{ matrix.build_type }}-Clang
+
+  check-gcc:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, macos-latest ]
+        build_type: [ Debug, Release ]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 11
+          platform: x64
+
+      - name: Check
+        run: ${{github.workspace}}/check.sh
+        env:
+          CC: gcc
+          CXX: g++
+          CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
+          BUILD_DIR: ${{ matrix.build_type }}-GCC
