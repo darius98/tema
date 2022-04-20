@@ -17,9 +17,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=undefined)
     add_link_options(-fsanitize=address,undefined)
 else ()
-    set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-    set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+    add_compile_options(-flto -fPIE -fvisibility=hidden)
+    add_link_options(-flto -fPIE -fvisibility=hidden)
 endif ()
 
 set(CLANG_WARNINGS
