@@ -19,7 +19,7 @@ file(CHMOD ${CMAKE_CURRENT_BINARY_DIR}/run_tests.sh PERMISSIONS
 
 macro(add_tema_test NAME)
     add_executable(${NAME} ${ARGN})
-    target_link_libraries(${NAME} tema mcga_test mcga_matchers)
+    target_link_libraries(${NAME} tema mcga_test_static mcga_matchers)
 
     set(PROFRAW_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.profraw)
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/run_tests.sh "LLVM_PROFILE_FILE=${PROFRAW_FILE_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${NAME} --executor=smooth\n")
