@@ -57,7 +57,8 @@ endif ()
 include(FetchContent)
 
 FetchContent_Declare(mcga_cli URL https://github.com/darius98/mcga-cli/archive/refs/heads/master.zip)
-FetchContent_MakeAvailable(mcga_cli)
+FetchContent_Populate(mcga_cli)
+add_subdirectory(${mcga_cli_SOURCE_DIR} ${mcga_cli_BINARY_DIR} EXCLUDE_FROM_ALL)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)
