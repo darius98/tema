@@ -4,6 +4,14 @@ project(tema)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Build with coverage
+if (CMAKE_BUILD_TYPE MATCHES "Debug" AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(COLLECT_COVERAGE_DEFAULT ON)
+else ()
+    set(COLLECT_COVERAGE_DEFAULT OFF)
+endif ()
+option(COLLECT_COVERAGE "Collect Clang source-based coverage" ${COLLECT_COVERAGE_DEFAULT})
+
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
     add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=undefined)
