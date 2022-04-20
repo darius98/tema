@@ -9,7 +9,7 @@ BUILD_DIR_FULL=.build/${BUILD_DIR}
 
 echo "\nConfigure & build project\n"
 mkdir -p ${BUILD_DIR_FULL}
-cmake -DCMAKE_BUILD_TYPE=Debug -B${BUILD_DIR_FULL} -H.
+cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -B${BUILD_DIR_FULL} -H.
 cmake --build ${BUILD_DIR_FULL} -j8
 
 echo "\nRun tests\n"

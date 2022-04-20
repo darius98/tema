@@ -28,10 +28,9 @@ jobs:
         BUILD_DIR: ${{ matrix.build_type }}-Clang
 
   check-gcc:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        os: [ ubuntu-20.04, macos-latest ]
         build_type: [ Debug, Release ]
     steps:
       - uses: actions/checkout@v3
