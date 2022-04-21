@@ -16,6 +16,6 @@ struct variable {
 
 using variable_ptr = std::shared_ptr<const variable>;
 
-variable_ptr var(symbol name);
+[[nodiscard]] variable_ptr var(symbol name);
 
 }// namespace tema

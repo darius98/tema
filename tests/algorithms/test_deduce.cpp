@@ -3,7 +3,7 @@
 #include "mcga/test_ext/matchers.hpp"
 
 #include "algorithms/equals.h"
-#include "algorithms/print_ascii.h"
+#include "algorithms/print_utf8.h"
 
 using namespace tema;
 using namespace mcga::matchers;
@@ -12,11 +12,11 @@ using namespace mcga::test;
 void expect_deduce(const statement_ptr& law, const statement_ptr& application, const statement_ptr& expected_conclusion, const std::set<variable_ptr> expected_unmatched_vars, Context context = Context()) {
     const auto result = deduce(law.get(), application.get());
     const auto message = "deduce " +
-                         print_ascii(expected_conclusion.get()) +
+                         print_utf8(expected_conclusion.get()) +
                          " from law " +
-                         print_ascii(law.get()) +
+                         print_utf8(law.get()) +
                          " applied as " +
-                         print_ascii(application.get());
+                         print_utf8(application.get());
     expectMsg(result.has_value(), message, context);
     expectMsg(equals(result.value().stmt.get(), expected_conclusion.get()), message, context);
     expect(result.value().unmatched_vars, isEqualTo(expected_unmatched_vars), context);
@@ -25,9 +25,9 @@ void expect_deduce(const statement_ptr& law, const statement_ptr& application, c
 void expect_not_deduce(const statement_ptr& law, const statement_ptr& application, Context context = Context()) {
     const auto result = deduce(law.get(), application.get());
     expectMsg(!result.has_value(),
-              print_ascii(application.get()) +
+              print_utf8(application.get()) +
                       " does not deduce anything from " +
-                      print_ascii(law.get()),
+                      print_utf8(law.get()),
               std::move(context));
 }
 

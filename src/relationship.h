@@ -1,38 +1,43 @@
 #pragma once
 
+#include <string>
+
 #include "expression.h"
 
 namespace tema {
 
 enum class rel_type {
-    // Equality / Inequality
-    eq,
-    n_eq,
-    less,
-    n_less,
-    eq_less,
-    n_eq_less,
-    greater,
-    n_greater,
-    eq_greater,
-    n_eq_greater,
+    // Equality
+    eq = 0,
+    n_eq = 1,
+    // Ordering
+    less = 2,
+    n_less = 3,
+    eq_less = 4,
+    n_eq_less = 5,
+    greater = 6,
+    n_greater = 7,
+    eq_greater = 8,
+    n_eq_greater = 9,
     // Set theory
-    in,
-    n_in,
-    includes,
-    n_includes,
-    eq_includes,
-    n_eq_includes,
-    is_included,
-    n_is_included,
-    eq_is_included,
-    n_eq_is_included,
+    in = 10,
+    n_in = 11,
+    includes = 12,
+    n_includes = 13,
+    eq_includes = 14,
+    n_eq_includes = 15,
+    is_included = 16,
+    n_is_included = 17,
+    eq_is_included = 18,
+    n_eq_is_included = 19,
 };
 
 struct relationship {
-    rel_type rel;
+    rel_type type;
     expr_ptr left;
     expr_ptr right;
 };
+
+[[nodiscard]] std::string_view to_utf8(rel_type rel) noexcept;
 
 }// namespace tema

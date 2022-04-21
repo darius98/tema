@@ -90,8 +90,8 @@ public:
     [[nodiscard]] bool is_var() const noexcept;
     [[nodiscard]] variable_ptr as_var() const;
 
-    [[nodiscard]] bool is_relationship() const noexcept;
-    [[nodiscard]] const relationship& as_relationship() const;
+    [[nodiscard]] bool is_rel() const noexcept;
+    [[nodiscard]] const relationship& as_rel() const;
 
     template<class V>
     void accept(V&& visitor) const {
@@ -144,5 +144,6 @@ using statement_ptr = statement::statement_ptr;
 [[nodiscard]] statement_ptr var_stmt(variable_ptr var);
 
 [[nodiscard]] statement_ptr rel_stmt(relationship rel);
+[[nodiscard]] statement_ptr rel_stmt(expr_ptr left, rel_type type, expr_ptr right);
 
 }// namespace tema

@@ -66,11 +66,11 @@ variable_ptr statement::as_var() const {
     return get<variable_ptr>(data);
 }
 
-bool statement::is_relationship() const noexcept {
+bool statement::is_rel() const noexcept {
     return holds_alternative<relationship>(data);
 }
 
-const relationship& statement::as_relationship() const {
+const relationship& statement::as_rel() const {
     return get<relationship>(data);
 }
 
@@ -114,6 +114,14 @@ statement_ptr var_stmt(variable_ptr var) {
 
 statement_ptr rel_stmt(relationship rel) {
     return std::make_shared<const statement>(statement::private_tag{}, std::move(rel));
+}
+
+statement_ptr rel_stmt(expr_ptr left, rel_type type, expr_ptr right) {
+    return rel_stmt({
+            .type = type,
+            .left = std::move(left),
+            .right = std::move(right),
+    });
 }
 
 }// namespace tema

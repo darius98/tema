@@ -2,14 +2,14 @@
 
 #include "mcga/test_ext/matchers.hpp"
 
-#include "algorithms/print_ascii.h"
+#include "algorithms/print_utf8.h"
 
 using namespace tema;
 using namespace mcga::matchers;
 
 void impl_expect_equals(bool expected, const char* sign, const statement_ptr& a, const statement_ptr& b, mcga::test::Context context) {
     mcga::test::expectMsg(equals(a.get(), b.get()) == expected,
-                          print_ascii(a.get()) + sign + print_ascii(b.get()),
+                          print_utf8(a.get()) + sign + print_utf8(b.get()),
                           std::move(context));
 }
 

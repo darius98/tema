@@ -14,7 +14,7 @@ add_library(tema
         algorithms/deduce.cpp
         algorithms/equals.cpp
         algorithms/match.cpp
-        algorithms/print_ascii.cpp
+        algorithms/print_utf8.cpp
 
         modules/propositional_logic.cpp
         )

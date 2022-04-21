@@ -25,7 +25,7 @@ add_tema_test(unittests
         algorithms/test_deduce.cpp
         algorithms/test_equals.cpp
         algorithms/test_match.cpp
-        algorithms/test_print_ascii.cpp
+        algorithms/test_print_utf8.cpp
         test_module.cpp
         test_statement.cpp
         test_scope.cpp)

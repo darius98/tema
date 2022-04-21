@@ -3,7 +3,7 @@
 #include "mcga/test_ext/matchers.hpp"
 
 #include "algorithms/equals.h"
-#include "algorithms/print_ascii.h"
+#include "algorithms/print_utf8.h"
 
 using namespace tema;
 using namespace mcga::matchers;
@@ -12,12 +12,12 @@ using namespace mcga::test;
 void expect_matches(const statement_ptr& law, const statement_ptr& application, const match_result& expected_repls, const Context& context = Context()) {
     const auto result = match(law.get(), application.get());
     expectMsg(result.has_value(),
-              print_ascii(application.get()) +
+              print_utf8(application.get()) +
                       " matches " +
-                      print_ascii(law.get()),
+                      print_utf8(law.get()),
               context);
     for (const auto& [var, repl]: result.value()) {
-        expectMsg(expected_repls.contains(var), "Unexpected replacement " + var->name + " (replaced with '" + print_ascii(repl.get()) + "')", context);
+        expectMsg(expected_repls.contains(var), "Unexpected replacement " + var->name + " (replaced with '" + print_utf8(repl.get()) + "')", context);
         expect(equals(repl.get(), expected_repls.find(var)->second.get()), context);
     }
     expect(result.value(), hasSize(expected_repls.size()), context);
@@ -26,9 +26,9 @@ void expect_matches(const statement_ptr& law, const statement_ptr& application, 
 void expect_not_matches(const statement_ptr& law, const statement_ptr& application, Context context = Context()) {
     const auto result = match(law.get(), application.get());
     expectMsg(!result.has_value(),
-              print_ascii(application.get()) +
+              print_utf8(application.get()) +
                       " does not match " +
-                      print_ascii(law.get()),
+                      print_utf8(law.get()),
               std::move(context));
 }
 

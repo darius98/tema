@@ -3,7 +3,7 @@
 #include "mcga/test_ext/matchers.hpp"
 
 #include "algorithms/equals.h"
-#include "algorithms/print_ascii.h"
+#include "algorithms/print_utf8.h"
 
 using namespace tema;
 using namespace mcga::matchers;
@@ -12,7 +12,7 @@ using namespace mcga::test;
 void expect_apply_vars(const statement_ptr& law, const std::map<variable_ptr, statement_ptr>& replacements, const statement_ptr& expected_application, std::set<variable_ptr> expected_unmatched_vars, Context context = Context()) {
     const auto result = apply_vars(law.get(), replacements);
     expectMsg(equals(result.stmt.get(), expected_application.get()),
-              print_ascii(law.get()) + " ===> " + print_ascii(expected_application.get()),
+              print_utf8(law.get()) + " ===> " + print_utf8(expected_application.get()),
               context);
     expect(result.unmatched_vars, std::move(expected_unmatched_vars), std::move(context));
 }
