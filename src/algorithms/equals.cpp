@@ -128,6 +128,14 @@ struct equals_statement_visitor {
     }
 };
 
+bool equals(const expression* a, const expression* b) {
+    if (a == b) {
+        return true;
+    }
+    var_mapping empty;
+    return a->accept_r<bool>(equals_expression_visitor{&empty, b});
+}
+
 bool equals(const statement* a, const statement* b) {
     if (a == b) {
         return true;

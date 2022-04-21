@@ -57,4 +57,16 @@ TEST_CASE("algorithms.print_utf8") {
         expect(!sout.bad());
         expect(sout.str(), "(p→(q→r))⟷(q→(p→r))");
     });
+
+    test("On expressions", [] {
+        const auto x = var("X");
+        const auto x_expr = var_expr(x);
+        expect(print_utf8(x_expr.get()), "X");
+
+        std::stringstream sout;
+        print_utf8_to(x_expr.get(), sout);
+        expect(!sout.fail());
+        expect(!sout.bad());
+        expect(sout.str(), "X");
+    });
 }

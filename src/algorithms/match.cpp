@@ -6,12 +6,39 @@
 
 namespace tema {
 
-struct match_visitor {
+using var_mapping = std::map<const variable*, const variable*>;
+
+struct match_expression_visitor {
+    const var_mapping* bound_vars;
+    match_result* result;
+    expr_ptr app_node;
+
+    match_expression_visitor(const var_mapping* bound_vars, match_result* result, expr_ptr app_node)
+        : bound_vars(bound_vars), result(result), app_node(std::move(app_node)) {}
+
+    bool operator()(const variable_ptr& var) const {
+        const auto bound_var_it = bound_vars->find(var.get());
+        if (bound_var_it != bound_vars->end()) {
+            return app_node->is_var() && app_node->as_var().get() == bound_var_it->second;
+        }
+        const auto it = result->expr_replacements.find(var);
+        if (it == result->expr_replacements.end()) {
+            result->expr_replacements.emplace(var, app_node);
+            return true;
+        }
+        return equals(it->second.get(), app_node.get());
+    }
+};
+
+struct match_statement_visitor {
     statement_ptr app_node;
-    std::map<variable_ptr, statement_ptr> replacements;
+    match_result result;
 
     // TODO: This will contain like 1-2 variables at most, do a flat map / vector for it.
-    std::map<const variable*, const variable*> bound_vars_mapping;// For forall
+    var_mapping bound_vars;// For forall
+
+    explicit match_statement_visitor(statement_ptr app_node)
+        : app_node(std::move(app_node)) {}
 
     bool operator()(const statement::truth&) const {
         return app_node->is_truth();
@@ -62,50 +89,65 @@ struct match_visitor {
             // TODO: Are we sure? There may be other cases when we can still match.
             return false;
         }
-        if (bound_vars_mapping.contains(expr.var.get())) {
+        if (bound_vars.contains(expr.var.get())) {
             throw std::runtime_error("Invalid statement, forall twice with the same variable");
         }
-        const auto [it, inserted] = bound_vars_mapping.emplace(expr.var.get(), app_node->as_forall().var.get());
-        const auto result = visit_recursive(expr.inner.get(), app_node->as_forall().inner);
-        bound_vars_mapping.erase(it);
-        return result;
+        const auto [it, inserted] = bound_vars.emplace(expr.var.get(), app_node->as_forall().var.get());
+        const auto inner_matches = visit_recursive(expr.inner.get(), app_node->as_forall().inner);
+        bound_vars.erase(it);
+        return inner_matches;
     }
     bool operator()(const variable_ptr& var) {
-        const auto bound_var_it = bound_vars_mapping.find(var.get());
-        if (bound_var_it != bound_vars_mapping.end()) {
+        const auto bound_var_it = bound_vars.find(var.get());
+        if (bound_var_it != bound_vars.end()) {
             return app_node->is_var() && app_node->as_var().get() == bound_var_it->second;
         }
-        const auto it = replacements.find(var);
-        if (it == replacements.end()) {
-            replacements.emplace(var, app_node);
+        const auto it = result.stmt_replacements.find(var);
+        if (it == result.stmt_replacements.end()) {
+            result.stmt_replacements.emplace(var, app_node);
             return true;
         }
         return equals(it->second.get(), app_node.get());
     }
-    bool operator()(const relationship&) const {
-        // TODO: Implement.
-        std::abort();
+    bool operator()(const relationship& rel) {
+        if (!app_node->is_rel() || app_node->as_rel().type != rel.type) {
+            return false;
+        }
+        if (!rel.left->accept_r<bool>(match_expression_visitor{&bound_vars, &result, app_node->as_rel().left})) {
+            return false;
+        }
+        if (!rel.right->accept_r<bool>(match_expression_visitor{&bound_vars, &result, app_node->as_rel().right})) {
+            return false;
+        }
+        return true;
     }
 
     [[nodiscard]] bool visit_recursive(const statement* a, statement_ptr new_app_node) {
         auto old_app_node = app_node;
         app_node = std::move(new_app_node);
-        const auto result = a->accept_r<bool>(*this);
-        app_node = old_app_node;
-        return result;
+        const auto sub_stmt_matches = a->accept_r<bool>(*this);
+        app_node = std::move(old_app_node);
+        return sub_stmt_matches;
     }
 };
 
+std::optional<match_result> match(const expression* law, const expression* application) {
+    var_mapping bound_vars;
+    match_result result;
+    match_expression_visitor visitor(&bound_vars, &result, application->shared_from_this());
+    if (!law->accept_r<bool>(visitor)) {
+        // TODO: Test this when it becomes possible for two expressions not to be equal, lol.
+        return std::nullopt;
+    }
+    return std::move(result);
+}
+
 std::optional<match_result> match(const statement* law, const statement* application) {
-    match_visitor visitor{
-            .app_node = application->shared_from_this(),
-            .replacements = {},
-            .bound_vars_mapping = {},
-    };
+    match_statement_visitor visitor(application->shared_from_this());
     if (!law->accept_r<bool>(visitor)) {
         return std::nullopt;
     }
-    return std::move(visitor.replacements);
+    return std::move(visitor.result);
 }
 
 }// namespace tema

@@ -9,18 +9,28 @@ using namespace tema;
 using namespace mcga::matchers;
 using namespace mcga::test;
 
-void expect_matches(const statement_ptr& law, const statement_ptr& application, const match_result& expected_repls, const Context& context = Context()) {
+void expect_matches(const auto& law,
+                    const auto& application,
+                    const std::map<variable_ptr, statement_ptr>& expected_stmt_repls,
+                    const std::map<variable_ptr, expr_ptr>& expected_expr_repls = {},
+                    const Context& context = Context()) {
     const auto result = match(law.get(), application.get());
     expectMsg(result.has_value(),
               print_utf8(application.get()) +
                       " matches " +
                       print_utf8(law.get()),
               context);
-    for (const auto& [var, repl]: result.value()) {
-        expectMsg(expected_repls.contains(var), "Unexpected replacement " + var->name + " (replaced with '" + print_utf8(repl.get()) + "')", context);
-        expect(equals(repl.get(), expected_repls.find(var)->second.get()), context);
+    for (const auto& [var, repl]: result.value().stmt_replacements) {
+        expectMsg(expected_stmt_repls.contains(var), "Unexpected replacement " + var->name + " (replaced with '" + print_utf8(repl.get()) + "')", context);
+        expect(equals(repl.get(), expected_stmt_repls.find(var)->second.get()), context);
     }
-    expect(result.value(), hasSize(expected_repls.size()), context);
+    expect(result.value().stmt_replacements, hasSize(expected_stmt_repls.size()), context);
+
+    for (const auto& [var, repl]: result.value().expr_replacements) {
+        expectMsg(expected_expr_repls.contains(var), "Unexpected replacement " + var->name + " (replaced with '" + print_utf8(repl.get()) + "')", context);
+        expect(equals(repl.get(), expected_expr_repls.find(var)->second.get()), context);
+    }
+    expect(result.value().expr_replacements, hasSize(expected_expr_repls.size()), context);
 }
 
 void expect_not_matches(const statement_ptr& law, const statement_ptr& application, Context context = Context()) {
@@ -162,6 +172,91 @@ TEST_CASE("algorithms.match") {
             const auto law = implies(disj(var_stmt(p), var_stmt(q)), disj(var_stmt(q), var_stmt(p)));
             const auto application = implies(disj(truth(), contradiction()), disj(truth(), contradiction()));
             expect_not_matches(law, application);
+        });
+    });
+
+    group("expressions", [&] {
+        const auto x = var("x");
+        const auto y = var("y");
+        const auto s = var("s");
+        const auto t = var("t");
+
+        test("match relationship statements", [&] {
+            expect_matches(rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)),
+                           rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(t)),
+                           {},
+                           {
+                                   {x, var_expr(s)},
+                                   {y, var_expr(t)},
+                           });
+
+            // With bound variable
+            expect_matches(forall(x, disj(
+                                             rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)),
+                                             rel_stmt(var_expr(x), rel_type::n_eq_is_included, var_expr(y)))),
+                           forall(s, disj(
+                                             rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(t)),
+                                             rel_stmt(var_expr(s), rel_type::n_eq_is_included, var_expr(t)))),
+                           {},
+                           {
+                                   {y, var_expr(t)},
+                           });
+        });
+
+        test("not a match relationship statements", [&] {
+            // match with non-relationship
+            expect_not_matches(rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)), var_stmt(p));
+
+            // match with different relationship type
+            expect_not_matches(rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)),
+                               rel_stmt(var_expr(x), rel_type::n_eq_includes, var_expr(y)));
+
+            // doesn't match left side
+            expect_not_matches(disj(rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)),
+                                    rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y))),
+                               disj(rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(t)),
+                                    rel_stmt(var_expr(t), rel_type::eq_is_included, var_expr(t))));
+
+            // doesn't match right side
+            expect_not_matches(disj(rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)),
+                                    rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y))),
+                               disj(rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(t)),
+                                    rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(s))));
+
+            // doesn't match bound variable
+            expect_not_matches(forall(x, disj(
+                                                 rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)),
+                                                 rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)))),
+                               forall(s, disj(
+                                                 rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(t)),
+                                                 rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(s)))));
+            expect_not_matches(forall(x, disj(
+                                                 rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)),
+                                                 rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)))),
+                               forall(s, disj(
+                                                 rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(t)),
+                                                 rel_stmt(var_expr(t), rel_type::eq_is_included, var_expr(t)))));
+        });
+
+        test("match both expressions and statements", [&] {
+            // Matching both expressions and statements
+            expect_matches(disj(var_stmt(p), rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y))),
+                           disj(contradiction(), rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(t))),
+                           {
+                                   {p, contradiction()},
+                           },
+                           {
+                                   {x, var_expr(s)},
+                                   {y, var_expr(t)},
+                           });
+        });
+
+        test("match expression", [&] {
+            expect_matches(var_expr(x), var_expr(s), {}, {{x, var_expr(s)}});
+        });
+
+        test("not a match expression", [&] {
+            // TODO: Not possible atm.
         });
     });
 }

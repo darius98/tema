@@ -7,17 +7,17 @@
 using namespace tema;
 using namespace mcga::matchers;
 
-void impl_expect_equals(bool expected, const char* sign, const statement_ptr& a, const statement_ptr& b, mcga::test::Context context) {
+void impl_expect_equals(bool expected, const char* sign, const auto& a, const auto& b, mcga::test::Context context) {
     mcga::test::expectMsg(equals(a.get(), b.get()) == expected,
                           print_utf8(a.get()) + sign + print_utf8(b.get()),
                           std::move(context));
 }
 
-void expect_equals(const statement_ptr& a, const statement_ptr& b, mcga::test::Context context = mcga::test::Context()) {
+void expect_equals(const auto& a, const auto& b, mcga::test::Context context = mcga::test::Context()) {
     impl_expect_equals(true, " == ", a, b, std::move(context));
 }
 
-void expect_not_equals(const statement_ptr& a, const statement_ptr& b, mcga::test::Context context = mcga::test::Context()) {
+void expect_not_equals(const auto& a, const auto& b, mcga::test::Context context = mcga::test::Context()) {
     impl_expect_equals(false, " != ", a, b, std::move(context));
 }
 
@@ -153,5 +153,15 @@ TEST_CASE("algorithms.equals") {
         // With different bindings
         expect_equals(forall(x, forall(y, rel_stmt(var_expr(x), rel_type::eq_includes, var_expr(y)))),
                       forall(y, forall(x, rel_stmt(var_expr(x), rel_type::eq_includes, var_expr(y)))));
+    });
+
+    test("on expressions", [&] {
+        const auto x = var("X");
+        expect_equals(var_expr(x), var_expr(x));
+
+        const auto x_expr = var_expr(x);
+        expect_equals(x_expr, x_expr);
+
+        expect_not_equals(var_expr(x), var_expr(var("Y")));
     });
 }

@@ -41,6 +41,16 @@ struct print_utf8_expression_visitor {
     }
 };
 
+void print_utf8_to(const expression* expr, std::ostream& to) {
+    expr->accept(print_utf8_expression_visitor{to});
+}
+
+std::string print_utf8(const expression* expr) {
+    std::stringstream sout;
+    print_utf8_to(expr, sout);
+    return std::move(sout).str();
+}
+
 struct print_utf8_statement_visitor {
     std::ostream& to;
 
@@ -97,9 +107,9 @@ struct print_utf8_statement_visitor {
         to << var->name;
     }
     void operator()(const relationship& rel) const {
-        rel.left->accept(print_utf8_expression_visitor{to});
+        print_utf8_to(rel.left.get(), to);
         to << to_utf8(rel.type);
-        rel.right->accept(print_utf8_expression_visitor{to});
+        print_utf8_to(rel.right.get(), to);
     }
 
     void visit_sub_statement(const statement& expr) {
