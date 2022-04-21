@@ -34,18 +34,6 @@ TEST_CASE("statement") {
         expect(a, contradiction());
     });
 
-    test("variable", [] {
-        const auto p = var("P");
-
-        const auto a = var_stmt(p);
-
-        expect(a->is_var(), isTrue);
-        expect(a->as_var(), p);
-
-        expect(a->is_truth(), isFalse);
-        expect([&] { (void) a->as_truth(); }, throwsA<std::bad_variant_access>);
-    });
-
     test("implication", [] {
         const auto a = implies(contradiction(), truth());
         expect(a->is_implies(), isTrue);
@@ -155,5 +143,32 @@ TEST_CASE("statement") {
 
         expect(a->is_conj(), isFalse);
         expect([&] { (void) a->as_conj(); }, throwsA<std::bad_variant_access>);
+    });
+
+    test("variable", [] {
+        const auto p = var("P");
+
+        const auto a = var_stmt(p);
+
+        expect(a->is_var(), isTrue);
+        expect(a->as_var(), p);
+
+        expect(a->is_truth(), isFalse);
+        expect([&] { (void) a->as_truth(); }, throwsA<std::bad_variant_access>);
+    });
+
+    test("relationship", [] {
+        const auto x = var("x");
+        const auto y = var("y");
+        const auto a = rel_stmt(relationship{rel_type::eq, var_expr(x), var_expr(y)});
+
+        expect(a->is_relationship(), isTrue);
+        expect(a->as_relationship().left->is_var(), isTrue);
+        expect(a->as_relationship().left->as_var(), x);
+        expect(a->as_relationship().right->is_var(), isTrue);
+        expect(a->as_relationship().right->as_var(), y);
+
+        expect(a->is_var(), isFalse);
+        expect([&] { (void) a->as_var(); }, throwsA<std::bad_variant_access>);
     });
 }

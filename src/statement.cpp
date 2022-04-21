@@ -16,13 +16,6 @@ const statement::contradiction& statement::as_contradiction() const {
     return get<contradiction>(data);
 }
 
-bool statement::is_var() const noexcept {
-    return holds_alternative<variable_ptr>(data);
-}
-variable_ptr statement::as_var() const {
-    return get<variable_ptr>(data);
-}
-
 bool statement::is_implies() const noexcept {
     return holds_alternative<implies>(data);
 }
@@ -66,6 +59,21 @@ const statement::forall& statement::as_forall() const {
     return get<forall>(data);
 }
 
+bool statement::is_var() const noexcept {
+    return holds_alternative<variable_ptr>(data);
+}
+variable_ptr statement::as_var() const {
+    return get<variable_ptr>(data);
+}
+
+bool statement::is_relationship() const noexcept {
+    return holds_alternative<relationship>(data);
+}
+
+const relationship& statement::as_relationship() const {
+    return get<relationship>(data);
+}
+
 statement_ptr truth() {
     static statement_ptr universal_truth = std::make_shared<const statement>(statement::private_tag{}, statement::truth{});
     return universal_truth;
@@ -74,10 +82,6 @@ statement_ptr truth() {
 statement_ptr contradiction() {
     static statement_ptr universal_contradiction = std::make_shared<const statement>(statement::private_tag{}, statement::contradiction{});
     return universal_contradiction;
-}
-
-statement_ptr var_stmt(variable_ptr var) {
-    return std::make_shared<const statement>(statement::private_tag{}, std::move(var));
 }
 
 statement_ptr implies(statement_ptr from, statement_ptr to) {
@@ -102,6 +106,14 @@ statement_ptr disj(std::vector<statement_ptr> stmts) {
 
 statement_ptr forall(variable_ptr var, statement_ptr inner) {
     return std::make_shared<const statement>(statement::private_tag{}, statement::forall{std::move(var), std::move(inner)});
+}
+
+statement_ptr var_stmt(variable_ptr var) {
+    return std::make_shared<const statement>(statement::private_tag{}, std::move(var));
+}
+
+statement_ptr rel_stmt(relationship rel) {
+    return std::make_shared<const statement>(statement::private_tag{}, std::move(rel));
 }
 
 }// namespace tema

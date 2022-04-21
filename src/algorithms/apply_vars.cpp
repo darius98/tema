@@ -16,16 +16,6 @@ struct apply_vars_visitor {
     statement_ptr operator()(const statement::contradiction&) const {
         return nullptr;
     }
-    statement_ptr operator()(const variable_ptr& var) {
-        const auto it = replacements.find(var);
-        if (it == replacements.end()) {
-            if (!bound_vars.contains(var.get())) {
-                unmatched_vars.insert(var);
-            }
-            return nullptr;
-        }
-        return it->second;
-    }
     statement_ptr operator()(const statement::implies& expr) {
         auto from = expr.from->accept_r<statement_ptr>(*this);
         auto to = expr.to->accept_r<statement_ptr>(*this);
@@ -104,6 +94,20 @@ struct apply_vars_visitor {
             return nullptr;
         }
         return forall(expr.var, inner);
+    }
+    statement_ptr operator()(const variable_ptr& var) {
+        const auto it = replacements.find(var);
+        if (it == replacements.end()) {
+            if (!bound_vars.contains(var.get())) {
+                unmatched_vars.insert(var);
+            }
+            return nullptr;
+        }
+        return it->second;
+    }
+    statement_ptr operator()(const relationship&) const {
+        // TODO: Implement.
+        std::abort();
     }
 };
 

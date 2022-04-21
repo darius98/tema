@@ -19,18 +19,6 @@ struct match_visitor {
     bool operator()(const statement::contradiction&) const {
         return app_node->is_contradiction();
     }
-    bool operator()(const variable_ptr& var) {
-        const auto bound_var_it = bound_vars_mapping.find(var.get());
-        if (bound_var_it != bound_vars_mapping.end()) {
-            return app_node->is_var() && app_node->as_var().get() == bound_var_it->second;
-        }
-        const auto it = replacements.find(var);
-        if (it == replacements.end()) {
-            replacements.emplace(var, app_node);
-            return true;
-        }
-        return equals(it->second.get(), app_node.get());
-    }
     bool operator()(const statement::implies& expr) {
         return app_node->is_implies() &&
                visit_recursive(expr.from.get(), app_node->as_implies().from) &&
@@ -81,6 +69,22 @@ struct match_visitor {
         const auto result = visit_recursive(expr.inner.get(), app_node->as_forall().inner);
         bound_vars_mapping.erase(it);
         return result;
+    }
+    bool operator()(const variable_ptr& var) {
+        const auto bound_var_it = bound_vars_mapping.find(var.get());
+        if (bound_var_it != bound_vars_mapping.end()) {
+            return app_node->is_var() && app_node->as_var().get() == bound_var_it->second;
+        }
+        const auto it = replacements.find(var);
+        if (it == replacements.end()) {
+            replacements.emplace(var, app_node);
+            return true;
+        }
+        return equals(it->second.get(), app_node.get());
+    }
+    bool operator()(const relationship&) const {
+        // TODO: Implement.
+        std::abort();
     }
 
     [[nodiscard]] bool visit_recursive(const statement* a, statement_ptr new_app_node) {

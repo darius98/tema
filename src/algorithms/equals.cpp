@@ -26,16 +26,6 @@ struct equals_visitor {
         // As contradiction is a singleton, this would be the same pointer, covered below.
         return false;
     }
-    bool operator()(const variable_ptr& a) const {
-        if (!b->is_var()) {
-            return false;
-        }
-        if (a == b->as_var()) {
-            return true;
-        }
-        const auto it = bound_vars_mapping.find(a.get());
-        return it != bound_vars_mapping.end() && it->second == b->as_var().get();
-    }
     bool operator()(const statement::implies& a) {
         return b->is_implies() &&
                visit_recursive(a.from.get(), b->as_implies().from.get()) &&
@@ -97,6 +87,20 @@ struct equals_visitor {
         const auto result = a->accept_r<bool>(*this);
         b = old_b;
         return result;
+    }
+    bool operator()(const variable_ptr& a) const {
+        if (!b->is_var()) {
+            return false;
+        }
+        if (a == b->as_var()) {
+            return true;
+        }
+        const auto it = bound_vars_mapping.find(a.get());
+        return it != bound_vars_mapping.end() && it->second == b->as_var().get();
+    }
+    bool operator()(const relationship&) const {
+        // TODO: Implement.
+        std::abort();
     }
 };
 

@@ -3,6 +3,8 @@
 #include <memory>
 #include <vector>
 
+#include "expression.h"
+#include "relationship.h"
 #include "util/cvref_same_as.h"
 #include "util/tpack.h"
 #include "variable.h"
@@ -43,7 +45,7 @@ struct statement : std::enable_shared_from_this<statement> {
         statement_ptr inner;
     };
 
-    using types = util::tpack<truth, contradiction, implies, equiv, neg, conj, disj, forall, variable_ptr>;
+    using types = util::tpack<truth, contradiction, implies, equiv, neg, conj, disj, forall, variable_ptr, relationship>;
 
 private:
     util::variant_for<types> data;
@@ -67,9 +69,6 @@ public:
     [[nodiscard]] bool is_contradiction() const noexcept;
     [[nodiscard]] const contradiction& as_contradiction() const;
 
-    [[nodiscard]] bool is_var() const noexcept;
-    [[nodiscard]] variable_ptr as_var() const;
-
     [[nodiscard]] bool is_implies() const noexcept;
     [[nodiscard]] const implies& as_implies() const;
 
@@ -88,6 +87,12 @@ public:
     [[nodiscard]] bool is_forall() const noexcept;
     [[nodiscard]] const forall& as_forall() const;
 
+    [[nodiscard]] bool is_var() const noexcept;
+    [[nodiscard]] variable_ptr as_var() const;
+
+    [[nodiscard]] bool is_relationship() const noexcept;
+    [[nodiscard]] const relationship& as_relationship() const;
+
     template<class V>
     void accept(V&& visitor) const {
         std::visit(std::forward<V>(visitor), data);
@@ -100,13 +105,14 @@ public:
 
     friend statement_ptr truth();
     friend statement_ptr contradiction();
-    friend statement_ptr var_stmt(variable_ptr var);
     friend statement_ptr implies(statement_ptr from, statement_ptr to);
     friend statement_ptr equiv(statement_ptr left, statement_ptr right);
     friend statement_ptr neg(statement_ptr stmt);
     friend statement_ptr conj(std::vector<statement_ptr> stmts);
     friend statement_ptr disj(std::vector<statement_ptr> stmts);
     friend statement_ptr forall(variable_ptr var, statement_ptr inner);
+    friend statement_ptr var_stmt(variable_ptr var);
+    friend statement_ptr rel_stmt(relationship rel);
 };
 
 using statement_ptr = statement::statement_ptr;
@@ -114,8 +120,6 @@ using statement_ptr = statement::statement_ptr;
 [[nodiscard]] statement_ptr truth();
 
 [[nodiscard]] statement_ptr contradiction();
-
-[[nodiscard]] statement_ptr var_stmt(variable_ptr var);
 
 [[nodiscard]] statement_ptr implies(statement_ptr from, statement_ptr to);
 
@@ -136,5 +140,9 @@ using statement_ptr = statement::statement_ptr;
 }
 
 [[nodiscard]] statement_ptr forall(variable_ptr var, statement_ptr inner);
+
+[[nodiscard]] statement_ptr var_stmt(variable_ptr var);
+
+[[nodiscard]] statement_ptr rel_stmt(relationship rel);
 
 }// namespace tema

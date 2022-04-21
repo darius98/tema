@@ -18,9 +18,6 @@ struct print_ascii_visitor {
     void operator()(const statement::contradiction&) {
         to << "F";
     }
-    void operator()(const variable_ptr& var) {
-        to << var->name;
-    }
     void operator()(const statement::implies& expr) {
         visit_sub_statement(*expr.from);
         to << "->";
@@ -60,6 +57,13 @@ struct print_ascii_visitor {
     void operator()(const statement::forall& expr) {
         to << "@" << expr.var->name << " ";
         visit_sub_statement(*expr.inner);
+    }
+    void operator()(const variable_ptr& var) {
+        to << var->name;
+    }
+    void operator()(const relationship&) const {
+        // TODO: Implement.
+        std::abort();
     }
 
     void visit_sub_statement(const statement& expr) {
