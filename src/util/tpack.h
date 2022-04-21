@@ -25,6 +25,9 @@ inline constexpr bool tpack_contains = tpack_contains_t<TypeList, T>::value;
 template<class T, class TypeList>
 concept one_of = tpack_contains<TypeList, T>;
 
+template<class T, class... Ts>
+concept one_of_types = one_of<T, tpack<Ts...>>;
+
 template<class T>
 struct for_tpack;
 

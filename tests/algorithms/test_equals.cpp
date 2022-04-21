@@ -124,4 +124,34 @@ TEST_CASE("algorithms.equals") {
         },
                throwsA<std::runtime_error>);
     });
+
+    test("relationships", [&] {
+        const auto x = var("X");
+        const auto y = var("Y");
+        const auto z = var("Z");
+
+        expect_equals(rel_stmt(var_expr(x), rel_type::in, var_expr(y)),
+                      rel_stmt(var_expr(x), rel_type::in, var_expr(y)));
+
+        // With bound variables
+        expect_equals(forall(x, rel_stmt(var_expr(x), rel_type::includes, var_expr(z))),
+                      forall(y, rel_stmt(var_expr(y), rel_type::includes, var_expr(z))));
+        expect_equals(forall(x, forall(y, rel_stmt(var_expr(x), rel_type::eq_includes, var_expr(y)))),
+                      forall(y, forall(x, rel_stmt(var_expr(y), rel_type::eq_includes, var_expr(x)))));
+
+        // Not with a relationship
+        expect_not_equals(rel_stmt(var_expr(x), rel_type::is_included, var_expr(y)), var_stmt(x));
+        // With different relationship type
+        expect_not_equals(rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)),
+                          rel_stmt(var_expr(x), rel_type::n_eq_is_included, var_expr(y)));
+        // With different left side
+        expect_not_equals(rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)),
+                          rel_stmt(var_expr(y), rel_type::eq_is_included, var_expr(y)));
+        // With different right side
+        expect_not_equals(rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)),
+                          rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(x)));
+        // With different bindings
+        expect_equals(forall(x, forall(y, rel_stmt(var_expr(x), rel_type::eq_includes, var_expr(y)))),
+                      forall(y, forall(x, rel_stmt(var_expr(x), rel_type::eq_includes, var_expr(y)))));
+    });
 }

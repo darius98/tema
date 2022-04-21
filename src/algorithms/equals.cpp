@@ -9,13 +9,41 @@ namespace tema {
 
 // TODO: Optimize via some hashes in statements
 
-struct equals_visitor {
+using var_mapping = std::map<const variable*, const variable*>;
+
+// Check if two variables are "equal", taking into account variables bound using "forall" statements.
+bool var_equals(const var_mapping* bound_vars,
+                const variable* a,
+                const util::one_of_types<expression, statement> auto* b) {
+    if (!b->is_var()) {
+        return false;
+    }
+    if (a == b->as_var().get()) {
+        return true;
+    }
+    const auto it = bound_vars->find(a);
+    return it != bound_vars->end() && it->second == b->as_var().get();
+}
+
+struct equals_expression_visitor {
+    const var_mapping* bound_vars;
+    const expression* b;
+
+    equals_expression_visitor(const var_mapping* bound_vars, const expression* b)
+        : bound_vars(bound_vars), b(b) {}
+
+    bool operator()(const variable_ptr& a) const {
+        return var_equals(bound_vars, a.get(), b);
+    }
+};
+
+struct equals_statement_visitor {
     const statement* b;
 
     // TODO: This will contain like 1-2 variables at most, do a flat map / vector for it.
-    std::map<const variable*, const variable*> bound_vars_mapping;// For forall
+    std::map<const variable*, const variable*> bound_vars;
 
-    explicit equals_visitor(const statement* b)
+    explicit equals_statement_visitor(const statement* b)
         : b(b) {}
 
     bool operator()(const statement::truth&) const {
@@ -68,12 +96,12 @@ struct equals_visitor {
         if (!b->is_forall()) {
             return false;
         }
-        if (bound_vars_mapping.contains(a.var.get())) {
+        if (bound_vars.contains(a.var.get())) {
             throw std::runtime_error("Invalid statement, forall twice with the same variable");
         }
-        const auto [it, inserted] = bound_vars_mapping.emplace(a.var.get(), b->as_forall().var.get());
+        const auto [it, inserted] = bound_vars.emplace(a.var.get(), b->as_forall().var.get());
         const auto result = visit_recursive(a.inner.get(), b->as_forall().inner.get());
-        bound_vars_mapping.erase(it);
+        bound_vars.erase(it);
         return result;
     }
 
@@ -88,19 +116,15 @@ struct equals_visitor {
         b = old_b;
         return result;
     }
+
     bool operator()(const variable_ptr& a) const {
-        if (!b->is_var()) {
-            return false;
-        }
-        if (a == b->as_var()) {
-            return true;
-        }
-        const auto it = bound_vars_mapping.find(a.get());
-        return it != bound_vars_mapping.end() && it->second == b->as_var().get();
+        return var_equals(&bound_vars, a.get(), b);
     }
-    bool operator()(const relationship&) const {
-        // TODO: Implement.
-        std::abort();
+    bool operator()(const relationship& a) const {
+        return b->is_rel() &&
+               a.type == b->as_rel().type &&
+               a.left->accept_r<bool>(equals_expression_visitor{&bound_vars, b->as_rel().left.get()}) &&
+               a.right->accept_r<bool>(equals_expression_visitor{&bound_vars, b->as_rel().right.get()});
     }
 };
 
@@ -108,7 +132,7 @@ bool equals(const statement* a, const statement* b) {
     if (a == b) {
         return true;
     }
-    return a->accept_r<bool>(equals_visitor{b});
+    return a->accept_r<bool>(equals_statement_visitor{b});
 }
 
 }// namespace tema
