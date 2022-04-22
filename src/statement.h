@@ -54,7 +54,7 @@ private:
     struct private_tag {};
 
 public:
-    statement(private_tag, util::one_of<types> auto t)
+    statement(private_tag, util::one_of_pack<types> auto t)
         : data(std::move(t)) {}
 
     statement(const statement&) = delete;

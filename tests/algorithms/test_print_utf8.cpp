@@ -60,13 +60,22 @@ TEST_CASE("algorithms.print_utf8") {
 
     test("On expressions", [] {
         const auto x = var("X");
+        const auto y = var("Y");
+        const auto z = var("Z");
+
         const auto x_expr = var_expr(x);
         expect(print_utf8(x_expr.get()), "X");
 
+        const auto x_union_y_expr = binop_expr(var_expr(x), binop_type::set_union, var_expr(y));
+        expect(print_utf8(x_union_y_expr.get()), "X∪Y");
+
+        const auto x_union_y_union_z_expr = binop_expr(var_expr(x), binop_type::set_union, binop_expr(var_expr(y), binop_type::set_union, var_expr(z)));
+        expect(print_utf8(x_union_y_union_z_expr.get()), "X∪(Y∪Z)");
+
         std::stringstream sout;
-        print_utf8_to(x_expr.get(), sout);
+        print_utf8_to(x_union_y_expr.get(), sout);
         expect(!sout.fail());
         expect(!sout.bad());
-        expect(sout.str(), "X");
+        expect(sout.str(), "X∪Y");
     });
 }

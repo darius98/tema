@@ -14,7 +14,7 @@ using var_mapping = std::map<const variable*, const variable*>;
 // Check if two variables are "equal", taking into account variables bound using "forall" statements.
 bool var_equals(const var_mapping* bound_vars,
                 const variable* a,
-                const util::one_of_types<expression, statement> auto* b) {
+                const util::one_of<expression, statement> auto* b) {
     if (!b->is_var()) {
         return false;
     }
@@ -23,6 +23,19 @@ bool var_equals(const var_mapping* bound_vars,
     }
     const auto it = bound_vars->find(a);
     return it != bound_vars->end() && it->second == b->as_var().get();
+}
+
+bool visit_recursive(auto& visitor,
+                     const util::one_of<expression, statement> auto* a,
+                     const util::one_of<expression, statement> auto* new_b) {
+    if (a == new_b) {
+        // Optimize the case when it's the same pointer
+        return true;
+    }
+    auto old_b = std::exchange(visitor.b, std::move(new_b));
+    const auto result = a->template accept_r<bool>(visitor);
+    visitor.b = std::move(old_b);
+    return result;
 }
 
 struct equals_expression_visitor {
@@ -34,6 +47,12 @@ struct equals_expression_visitor {
 
     bool operator()(const variable_ptr& a) const {
         return var_equals(bound_vars, a.get(), b);
+    }
+    bool operator()(const expression::binop& a) {
+        return b->is_binop() &&
+               a.type == b->as_binop().type &&
+               visit_recursive(*this, a.left.get(), b->as_binop().left.get()) &&
+               visit_recursive(*this, a.right.get(), b->as_binop().right.get());
     }
 };
 
@@ -56,17 +75,17 @@ struct equals_statement_visitor {
     }
     bool operator()(const statement::implies& a) {
         return b->is_implies() &&
-               visit_recursive(a.from.get(), b->as_implies().from.get()) &&
-               visit_recursive(a.to.get(), b->as_implies().to.get());
+               visit_recursive(*this, a.from.get(), b->as_implies().from.get()) &&
+               visit_recursive(*this, a.to.get(), b->as_implies().to.get());
     }
     bool operator()(const statement::equiv& a) {
         return b->is_equiv() &&
-               visit_recursive(a.left.get(), b->as_equiv().left.get()) &&
-               visit_recursive(a.right.get(), b->as_equiv().right.get());
+               visit_recursive(*this, a.left.get(), b->as_equiv().left.get()) &&
+               visit_recursive(*this, a.right.get(), b->as_equiv().right.get());
     }
     bool operator()(const statement::neg& a) {
         return b->is_neg() &&
-               visit_recursive(a.inner.get(), b->as_neg().inner.get());
+               visit_recursive(*this, a.inner.get(), b->as_neg().inner.get());
     }
     bool operator()(const statement::conj& a) {
         if (!b->is_conj() || a.inner.size() != b->as_conj().inner.size()) {
@@ -74,7 +93,7 @@ struct equals_statement_visitor {
         }
         const auto& app_terms = b->as_conj().inner;
         for (auto it = a.inner.begin(); it != a.inner.end(); it++) {
-            if (!visit_recursive(it->get(), app_terms[it - a.inner.begin()].get())) {
+            if (!visit_recursive(*this, it->get(), app_terms[it - a.inner.begin()].get())) {
                 return false;
             }
         }
@@ -86,7 +105,7 @@ struct equals_statement_visitor {
         }
         const auto& app_terms = b->as_disj().inner;
         for (auto it = a.inner.begin(); it != a.inner.end(); it++) {
-            if (!visit_recursive(it->get(), app_terms[it - a.inner.begin()].get())) {
+            if (!visit_recursive(*this, it->get(), app_terms[it - a.inner.begin()].get())) {
                 return false;
             }
         }
@@ -100,20 +119,8 @@ struct equals_statement_visitor {
             throw std::runtime_error("Invalid statement, forall twice with the same variable");
         }
         const auto [it, inserted] = bound_vars.emplace(a.var.get(), b->as_forall().var.get());
-        const auto result = visit_recursive(a.inner.get(), b->as_forall().inner.get());
+        const auto result = visit_recursive(*this, a.inner.get(), b->as_forall().inner.get());
         bound_vars.erase(it);
-        return result;
-    }
-
-    bool visit_recursive(const statement* a, const statement* new_b) {
-        if (a == new_b) {
-            // Optimize the case when it's the same pointer
-            return true;
-        }
-        auto old_b = b;
-        b = new_b;
-        const auto result = a->accept_r<bool>(*this);
-        b = old_b;
         return result;
     }
 

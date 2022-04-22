@@ -4,7 +4,7 @@
 
 namespace tema {
 
-std::string_view to_utf8(rel_type rel) noexcept {
+std::string_view to_utf8(rel_type type) noexcept {
     static constexpr std::string_view table[] = {
             "=",// eq = 0
             "≠",// n_eq = 1
@@ -27,7 +27,17 @@ std::string_view to_utf8(rel_type rel) noexcept {
             "⊆",// eq_is_included = 18
             "⊈",// n_eq_is_included = 19
     };
-    return table[static_cast<std::underlying_type_t<rel_type>>(rel)];
+    return table[static_cast<std::underlying_type_t<rel_type>>(type)];
+}
+
+std::string_view to_utf8(binop_type type) noexcept {
+    static constexpr std::string_view table[] = {
+            "∪", // set_union = 0,
+            "∩", // set_intersection = 1,
+            "\\",// set_difference = 2,
+            "⊖", // set_sym_difference = 3,
+    };
+    return table[static_cast<std::underlying_type_t<binop_type>>(type)];
 }
 
 struct print_utf8_expression_visitor {
@@ -36,8 +46,24 @@ struct print_utf8_expression_visitor {
     explicit print_utf8_expression_visitor(std::ostream& to)
         : to{to} {}
 
-    void operator()(const variable_ptr& var) {
+    void operator()(const variable_ptr& var) const {
         to << var->name;
+    }
+
+    void operator()(const expression::binop& binop) const {
+        visit_sub_expr(*binop.left);
+        to << to_utf8(binop.type);
+        visit_sub_expr(*binop.right);
+    }
+
+    void visit_sub_expr(const expression& expr) const {
+        if (expr.is_var()) {
+            expr.accept(*this);
+        } else {
+            to << "(";
+            expr.accept(*this);
+            to << ")";
+        }
     }
 };
 
@@ -57,27 +83,27 @@ struct print_utf8_statement_visitor {
     explicit print_utf8_statement_visitor(std::ostream& to)
         : to{to} {}
 
-    void operator()(const statement::truth&) {
+    void operator()(const statement::truth&) const {
         to << "⊤";
     }
-    void operator()(const statement::contradiction&) {
+    void operator()(const statement::contradiction&) const {
         to << "⊥";
     }
-    void operator()(const statement::implies& expr) {
+    void operator()(const statement::implies& expr) const {
         visit_sub_statement(*expr.from);
         to << "→";
         visit_sub_statement(*expr.to);
     }
-    void operator()(const statement::equiv& expr) {
+    void operator()(const statement::equiv& expr) const {
         visit_sub_statement(*expr.left);
         to << "⟷";
         visit_sub_statement(*expr.right);
     }
-    void operator()(const statement::neg& expr) {
+    void operator()(const statement::neg& expr) const {
         to << "¬";
         visit_sub_statement(*expr.inner);
     }
-    void operator()(const statement::conj& expr) {
+    void operator()(const statement::conj& expr) const {
         bool first = true;
         std::for_each(expr.inner.begin(), expr.inner.end(), [&](const statement_ptr& term) {
             if (!first) {
@@ -88,7 +114,7 @@ struct print_utf8_statement_visitor {
             visit_sub_statement(*term);
         });
     }
-    void operator()(const statement::disj& expr) {
+    void operator()(const statement::disj& expr) const {
         bool first = true;
         std::for_each(expr.inner.begin(), expr.inner.end(), [&](const statement_ptr& term) {
             if (!first) {
@@ -99,11 +125,11 @@ struct print_utf8_statement_visitor {
             visit_sub_statement(*term);
         });
     }
-    void operator()(const statement::forall& expr) {
+    void operator()(const statement::forall& expr) const {
         to << "∀" << expr.var->name << " ";
         visit_sub_statement(*expr.inner);
     }
-    void operator()(const variable_ptr& var) {
+    void operator()(const variable_ptr& var) const {
         to << var->name;
     }
     void operator()(const relationship& rel) const {
@@ -112,7 +138,7 @@ struct print_utf8_statement_visitor {
         print_utf8_to(rel.right.get(), to);
     }
 
-    void visit_sub_statement(const statement& expr) {
+    void visit_sub_statement(const statement& expr) const {
         if (expr.is_var() || expr.is_neg() || expr.is_truth() || expr.is_contradiction()) {
             expr.accept(*this);
         } else {

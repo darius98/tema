@@ -157,11 +157,26 @@ TEST_CASE("algorithms.equals") {
 
     test("on expressions", [&] {
         const auto x = var("X");
+        const auto y = var("Y");
         expect_equals(var_expr(x), var_expr(x));
 
         const auto x_expr = var_expr(x);
         expect_equals(x_expr, x_expr);
 
+        const auto x_union_y_expr = binop_expr(var_expr(x), binop_type::set_union, var_expr(y));
+        expect_equals(x_union_y_expr, x_union_y_expr);
+        expect_equals(x_union_y_expr,
+                      binop_expr(var_expr(x), binop_type::set_union, var_expr(y)));
+
         expect_not_equals(var_expr(x), var_expr(var("Y")));
+        expect_not_equals(var_expr(x), x_union_y_expr);
+        expect_not_equals(x_union_y_expr, var_expr(x));
+
+        expect_not_equals(x_union_y_expr,
+                          binop_expr(var_expr(x), binop_type::set_difference, var_expr(y)));
+        expect_not_equals(x_union_y_expr,
+                          binop_expr(var_expr(x), binop_type::set_union, var_expr(x)));
+        expect_not_equals(x_union_y_expr,
+                          binop_expr(var_expr(y), binop_type::set_union, var_expr(y)));
     });
 }

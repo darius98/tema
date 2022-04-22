@@ -9,6 +9,16 @@ namespace tema {
 
 using var_mapping = std::map<const variable*, const variable*>;
 
+[[nodiscard]] bool visit_recursive(auto& visitor,
+                                   const util::one_of<statement, expression> auto* a,
+                                   util::one_of<statement_ptr, expr_ptr> auto new_app_node) {
+    auto old_app_node = std::move(visitor.app_node);
+    visitor.app_node = std::move(new_app_node);
+    const auto sub_stmt_matches = a->template accept_r<bool>(visitor);
+    visitor.app_node = std::move(old_app_node);
+    return sub_stmt_matches;
+}
+
 struct match_expression_visitor {
     const var_mapping* bound_vars;
     match_result* result;
@@ -28,6 +38,12 @@ struct match_expression_visitor {
             return true;
         }
         return equals(it->second.get(), app_node.get());
+    }
+    bool operator()(const expression::binop& expr) {
+        return app_node->is_binop() &&
+               expr.type == app_node->as_binop().type &&
+               visit_recursive(*this, expr.left.get(), app_node->as_binop().left) &&
+               visit_recursive(*this, expr.right.get(), app_node->as_binop().right);
     }
 };
 
@@ -49,17 +65,17 @@ struct match_statement_visitor {
     }
     bool operator()(const statement::implies& expr) {
         return app_node->is_implies() &&
-               visit_recursive(expr.from.get(), app_node->as_implies().from) &&
-               visit_recursive(expr.to.get(), app_node->as_implies().to);
+               visit_recursive(*this, expr.from.get(), app_node->as_implies().from) &&
+               visit_recursive(*this, expr.to.get(), app_node->as_implies().to);
     }
     bool operator()(const statement::equiv& expr) {
         return app_node->is_equiv() &&
-               visit_recursive(expr.left.get(), app_node->as_equiv().left) &&
-               visit_recursive(expr.right.get(), app_node->as_equiv().right);
+               visit_recursive(*this, expr.left.get(), app_node->as_equiv().left) &&
+               visit_recursive(*this, expr.right.get(), app_node->as_equiv().right);
     }
     bool operator()(const statement::neg& expr) {
         return app_node->is_neg() &&
-               visit_recursive(expr.inner.get(), app_node->as_neg().inner);
+               visit_recursive(*this, expr.inner.get(), app_node->as_neg().inner);
     }
     bool operator()(const statement::conj& expr) {
         if (!app_node->is_conj() || expr.inner.size() != app_node->as_conj().inner.size()) {
@@ -67,7 +83,7 @@ struct match_statement_visitor {
         }
         const auto& app_terms = app_node->as_conj().inner;
         for (auto it = expr.inner.begin(); it != expr.inner.end(); it++) {
-            if (!visit_recursive(it->get(), app_terms[it - expr.inner.begin()])) {
+            if (!visit_recursive(*this, it->get(), app_terms[it - expr.inner.begin()])) {
                 return false;
             }
         }
@@ -79,7 +95,7 @@ struct match_statement_visitor {
         }
         const auto& app_terms = app_node->as_disj().inner;
         for (auto it = expr.inner.begin(); it != expr.inner.end(); it++) {
-            if (!visit_recursive(it->get(), app_terms[it - expr.inner.begin()])) {
+            if (!visit_recursive(*this, it->get(), app_terms[it - expr.inner.begin()])) {
                 return false;
             }
         }
@@ -94,7 +110,7 @@ struct match_statement_visitor {
             throw std::runtime_error("Invalid statement, forall twice with the same variable");
         }
         const auto [it, inserted] = bound_vars.emplace(expr.var.get(), app_node->as_forall().var.get());
-        const auto inner_matches = visit_recursive(expr.inner.get(), app_node->as_forall().inner);
+        const auto inner_matches = visit_recursive(*this, expr.inner.get(), app_node->as_forall().inner);
         bound_vars.erase(it);
         return inner_matches;
     }
@@ -121,14 +137,6 @@ struct match_statement_visitor {
             return false;
         }
         return true;
-    }
-
-    [[nodiscard]] bool visit_recursive(const statement* a, statement_ptr new_app_node) {
-        auto old_app_node = app_node;
-        app_node = std::move(new_app_node);
-        const auto sub_stmt_matches = a->accept_r<bool>(*this);
-        app_node = std::move(old_app_node);
-        return sub_stmt_matches;
     }
 };
 

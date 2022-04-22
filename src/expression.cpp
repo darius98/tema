@@ -2,15 +2,30 @@
 
 namespace tema {
 
+bool expression::is_binop() const noexcept {
+    return holds_alternative<binop>(data);
+}
+const expression::binop& expression::as_binop() const {
+    return get<binop>(data);
+}
+
 bool expression::is_var() const noexcept {
-    return std::holds_alternative<variable_ptr>(data);
+    return holds_alternative<variable_ptr>(data);
 }
 variable_ptr expression::as_var() const {
-    return std::get<variable_ptr>(data);
+    return get<variable_ptr>(data);
 }
 
 expr_ptr var_expr(variable_ptr var) {
     return std::make_shared<const expression>(expression::private_tag{}, std::move(var));
+}
+
+expr_ptr binop_expr(expression::binop content) {
+    return std::make_shared<const expression>(expression::private_tag{}, std::move(content));
+}
+
+expr_ptr binop_expr(expr_ptr left, binop_type type, expr_ptr right) {
+    return binop_expr(expression::binop{type, std::move(left), std::move(right)});
 }
 
 }// namespace tema
