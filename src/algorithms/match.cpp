@@ -3,6 +3,7 @@
 #include "algorithms/equals.h"
 
 #include <set>
+#include <utility>
 
 namespace tema {
 
@@ -131,10 +132,10 @@ struct match_statement_visitor {
     }
 };
 
-std::optional<match_result> match(const expression* law, const expression* application) {
+std::optional<match_result> match(const expression* law, expr_ptr application) {
     var_mapping bound_vars;
     match_result result;
-    match_expression_visitor visitor(&bound_vars, &result, application->shared_from_this());
+    match_expression_visitor visitor(&bound_vars, &result, std::move(application));
     if (!law->accept_r<bool>(visitor)) {
         // TODO: Test this when it becomes possible for two expressions not to be equal, lol.
         return std::nullopt;
@@ -142,8 +143,8 @@ std::optional<match_result> match(const expression* law, const expression* appli
     return result;
 }
 
-std::optional<match_result> match(const statement* law, const statement* application) {
-    match_statement_visitor visitor(application->shared_from_this());
+std::optional<match_result> match(const statement* law, statement_ptr application) {
+    match_statement_visitor visitor(std::move(application));
     if (!law->accept_r<bool>(visitor)) {
         return std::nullopt;
     }

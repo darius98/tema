@@ -11,7 +11,7 @@
 
 namespace tema {
 
-struct statement : std::enable_shared_from_this<statement> {
+struct statement {
     using statement_ptr = std::shared_ptr<const statement>;
 
     struct truth {};

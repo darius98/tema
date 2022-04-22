@@ -5,13 +5,14 @@
 
 namespace tema {
 
-class scope;
+struct scope;
 
 struct invalid_module_scope : std::runtime_error {
     invalid_module_scope();
 };
 
-class module {
+struct module {
+private:
     std::shared_ptr<const scope> data;
 
 public:

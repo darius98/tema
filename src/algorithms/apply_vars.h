@@ -14,6 +14,6 @@ struct apply_vars_result {
     std::set<variable_ptr> unmatched_vars;
 };
 
-[[nodiscard]] apply_vars_result apply_vars(const statement* law, const match_result& replacements);
+[[nodiscard]] apply_vars_result apply_vars(const statement_ptr& law, const match_result& replacements);
 
 }// namespace tema

@@ -7,7 +7,7 @@
 
 namespace tema {
 
-struct expression : std::enable_shared_from_this<expression> {
+struct expression {
     using expr_ptr = std::shared_ptr<const expression>;
 
     using types = util::tpack<variable_ptr>;

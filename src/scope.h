@@ -10,13 +10,11 @@
 
 namespace tema {
 
-class var_not_found : public std::runtime_error {
-public:
+struct var_not_found : public std::runtime_error {
     var_not_found();
 };
 
-class statement_not_found : public std::runtime_error {
-public:
+struct statement_not_found : public std::runtime_error {
     statement_not_found();
 };
 
@@ -30,7 +28,8 @@ struct named_statement {
     bool operator==(const named_statement&) const = default;
 };
 
-class scope {
+struct scope {
+private:
     scope* parent_;
 
     std::map<symbol, variable_ptr, std::less<>> vars_by_symbol;

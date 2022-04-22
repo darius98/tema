@@ -138,13 +138,13 @@ struct apply_vars_statement_visitor {
     }
 };
 
-apply_vars_result apply_vars(const statement* law, const match_result& replacements) {
+apply_vars_result apply_vars(const statement_ptr& law, const match_result& replacements) {
     apply_vars_statement_visitor visitor{replacements};
     apply_vars_result result;
     result.stmt = law->accept_r<statement_ptr>(visitor);
     result.unmatched_vars = std::move(visitor.unmatched_vars);
     if (result.stmt == nullptr) {
-        result.stmt = law->shared_from_this();
+        result.stmt = law;
     }
     return result;
 }

@@ -10,7 +10,7 @@ using namespace mcga::matchers;
 using namespace mcga::test;
 
 void expect_deduce(const statement_ptr& law, const statement_ptr& application, const statement_ptr& expected_conclusion, const std::set<variable_ptr> expected_unmatched_vars, Context context = Context()) {
-    const auto result = deduce(law.get(), application.get());
+    const auto result = deduce(law.get(), application);
     const auto message = "deduce " +
                          print_utf8(expected_conclusion.get()) +
                          " from law " +
@@ -23,7 +23,7 @@ void expect_deduce(const statement_ptr& law, const statement_ptr& application, c
 }
 
 void expect_not_deduce(const statement_ptr& law, const statement_ptr& application, Context context = Context()) {
-    const auto result = deduce(law.get(), application.get());
+    const auto result = deduce(law.get(), application);
     expectMsg(!result.has_value(),
               print_utf8(application.get()) +
                       " does not deduce anything from " +

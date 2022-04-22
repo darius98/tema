@@ -14,7 +14,7 @@ void expect_matches(const auto& law,
                     const std::map<variable_ptr, statement_ptr>& expected_stmt_repls,
                     const std::map<variable_ptr, expr_ptr>& expected_expr_repls = {},
                     const Context& context = Context()) {
-    const auto result = match(law.get(), application.get());
+    const auto result = match(law.get(), application);
     expectMsg(result.has_value(),
               print_utf8(application.get()) +
                       " matches " +
@@ -34,7 +34,7 @@ void expect_matches(const auto& law,
 }
 
 void expect_not_matches(const statement_ptr& law, const statement_ptr& application, Context context = Context()) {
-    const auto result = match(law.get(), application.get());
+    const auto result = match(law.get(), application);
     expectMsg(!result.has_value(),
               print_utf8(application.get()) +
                       " does not match " +
