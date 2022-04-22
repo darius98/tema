@@ -3,6 +3,7 @@
 #include <map>
 #include <set>
 
+#include "algorithms/match.h"
 #include "statement.h"
 #include "variable.h"
 
@@ -13,6 +14,6 @@ struct apply_vars_result {
     std::set<variable_ptr> unmatched_vars;
 };
 
-[[nodiscard]] apply_vars_result apply_vars(const statement* law, const std::map<variable_ptr, statement_ptr>& replacements);
+[[nodiscard]] apply_vars_result apply_vars(const statement* law, const match_result& replacements);
 
 }// namespace tema

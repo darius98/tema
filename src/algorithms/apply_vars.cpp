@@ -2,12 +2,34 @@
 
 namespace tema {
 
-struct apply_vars_visitor {
-    const std::map<variable_ptr, statement_ptr>& replacements;
+struct apply_vars_expression_visitor {
+    const match_result& replacements;
+    const std::set<const variable*>& bound_vars;
+    std::set<variable_ptr>& unmatched_vars;
+
+    apply_vars_expression_visitor(const match_result& replacements,
+                                  const std::set<const variable*>& bound_vars,
+                                  std::set<variable_ptr>& unmatched_vars)
+        : replacements(replacements), bound_vars(bound_vars), unmatched_vars(unmatched_vars) {}
+
+    expr_ptr operator()(const variable_ptr& var) {
+        const auto it = replacements.expr_replacements.find(var);
+        if (it == replacements.expr_replacements.end()) {
+            if (!bound_vars.contains(var.get())) {
+                unmatched_vars.insert(var);
+            }
+            return nullptr;
+        }
+        return it->second;
+    }
+};
+
+struct apply_vars_statement_visitor {
+    const match_result& replacements;
     std::set<variable_ptr> unmatched_vars;
     std::set<const variable*> bound_vars;// These are not unmatched because they are bound by a forall/exists statement.
 
-    explicit apply_vars_visitor(const std::map<variable_ptr, statement_ptr>& replacements)
+    explicit apply_vars_statement_visitor(const match_result& replacements)
         : replacements(replacements) {}
 
     statement_ptr operator()(const statement::truth&) const {
@@ -85,8 +107,7 @@ struct apply_vars_visitor {
         bound_vars.insert(expr.var.get());
         auto inner = expr.inner->accept_r<statement_ptr>(*this);
         bound_vars.erase(expr.var.get());
-        const auto it = replacements.find(expr.var);
-        if (it != replacements.end()) {
+        if (replacements.stmt_replacements.contains(expr.var) || replacements.expr_replacements.contains(expr.var)) {
             // If we replaced this variable with something, there is no longer a need for this forall.
             return inner;
         }
@@ -96,8 +117,8 @@ struct apply_vars_visitor {
         return forall(expr.var, inner);
     }
     statement_ptr operator()(const variable_ptr& var) {
-        const auto it = replacements.find(var);
-        if (it == replacements.end()) {
+        const auto it = replacements.stmt_replacements.find(var);
+        if (it == replacements.stmt_replacements.end()) {
             if (!bound_vars.contains(var.get())) {
                 unmatched_vars.insert(var);
             }
@@ -105,14 +126,20 @@ struct apply_vars_visitor {
         }
         return it->second;
     }
-    statement_ptr operator()(const relationship&) const {
-        // TODO: Implement.
-        std::abort();
+    statement_ptr operator()(const relationship& rel) {
+        auto left = rel.left->accept_r<expr_ptr>(apply_vars_expression_visitor{replacements, bound_vars, unmatched_vars});
+        auto right = rel.right->accept_r<expr_ptr>(apply_vars_expression_visitor{replacements, bound_vars, unmatched_vars});
+        if (left == nullptr && right == nullptr) {
+            return nullptr;
+        }
+        left = left ? left : rel.left;
+        right = right ? right : rel.right;
+        return rel_stmt(std::move(left), rel.type, std::move(right));
     }
 };
 
-apply_vars_result apply_vars(const statement* law, const std::map<variable_ptr, statement_ptr>& replacements) {
-    apply_vars_visitor visitor{replacements};
+apply_vars_result apply_vars(const statement* law, const match_result& replacements) {
+    apply_vars_statement_visitor visitor{replacements};
     apply_vars_result result;
     result.stmt = law->accept_r<statement_ptr>(visitor);
     result.unmatched_vars = std::move(visitor.unmatched_vars);

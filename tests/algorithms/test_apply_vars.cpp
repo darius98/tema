@@ -9,10 +9,15 @@ using namespace tema;
 using namespace mcga::matchers;
 using namespace mcga::test;
 
-void expect_apply_vars(const statement_ptr& law, const std::map<variable_ptr, statement_ptr>& replacements, const statement_ptr& expected_application, std::set<variable_ptr> expected_unmatched_vars, Context context = Context()) {
-    const auto result = apply_vars(law.get(), replacements);
+void expect_apply_vars(const statement_ptr& law,
+                       std::map<variable_ptr, statement_ptr> stmt_replacements,
+                       std::map<variable_ptr, expr_ptr> expr_replacements,
+                       const statement_ptr& expected_application,
+                       std::set<variable_ptr> expected_unmatched_vars,
+                       Context context = Context()) {
+    const auto result = apply_vars(law.get(), match_result{std::move(stmt_replacements), std::move(expr_replacements)});
     expectMsg(equals(result.stmt.get(), expected_application.get()),
-              print_utf8(law.get()) + " ===> " + print_utf8(expected_application.get()),
+              print_utf8(law.get()) + " ===> " + print_utf8(expected_application.get()) + " (got '" + print_utf8(result.stmt.get()) + "')",
               context);
     expect(result.unmatched_vars, std::move(expected_unmatched_vars), std::move(context));
 }
@@ -24,20 +29,25 @@ TEST_CASE("algorithms.apply_vars") {
 
     test("replace no variables (none used)", [] {
         const auto law = implies(neg(contradiction()), truth());
-        expect_apply_vars(law, {}, implies(neg(contradiction()), truth()), {});
+        expect_apply_vars(law, {}, {}, implies(neg(contradiction()), truth()), {});
     });
 
     test("replace no variables (one used)", [&] {
         const auto law = implies(var_stmt(p), contradiction());
-        expect_apply_vars(law, {}, implies(var_stmt(p), contradiction()), {p});
+        expect_apply_vars(law, {}, {}, implies(var_stmt(p), contradiction()), {p});
     });
 
     test("replace no variables (two used)", [&] {
         const auto law = equiv(contradiction(), disj(var_stmt(p), var_stmt(q)));
-        expect_apply_vars(law, {}, equiv(contradiction(), disj(var_stmt(p), var_stmt(q))), {p, q});
+        expect_apply_vars(law, {}, {}, equiv(contradiction(), disj(var_stmt(p), var_stmt(q))), {p, q});
 
         const auto law2 = equiv(conj(var_stmt(p), var_stmt(q)), contradiction());
-        expect_apply_vars(law2, {}, equiv(conj(var_stmt(p), var_stmt(q)), contradiction()), {p, q});
+        expect_apply_vars(law2, {}, {}, equiv(conj(var_stmt(p), var_stmt(q)), contradiction()), {p, q});
+    });
+
+    test("replace no variables (two used in an expression)", [&] {
+        const auto law = implies(contradiction(), rel_stmt(var_expr(p), rel_type::eq, var_expr(q)));
+        expect_apply_vars(law, {}, {}, implies(contradiction(), rel_stmt(var_expr(p), rel_type::eq, var_expr(q))), {p, q});
     });
 
     test("replace one variable (one used)", [&] {
@@ -46,6 +56,7 @@ TEST_CASE("algorithms.apply_vars") {
                           {
                                   {p, implies(var_stmt(q), var_stmt(q))},
                           },
+                          {},
                           implies(contradiction(), implies(var_stmt(q), var_stmt(q))), {});
 
         const auto law2 = implies(var_stmt(p), contradiction());
@@ -53,6 +64,7 @@ TEST_CASE("algorithms.apply_vars") {
                           {
                                   {p, implies(var_stmt(q), var_stmt(q))},
                           },
+                          {},
                           implies(implies(var_stmt(q), var_stmt(q)), contradiction()), {});
     });
 
@@ -62,6 +74,7 @@ TEST_CASE("algorithms.apply_vars") {
                           {
                                   {q, implies(var_stmt(q), var_stmt(q))},
                           },
+                          {},
                           implies(contradiction(), var_stmt(p)), {p});
     });
 
@@ -71,6 +84,7 @@ TEST_CASE("algorithms.apply_vars") {
                           {
                                   {p, implies(var_stmt(q), var_stmt(q))},
                           },
+                          {},
                           equiv(contradiction(), disj(implies(var_stmt(q), var_stmt(q)), var_stmt(q))), {q});
 
         const auto law2 = equiv(conj(var_stmt(p), var_stmt(q)), contradiction());
@@ -78,6 +92,7 @@ TEST_CASE("algorithms.apply_vars") {
                           {
                                   {p, implies(var_stmt(q), var_stmt(q))},
                           },
+                          {},
                           equiv(conj(implies(var_stmt(q), var_stmt(q)), var_stmt(q)), contradiction()), {q});
     });
 
@@ -88,6 +103,7 @@ TEST_CASE("algorithms.apply_vars") {
                                   {p, implies(truth(), contradiction())},
                                   {q, neg(truth())},
                           },
+                          {},
                           equiv(contradiction(), conj(implies(truth(), contradiction()), neg(truth()))), {});
 
         const auto law2 = equiv(disj(var_stmt(p), var_stmt(q)), contradiction());
@@ -96,7 +112,32 @@ TEST_CASE("algorithms.apply_vars") {
                                   {p, implies(truth(), contradiction())},
                                   {q, neg(truth())},
                           },
+                          {},
                           equiv(disj(implies(truth(), contradiction()), neg(truth())), contradiction()), {});
+    });
+
+    test("replace variable in expression", [&] {
+        const auto t = var("t");
+        const auto law = implies(contradiction(), rel_stmt(var_expr(p), rel_type::eq, var_expr(q)));
+        expect_apply_vars(law,
+                          {},
+                          {
+                                  {q, var_expr(t)},
+                          },
+                          implies(contradiction(), rel_stmt(var_expr(p), rel_type::eq, var_expr(t))), {p});
+        expect_apply_vars(law,
+                          {},
+                          {
+                                  {p, var_expr(t)},
+                          },
+                          implies(contradiction(), rel_stmt(var_expr(t), rel_type::eq, var_expr(q))), {q});
+        expect_apply_vars(law,
+                          {},
+                          {
+                                  {p, var_expr(t)},
+                                  {q, var_expr(t)},
+                          },
+                          implies(contradiction(), rel_stmt(var_expr(t), rel_type::eq, var_expr(t))), {});
     });
 
     test("replace variable with reference to another does not work recursively", [&] {
@@ -106,39 +147,73 @@ TEST_CASE("algorithms.apply_vars") {
                                   {p, implies(var_stmt(q), truth())},
                                   {q, neg(truth())},
                           },
+                          {},
                           equiv(implies(var_stmt(q), truth()), neg(neg(neg(truth())))), {});
     });
 
-    test("forall", [&] {
-        // replace variable from forall expression
+    group("forall", [&] {
         const auto law = equiv(disj(var_stmt(p), var_stmt(r)), forall(q, disj(var_stmt(q), var_stmt(p))));
-        expect_apply_vars(law,
-                          {
-                                  {p, truth()},
-                                  {q, neg(truth())},
-                          },
-                          equiv(disj(truth(), var_stmt(r)), disj(neg(truth()), truth())), {r});
-        // Replace something inside forall (not the q variable though).
-        expect_apply_vars(law,
-                          {
-                                  {p, truth()},
-                          },
-                          equiv(disj(truth(), var_stmt(r)), forall(q, disj(var_stmt(q), truth()))), {r});
-        // Keep the forall the same
-        expect_apply_vars(law,
-                          {
-                                  {r, contradiction()},
-                          },
-                          equiv(disj(var_stmt(p), contradiction()), forall(q, disj(var_stmt(q), var_stmt(p)))), {p});
 
-        // Invalid IR coming in
-        expect([&] {
-            expect_apply_vars(forall(p, forall(p, disj(var_stmt(p), var_stmt(p)))),
+        test("replace the bound variable inside forall", [&] {
+            expect_apply_vars(law,
                               {
-                                      {p, contradiction()},
+                                      {p, truth()},
+                                      {q, neg(truth())},
                               },
-                              disj(contradiction(), contradiction()), {});
-        },
-               throwsA<std::runtime_error>);
+                              {},
+                              equiv(disj(truth(), var_stmt(r)), disj(neg(truth()), truth())), {r});
+        });
+
+        test("Replace a non-bound variable inside forall", [&] {
+            expect_apply_vars(law,
+                              {
+                                      {p, truth()},
+                              },
+                              {},
+                              equiv(disj(truth(), var_stmt(r)), forall(q, disj(var_stmt(q), truth()))), {r});
+        });
+
+        test("Keep the forall the same", [&] {
+            expect_apply_vars(law,
+                              {
+                                      {r, contradiction()},
+                              },
+                              {},
+                              equiv(disj(var_stmt(p), contradiction()), forall(q, disj(var_stmt(q), var_stmt(p)))), {p});
+        });
+
+        test("Replace forall-bound variable in expression", [&] {
+            const auto t = var("t");
+            const auto law = forall(q, rel_stmt(var_expr(q), rel_type::eq, var_expr(p)));
+            expect_apply_vars(law,
+                              {},
+                              {
+                                      {q, var_expr(t)},
+                              },
+                              rel_stmt(var_expr(t), rel_type::eq, var_expr(p)), {p});
+        });
+
+        test("Replace non-bound variable in expression inside forall", [&] {
+            const auto t = var("t");
+            const auto law = forall(q, rel_stmt(var_expr(q), rel_type::eq, var_expr(p)));
+            expect_apply_vars(law,
+                              {},
+                              {
+                                      {p, var_expr(t)},
+                              },
+                              forall(q, rel_stmt(var_expr(q), rel_type::eq, var_expr(t))), {});
+        });
+
+        test("Invalid IR coming in", [&] {
+            expect([&] {
+                expect_apply_vars(forall(p, forall(p, disj(var_stmt(p), var_stmt(p)))),
+                                  {
+                                          {p, contradiction()},
+                                  },
+                                  {},
+                                  disj(contradiction(), contradiction()), {});
+            },
+                   throwsA<std::runtime_error>);
+        });
     });
 }
