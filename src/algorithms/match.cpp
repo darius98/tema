@@ -139,7 +139,7 @@ std::optional<match_result> match(const expression* law, const expression* appli
         // TODO: Test this when it becomes possible for two expressions not to be equal, lol.
         return std::nullopt;
     }
-    return std::move(result);
+    return result;
 }
 
 std::optional<match_result> match(const statement* law, const statement* application) {
