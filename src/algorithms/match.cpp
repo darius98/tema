@@ -7,6 +7,12 @@
 
 namespace tema {
 
+// TODO: Should this use an "equivalence" algorithm with some inlined logic
+//  instead of "equals"? For example, it could do simple transformations
+//  e.g. is_provably_equivalent(a<->b, b<->a)
+//  or is_provably_equivalent(a&b, b&a)
+//  or is_provably_equivalent(a+(b+c), (a+b)+c).
+
 using var_mapping = std::map<const variable*, const variable*>;
 
 [[nodiscard]] bool visit_recursive(auto& visitor,

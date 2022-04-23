@@ -23,15 +23,15 @@ struct apply_vars_expression_visitor {
         return it->second;
     }
 
-    expr_ptr operator()(const expression::binop& binop) {
-        auto left = binop.left->accept_r<expr_ptr>(*this);
-        auto right = binop.right->accept_r<expr_ptr>(*this);
+    expr_ptr operator()(const expression::binop& op) {
+        auto left = op.left->accept_r<expr_ptr>(*this);
+        auto right = op.right->accept_r<expr_ptr>(*this);
         if (left == nullptr && right == nullptr) {
             return nullptr;
         }
-        left = left ? left : binop.left;
-        right = right ? right : binop.right;
-        return binop_expr(std::move(left), binop.type, std::move(right));
+        left = left ? left : op.left;
+        right = right ? right : op.right;
+        return binop(std::move(left), op.type, std::move(right));
     }
 };
 

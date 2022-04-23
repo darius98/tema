@@ -33,7 +33,9 @@ void expect_matches(const auto& law,
     expect(result.value().expr_replacements, hasSize(expected_expr_repls.size()), context);
 }
 
-void expect_not_matches(const statement_ptr& law, const statement_ptr& application, Context context = Context()) {
+void expect_not_matches(const auto& law,
+                        const auto& application,
+                        Context context = Context()) {
     const auto result = match(law.get(), application);
     expectMsg(!result.has_value(),
               print_utf8(application.get()) +
@@ -236,10 +238,15 @@ TEST_CASE("algorithms.match") {
                                forall(s, disj(
                                                  rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(t)),
                                                  rel_stmt(var_expr(t), rel_type::eq_is_included, var_expr(t)))));
+            expect_not_matches(forall(x, disj(
+                                                 rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)),
+                                                 rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y)))),
+                               forall(s, disj(
+                                                 rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(t)),
+                                                 rel_stmt(binop(var_expr(s), binop_type::set_union, var_expr(t)), rel_type::eq_is_included, var_expr(t)))));
         });
 
         test("match both expressions and statements", [&] {
-            // Matching both expressions and statements
             expect_matches(disj(var_stmt(p), rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y))),
                            disj(contradiction(), rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(t))),
                            {
@@ -253,10 +260,36 @@ TEST_CASE("algorithms.match") {
 
         test("match expression", [&] {
             expect_matches(var_expr(x), var_expr(s), {}, {{x, var_expr(s)}});
+
+            expect_matches(
+                    binop(var_expr(x), binop_type::set_union, var_expr(y)),
+                    binop(var_expr(s), binop_type::set_union, binop(var_expr(s), binop_type::set_sym_difference, var_expr(t))),
+                    {},
+                    {
+                            {x, var_expr(s)},
+                            {y, binop(var_expr(s), binop_type::set_sym_difference, var_expr(t))},
+                    });
         });
 
-        test("not a match expression", [&] {
-            // TODO: Not possible atm.
+        group("not a match expression", [&] {
+            test("not a binary operation node", [&] {
+                expect_not_matches(binop(var_expr(s), binop_type::set_sym_difference, var_expr(t)), var_expr(x));
+            });
+
+            test("different operator to binop", [&] {
+                expect_not_matches(
+                        binop(var_expr(x), binop_type::set_union, var_expr(y)),
+                        binop(var_expr(s), binop_type::set_intersection, var_expr(s)));
+            });
+
+            test("same variable mapped to several", [&] {
+                expect_not_matches(
+                        binop(var_expr(x), binop_type::set_union, var_expr(x)),
+                        binop(binop(var_expr(s), binop_type::set_sym_difference, var_expr(t)), binop_type::set_union, var_expr(t)));
+                expect_not_matches(
+                        binop(binop(var_expr(x), binop_type::set_difference, var_expr(x)), binop_type::set_union, var_expr(x)),
+                        binop(binop(var_expr(s), binop_type::set_difference, var_expr(t)), binop_type::set_union, var_expr(t)));
+            });
         });
     });
 }

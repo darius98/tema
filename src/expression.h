@@ -58,14 +58,14 @@ public:
     }
 
     friend expr_ptr var_expr(variable_ptr var);
-    friend expr_ptr binop_expr(binop content);
+    friend expr_ptr binop(expression::binop content);
 };
 
 using expr_ptr = expression::expr_ptr;
 
 [[nodiscard]] expr_ptr var_expr(variable_ptr var);
 
-[[nodiscard]] expr_ptr binop_expr(expression::binop content);
-[[nodiscard]] expr_ptr binop_expr(expr_ptr left, binop_type type, expr_ptr right);
+[[nodiscard]] expr_ptr binop(expression::binop content);
+[[nodiscard]] expr_ptr binop(expr_ptr left, binop_type type, expr_ptr right);
 
 }// namespace tema

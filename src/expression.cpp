@@ -20,12 +20,12 @@ expr_ptr var_expr(variable_ptr var) {
     return std::make_shared<const expression>(expression::private_tag{}, std::move(var));
 }
 
-expr_ptr binop_expr(expression::binop content) {
+expr_ptr binop(expression::binop content) {
     return std::make_shared<const expression>(expression::private_tag{}, std::move(content));
 }
 
-expr_ptr binop_expr(expr_ptr left, binop_type type, expr_ptr right) {
-    return binop_expr(expression::binop{type, std::move(left), std::move(right)});
+expr_ptr binop(expr_ptr left, binop_type type, expr_ptr right) {
+    return binop(expression::binop{type, std::move(left), std::move(right)});
 }
 
 }// namespace tema

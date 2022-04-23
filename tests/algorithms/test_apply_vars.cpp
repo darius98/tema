@@ -46,8 +46,8 @@ TEST_CASE("algorithms.apply_vars") {
     });
 
     test("replace no variables (two used in an expression)", [&] {
-        const auto law = implies(contradiction(), rel_stmt(var_expr(p), rel_type::eq, var_expr(q)));
-        expect_apply_vars(law, {}, {}, implies(contradiction(), rel_stmt(var_expr(p), rel_type::eq, var_expr(q))), {p, q});
+        const auto law = implies(contradiction(), rel_stmt(var_expr(p), rel_type::eq, binop(var_expr(q), binop_type::set_union, var_expr(q))));
+        expect_apply_vars(law, {}, {}, law, {p, q});
     });
 
     test("replace one variable (one used)", [&] {
@@ -118,26 +118,33 @@ TEST_CASE("algorithms.apply_vars") {
 
     test("replace variable in expression", [&] {
         const auto t = var("t");
-        const auto law = implies(contradiction(), rel_stmt(var_expr(p), rel_type::eq, var_expr(q)));
+        const auto law = implies(contradiction(), rel_stmt(var_expr(p), rel_type::in, binop(var_expr(q), binop_type::set_union, var_expr(r))));
         expect_apply_vars(law,
                           {},
                           {
                                   {q, var_expr(t)},
                           },
-                          implies(contradiction(), rel_stmt(var_expr(p), rel_type::eq, var_expr(t))), {p});
+                          implies(contradiction(), rel_stmt(var_expr(p), rel_type::in, binop(var_expr(t), binop_type::set_union, var_expr(r)))), {p, r});
+        expect_apply_vars(law,
+                          {},
+                          {
+                                  {r, var_expr(t)},
+                          },
+                          implies(contradiction(), rel_stmt(var_expr(p), rel_type::in, binop(var_expr(q), binop_type::set_union, var_expr(t)))), {p, q});
         expect_apply_vars(law,
                           {},
                           {
                                   {p, var_expr(t)},
                           },
-                          implies(contradiction(), rel_stmt(var_expr(t), rel_type::eq, var_expr(q))), {q});
+                          implies(contradiction(), rel_stmt(var_expr(t), rel_type::in, binop(var_expr(q), binop_type::set_union, var_expr(r)))), {q, r});
         expect_apply_vars(law,
                           {},
                           {
                                   {p, var_expr(t)},
                                   {q, var_expr(t)},
+                                  {r, var_expr(t)},
                           },
-                          implies(contradiction(), rel_stmt(var_expr(t), rel_type::eq, var_expr(t))), {});
+                          implies(contradiction(), rel_stmt(var_expr(t), rel_type::in, binop(var_expr(t), binop_type::set_union, var_expr(t)))), {});
     });
 
     test("replace variable with reference to another does not work recursively", [&] {

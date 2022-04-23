@@ -4,9 +4,6 @@
 
 namespace tema {
 
-// TODO: Should this return true even if some simple transformations such as commutativity are needed?
-//  e.g. equals(a<->b, b<->a) or equals(a&b, b&a)
-
 // TODO: Optimize via some hashes in statements
 
 using var_mapping = std::map<const variable*, const variable*>;
