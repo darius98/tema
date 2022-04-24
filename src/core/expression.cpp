@@ -28,4 +28,4 @@ expr_ptr binop(expr_ptr left, binop_type type, expr_ptr right) {
     return binop(expression::binop{type, std::move(left), std::move(right)});
 }
 
-}// namespace tema
+}  // namespace tema

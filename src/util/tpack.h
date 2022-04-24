@@ -43,4 +43,4 @@ using variant_for = typename for_tpack<T>::variant_type;
 template<class T>
 using tuple_for = typename for_tpack<T>::tuple_type;
 
-}// namespace util
+}  // namespace util

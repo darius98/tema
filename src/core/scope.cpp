@@ -146,4 +146,4 @@ void scope::add_statement(std::string name, statement_ptr stmt) {
     });
 }
 
-}// namespace tema
+}  // namespace tema

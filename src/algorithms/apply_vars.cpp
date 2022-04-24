@@ -38,7 +38,7 @@ struct apply_vars_expression_visitor {
 struct apply_vars_statement_visitor {
     const match_result& replacements;
     std::set<variable_ptr> unmatched_vars;
-    std::set<const variable*> bound_vars;// These are not unmatched because they are bound by a forall/exists statement.
+    std::set<const variable*> bound_vars;  // These are not unmatched because they are bound by a forall/exists statement.
 
     explicit apply_vars_statement_visitor(const match_result& replacements)
         : replacements(replacements) {}
@@ -79,7 +79,8 @@ struct apply_vars_statement_visitor {
             auto new_child = (*it)->accept_r<statement_ptr>(*this);
             if (new_child != nullptr) {
                 new_children.resize(expr.inner.size());
-                new_children[it - expr.inner.begin()] = new_child;
+                // TODO: Figure out how to do this with ranges without a conversion
+                new_children[size_t(it - expr.inner.begin())] = new_child;
             }
         }
         if (new_children.empty()) {
@@ -87,7 +88,8 @@ struct apply_vars_statement_visitor {
         }
         for (auto it = new_children.begin(); it != new_children.end(); it++) {
             if (*it == nullptr) {
-                *it = expr.inner[it - new_children.begin()];
+                // TODO: Figure out how to do this with ranges without a conversion
+                *it = expr.inner[size_t(it - new_children.begin())];
             }
         }
         return conj(std::move(new_children));
@@ -98,7 +100,8 @@ struct apply_vars_statement_visitor {
             auto new_child = (*it)->accept_r<statement_ptr>(*this);
             if (new_child != nullptr) {
                 new_children.resize(expr.inner.size());
-                new_children[it - expr.inner.begin()] = new_child;
+                // TODO: Figure out how to do this with ranges without a conversion
+                new_children[size_t(it - expr.inner.begin())] = new_child;
             }
         }
         if (new_children.empty()) {
@@ -106,7 +109,8 @@ struct apply_vars_statement_visitor {
         }
         for (auto it = new_children.begin(); it != new_children.end(); it++) {
             if (*it == nullptr) {
-                *it = expr.inner[it - new_children.begin()];
+                // TODO: Figure out how to do this with ranges without a conversion
+                *it = expr.inner[size_t(it - new_children.begin())];
             }
         }
         return disj(std::move(new_children));
@@ -160,4 +164,4 @@ apply_vars_result apply_vars(const statement_ptr& law, const match_result& repla
     return result;
 }
 
-}// namespace tema
+}  // namespace tema

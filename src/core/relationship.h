@@ -40,4 +40,4 @@ struct relationship {
 
 [[nodiscard]] std::string_view to_utf8(rel_type rel) noexcept;
 
-}// namespace tema
+}  // namespace tema

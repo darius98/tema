@@ -15,4 +15,4 @@ struct match_result {
 [[nodiscard]] std::optional<match_result> match(const expression* law, expr_ptr application);
 [[nodiscard]] std::optional<match_result> match(const statement* law, statement_ptr application);
 
-}// namespace tema
+}  // namespace tema

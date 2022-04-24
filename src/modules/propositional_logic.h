@@ -7,4 +7,4 @@ namespace tema::modules {
 
 module pl();
 
-}// namespace tema::modules
+}  // namespace tema::modules

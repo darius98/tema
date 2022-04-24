@@ -1,6 +1,6 @@
 #include "core/scope.h"
 
-#include <mcga/test_ext/matchers.hpp>
+#include "mcga/test_ext/matchers.hpp"
 
 using namespace tema;
 using namespace mcga::matchers;
@@ -60,7 +60,7 @@ TEST_CASE("scope") {
         test("add a statement", [] {
             scope s;
             s.add_statement("truth", truth());
-            expect(s.own_statements(), hasSize(1));
+            expect(s.own_statements(), hasSize(1ul));
             expect(s.own_statements()[0], named_statement{"truth", truth()});
             expect(s.has_statement("truth"), isTrue);
             expect(s.has_own_statement("truth"), isTrue);
@@ -76,7 +76,7 @@ TEST_CASE("scope") {
         test("add a statement by direct construction", [] {
             scope s;
             s.add_statement(named_statement{"truth", truth()});
-            expect(s.own_statements(), hasSize(1));
+            expect(s.own_statements(), hasSize(1ul));
             expect(s.own_statements()[0], named_statement{"truth", truth()});
             expect(s.has_statement("truth"), isTrue);
             expect(s.has_own_statement("truth"), isTrue);
@@ -167,7 +167,7 @@ TEST_CASE("scope") {
             expect([&s] { (void) s.get_own_var("X"); }, throwsA<var_not_found>);
             const auto x2 = var("X");
             s.add_var(x2);
-            expect(s.has_var(x), isTrue);// TODO: should this be true? This variable cannot be accessed through the symbol API...
+            expect(s.has_var(x), isTrue);  // TODO: should this be true? This variable cannot be accessed through the symbol API...
             expect(s.has_var(x2), isTrue);
             expect(s.has_var("X"), isTrue);
             expect(s.has_own_var(x), isFalse);

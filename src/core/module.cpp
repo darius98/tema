@@ -19,4 +19,4 @@ const scope& module::get_scope() const {
     return *data;
 }
 
-}// namespace tema
+}  // namespace tema

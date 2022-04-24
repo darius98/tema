@@ -68,4 +68,4 @@ using expr_ptr = expression::expr_ptr;
 [[nodiscard]] expr_ptr binop(expression::binop content);
 [[nodiscard]] expr_ptr binop(expr_ptr left, binop_type type, expr_ptr right);
 
-}// namespace tema
+}  // namespace tema

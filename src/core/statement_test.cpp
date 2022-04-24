@@ -1,6 +1,6 @@
 #include "core/statement.h"
 
-#include <mcga/test_ext/matchers.hpp>
+#include "mcga/test_ext/matchers.hpp"
 
 using namespace tema;
 using namespace mcga::matchers;
@@ -68,10 +68,10 @@ TEST_CASE("statement") {
         const auto a = conj({truth(), conj(truth(), contradiction())});
 
         expect(a->is_conj(), isTrue);
-        expect(a->as_conj().inner, hasSize(2));
+        expect(a->as_conj().inner, hasSize(2ul));
         expect(a->as_conj().inner[0], truth());
         expect(a->as_conj().inner[1]->is_conj(), isTrue);
-        expect(a->as_conj().inner[1]->as_conj().inner, hasSize(2));
+        expect(a->as_conj().inner[1]->as_conj().inner, hasSize(2ul));
         expect(a->as_conj().inner[1]->as_conj().inner[0], truth());
         expect(a->as_conj().inner[1]->as_conj().inner[1], contradiction());
 
@@ -82,14 +82,14 @@ TEST_CASE("statement") {
     test("variadic conjunction", [] {
         const auto a = conj(truth(), truth(), contradiction());
         expect(a->is_conj(), isTrue);
-        expect(a->as_conj().inner, hasSize(3));
+        expect(a->as_conj().inner, hasSize(3ul));
         expect(a->as_conj().inner[0], truth());
         expect(a->as_conj().inner[1], truth());
         expect(a->as_conj().inner[2], contradiction());
 
         const auto b = conj(truth(), truth(), contradiction(), truth(), truth(), contradiction());
         expect(b->is_conj(), isTrue);
-        expect(b->as_conj().inner, hasSize(6));
+        expect(b->as_conj().inner, hasSize(6ul));
         expect(b->as_conj().inner[0], truth());
         expect(b->as_conj().inner[1], truth());
         expect(b->as_conj().inner[2], contradiction());
@@ -102,10 +102,10 @@ TEST_CASE("statement") {
         const auto a = disj({truth(), disj(truth(), contradiction())});
 
         expect(a->is_disj(), isTrue);
-        expect(a->as_disj().inner, hasSize(2));
+        expect(a->as_disj().inner, hasSize(2ul));
         expect(a->as_disj().inner[0], truth());
         expect(a->as_disj().inner[1]->is_disj(), isTrue);
-        expect(a->as_disj().inner[1]->as_disj().inner, hasSize(2));
+        expect(a->as_disj().inner[1]->as_disj().inner, hasSize(2ul));
         expect(a->as_disj().inner[1]->as_disj().inner[0], truth());
         expect(a->as_disj().inner[1]->as_disj().inner[1], contradiction());
 
@@ -116,14 +116,14 @@ TEST_CASE("statement") {
     test("variadic disjunction", [] {
         const auto a = disj(truth(), truth(), contradiction());
         expect(a->is_disj(), isTrue);
-        expect(a->as_disj().inner, hasSize(3));
+        expect(a->as_disj().inner, hasSize(3ul));
         expect(a->as_disj().inner[0], truth());
         expect(a->as_disj().inner[1], truth());
         expect(a->as_disj().inner[2], contradiction());
 
         const auto b = disj(truth(), truth(), contradiction(), truth(), truth(), contradiction());
         expect(b->is_disj(), isTrue);
-        expect(b->as_disj().inner, hasSize(6));
+        expect(b->as_disj().inner, hasSize(6ul));
         expect(b->as_disj().inner[0], truth());
         expect(b->as_disj().inner[1], truth());
         expect(b->as_disj().inner[2], contradiction());

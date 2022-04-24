@@ -146,4 +146,4 @@ using statement_ptr = statement::statement_ptr;
 [[nodiscard]] statement_ptr rel_stmt(relationship rel);
 [[nodiscard]] statement_ptr rel_stmt(expr_ptr left, rel_type type, expr_ptr right);
 
-}// namespace tema
+}  // namespace tema

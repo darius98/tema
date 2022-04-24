@@ -89,8 +89,9 @@ struct equals_statement_visitor {
             return false;
         }
         const auto& app_terms = b->as_conj().inner;
+        // TODO: Use ranges to iterate both arrays at once.
         for (auto it = a.inner.begin(); it != a.inner.end(); it++) {
-            if (!visit_recursive(*this, it->get(), app_terms[it - a.inner.begin()].get())) {
+            if (!visit_recursive(*this, it->get(), app_terms[size_t(it - a.inner.begin())].get())) {
                 return false;
             }
         }
@@ -101,8 +102,9 @@ struct equals_statement_visitor {
             return false;
         }
         const auto& app_terms = b->as_disj().inner;
+        // TODO: Use ranges to iterate both arrays at once.
         for (auto it = a.inner.begin(); it != a.inner.end(); it++) {
-            if (!visit_recursive(*this, it->get(), app_terms[it - a.inner.begin()].get())) {
+            if (!visit_recursive(*this, it->get(), app_terms[size_t(it - a.inner.begin())].get())) {
                 return false;
             }
         }
@@ -147,4 +149,4 @@ bool equals(const statement* a, const statement* b) {
     return a->accept_r<bool>(equals_statement_visitor{b});
 }
 
-}// namespace tema
+}  // namespace tema

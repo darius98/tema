@@ -16,4 +16,4 @@ struct apply_vars_result {
 
 [[nodiscard]] apply_vars_result apply_vars(const statement_ptr& law, const match_result& replacements);
 
-}// namespace tema
+}  // namespace tema

@@ -54,4 +54,4 @@ module pl() {
     return pl;
 }
 
-}// namespace tema::modules
+}  // namespace tema::modules

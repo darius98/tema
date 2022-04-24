@@ -21,4 +21,4 @@ public:
     [[nodiscard]] const scope& get_scope() const;
 };
 
-}// namespace tema
+}  // namespace tema

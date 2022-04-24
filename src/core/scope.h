@@ -18,7 +18,7 @@ struct statement_not_found : public std::runtime_error {
     statement_not_found();
 };
 
-using statement_name = std::string;// TODO: In the future, this will become more complex.
+using statement_name = std::string;  // TODO: In the future, this will become more complex.
 using statement_name_view = std::string_view;
 
 struct named_statement {
@@ -64,4 +64,4 @@ public:
     void add_statement(statement_name name, statement_ptr stmt);
 };
 
-}// namespace tema
+}  // namespace tema

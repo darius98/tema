@@ -13,7 +13,7 @@ cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -B${BUILD_DIR_FULL} -H.
 cmake --build ${BUILD_DIR_FULL} -j8
 
 echo "\nRun tests\n"
-${BUILD_DIR_FULL}/tests/run_tests.sh
+${BUILD_DIR_FULL}/run_tests.sh
 
 echo "\nLLVM Coverage Report:\n"
 cmake --build ${BUILD_DIR_FULL} --target coverage

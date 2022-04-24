@@ -12,4 +12,4 @@ void print_utf8_to(const expression* expr, std::ostream& to);
 void print_utf8_to(const statement* statement, std::ostream& to);
 [[nodiscard]] std::string print_utf8(const statement* statement);
 
-}// namespace tema
+}  // namespace tema

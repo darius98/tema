@@ -124,4 +124,4 @@ statement_ptr rel_stmt(expr_ptr left, rel_type type, expr_ptr right) {
     });
 }
 
-}// namespace tema
+}  // namespace tema

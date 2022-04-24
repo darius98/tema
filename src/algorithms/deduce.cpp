@@ -27,4 +27,4 @@ std::optional<apply_vars_result> deduce(const statement* law, const statement_pt
     return std::nullopt;
 }
 
-}// namespace tema
+}  // namespace tema

@@ -58,7 +58,7 @@ struct match_statement_visitor {
     match_result result;
 
     // TODO: This will contain like 1-2 variables at most, do a flat map / vector for it.
-    var_mapping bound_vars;// For forall
+    var_mapping bound_vars;  // For forall
 
     explicit match_statement_visitor(statement_ptr app_node)
         : app_node(std::move(app_node)) {}
@@ -88,8 +88,9 @@ struct match_statement_visitor {
             return false;
         }
         const auto& app_terms = app_node->as_conj().inner;
+        // TODO: Use ranges to iterate both arrays at once.
         for (auto it = expr.inner.begin(); it != expr.inner.end(); it++) {
-            if (!visit_recursive(*this, it->get(), app_terms[it - expr.inner.begin()])) {
+            if (!visit_recursive(*this, it->get(), app_terms[size_t(it - expr.inner.begin())])) {
                 return false;
             }
         }
@@ -100,8 +101,9 @@ struct match_statement_visitor {
             return false;
         }
         const auto& app_terms = app_node->as_disj().inner;
+        // TODO: Use ranges to iterate both arrays at once.
         for (auto it = expr.inner.begin(); it != expr.inner.end(); it++) {
-            if (!visit_recursive(*this, it->get(), app_terms[it - expr.inner.begin()])) {
+            if (!visit_recursive(*this, it->get(), app_terms[size_t(it - expr.inner.begin())])) {
                 return false;
             }
         }
@@ -165,4 +167,4 @@ std::optional<match_result> match(const statement* law, statement_ptr applicatio
     return std::move(visitor.result);
 }
 
-}// namespace tema
+}  // namespace tema
