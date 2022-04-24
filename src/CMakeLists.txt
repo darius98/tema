@@ -2,14 +2,18 @@ AddTemaLibrary(tema_core
         SOURCES
         core/expression.cpp
         core/module.cpp
+        core/relationship.cpp
         core/scope.cpp
         core/statement.cpp
         core/variable.cpp
 
         TESTS
+        core/expression_test.cpp
         core/module_test.cpp
+        core/relationship_test.cpp
         core/statement_test.cpp
-        core/scope_test.cpp)
+        core/scope_test.cpp
+        core/variable_test.cpp)
 
 AddTemaLibrary(tema_algorithms
         SOURCES

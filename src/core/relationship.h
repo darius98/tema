@@ -38,6 +38,4 @@ struct relationship {
     expr_ptr right;
 };
 
-[[nodiscard]] std::string_view to_utf8(rel_type rel) noexcept;
-
 }  // namespace tema
