@@ -1,4 +1,4 @@
-#include "scope.h"
+#include "core/scope.h"
 
 #include <mcga/test_ext/matchers.hpp>
 

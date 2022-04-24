@@ -1,4 +1,4 @@
-#include "scope.h"
+#include "core/scope.h"
 
 namespace tema {
 

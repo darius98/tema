@@ -1,7 +1,7 @@
 #pragma once
 
-#include "module.h"
-#include "variable.h"
+#include "core/module.h"
+#include "core/variable.h"
 
 namespace tema::modules {
 

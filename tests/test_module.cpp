@@ -1,5 +1,5 @@
-#include "module.h"
-#include "scope.h"
+#include "core/module.h"
+#include "core/scope.h"
 
 #include <mcga/test_ext/matchers.hpp>
 

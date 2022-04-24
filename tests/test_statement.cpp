@@ -1,4 +1,4 @@
-#include "statement.h"
+#include "core/statement.h"
 
 #include <mcga/test_ext/matchers.hpp>
 

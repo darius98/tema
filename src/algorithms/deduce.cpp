@@ -1,6 +1,6 @@
-#include "deduce.h"
+#include "algorithms/deduce.h"
 
-#include "match.h"
+#include "algorithms/match.h"
 
 namespace tema {
 

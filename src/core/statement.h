@@ -3,11 +3,11 @@
 #include <memory>
 #include <vector>
 
-#include "expression.h"
-#include "relationship.h"
+#include "core/expression.h"
+#include "core/relationship.h"
+#include "core/variable.h"
 #include "util/cvref_same_as.h"
 #include "util/tpack.h"
-#include "variable.h"
 
 namespace tema {
 

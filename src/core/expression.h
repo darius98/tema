@@ -2,8 +2,8 @@
 
 #include <memory>
 
+#include "core/variable.h"
 #include "util/tpack.h"
-#include "variable.h"
 
 namespace tema {
 

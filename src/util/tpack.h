@@ -1,8 +1,8 @@
 #pragma once
 
+#include <tuple>
 #include <type_traits>
 #include <variant>
-#include <tuple>
 
 namespace util {
 

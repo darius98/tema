@@ -1,4 +1,4 @@
-#include "equals.h"
+#include "algorithms/equals.h"
 
 #include <map>
 

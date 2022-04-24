@@ -1,6 +1,6 @@
-#include "module.h"
+#include "core/module.h"
 
-#include "scope.h"
+#include "core/scope.h"
 
 namespace tema {
 

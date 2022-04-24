@@ -3,7 +3,7 @@
 #include <optional>
 
 #include "algorithms/apply_vars.h"
-#include "statement.h"
+#include "core/statement.h"
 
 namespace tema {
 

@@ -4,8 +4,8 @@
 #include <set>
 
 #include "algorithms/match.h"
-#include "statement.h"
-#include "variable.h"
+#include "core/statement.h"
+#include "core/variable.h"
 
 namespace tema {
 

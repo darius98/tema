@@ -1,6 +1,6 @@
-#include "propositional_logic.h"
+#include "modules/propositional_logic.h"
 
-#include "scope.h"
+#include "core/scope.h"
 
 namespace tema::modules {
 
