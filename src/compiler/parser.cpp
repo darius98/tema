@@ -7,7 +7,7 @@ namespace tema {
 
 module parse_module_from_stream(std::istream&) {
     // TODO: Implement
-    return module(scope{});
+    return module("TODO");
 }
 
 module parse_module_from_string(std::string_view data) {
