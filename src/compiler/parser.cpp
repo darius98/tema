@@ -16,7 +16,7 @@ module parse_module_from_string(std::string_view data) {
     return parse_module_from_stream(string_stream);
 }
 
-module parse_module_from_file(std::string_view file_name) {
+module parse_module_from_file(const char* file_name) {
     std::ifstream file_stream(file_name);
     if (file_stream.fail()) {
         throw std::runtime_error{"Could not open file '" + std::string(file_name) + "'."};
