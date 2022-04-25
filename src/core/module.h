@@ -3,9 +3,9 @@
 #include <memory>
 #include <stdexcept>
 
-namespace tema {
+#include "core/scope.h"
 
-struct scope;
+namespace tema {
 
 struct invalid_module_scope : std::runtime_error {
     invalid_module_scope();
@@ -13,7 +13,7 @@ struct invalid_module_scope : std::runtime_error {
 
 struct module {
 private:
-    std::shared_ptr<const scope> data;
+    scope data;
 
 public:
     explicit module(scope&& data);

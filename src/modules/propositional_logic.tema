@@ -1,0 +1,101 @@
+var p;
+var q;
+
+definition "Truth"
+states ⊤;
+
+theorem "Law of excluded middle"
+states p∨¬p
+proof missing;
+
+theorem "Modus Ponens"
+states (p∧(p→q))→q
+proof missing;
+
+theorem "Affirming the conclusion"
+states q→(p→q)
+proof missing;
+
+theorem "Contradiction"
+states ¬(p∧¬p)
+proof missing;
+
+theorem "Double negation"
+states ¬¬p⟷p
+proof missing;
+
+theorem "Counter position"
+states (p→q)⟷(¬q→¬p)
+proof missing;
+
+theorem "Negation of the premise"
+states ¬p→(p→q)
+proof missing;
+
+theorem "Modus Tollens"
+states ((p→q)∧¬q)→¬p
+proof missing;
+
+theorem "Transitivity of implication"
+states ((p→q)∧(q→r))→(p→r)
+proof missing;
+
+theorem "DeMorgan law I"
+states (p∨q)⟷¬(¬p∧¬q)
+proof missing;
+
+theorem "DeMorgan law II"
+states (p∧q)⟷¬(¬p∨¬q)
+proof missing;
+
+theorem "Import and Export"
+states (p→(q→r))⟷((p∧q)→r)
+proof missing;
+
+theorem "Idempotence of conjunction"
+states p⟷(p∧p)
+proof missing;
+
+theorem "Idempotence of disjunction"
+states p⟷(p∨p)
+proof missing;
+
+theorem "Weakening of conjunction"
+states (p∧q)→p
+proof missing;
+
+theorem "Weakening of disjunction"
+states p→(∀q (p∨q))
+proof missing;
+
+theorem "Commutativity of conjunction"
+states (p∧q)⟷(q∧p)
+proof missing;
+
+theorem "Commutativity of disjunction"
+states (p∨q)⟷(q∨p)
+proof missing;
+
+theorem "Associativity of conjunction"
+states ((p∧q)∧r)⟷(p∧(q∧r))
+proof missing;
+
+theorem "Associativity of disjunction"
+states ((p∨q)∨r)⟷(p∨(q∨r))
+proof missing;
+
+theorem "Absorption of conjunction"
+states (p∨(p∧q))⟷p
+proof missing;
+
+theorem "Absorption of disjunction"
+states (p∧(p∨q))⟷p
+proof missing;
+
+theorem "Distributivity of conjunction"
+states (p∧(q∨r))⟷((p∧q)∨(p∧r))
+proof missing;
+
+theorem "Distributivity of disjunction"
+states (p∨(q∧r))⟷((p∨q)∧(p∨r))
+proof missing;

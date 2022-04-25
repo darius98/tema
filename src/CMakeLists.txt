@@ -41,3 +41,10 @@ AddTemaLibrary(tema_modules
         DEPS
         tema_core
         )
+
+AddTemaLibrary(tema_compiler
+        SOURCES
+        compiler/parser.cpp
+
+        DEPS
+        tema_core)
