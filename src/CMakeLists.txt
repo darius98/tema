@@ -33,7 +33,6 @@ AddTemaLibrary(tema_algorithms
         algorithms/match_test.cpp
         algorithms/print_utf8_test.cpp)
 
-find_package(FLEX REQUIRED)
 flex_target(tema_flex_lexer compiler/flex_lexer.l ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp)
 add_library(tema_raw_lexer ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp)
 target_link_libraries(tema_raw_lexer PRIVATE tema_core)
