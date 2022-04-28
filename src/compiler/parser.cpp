@@ -1,5 +1,7 @@
 #include "compiler/parser.h"
 
+#include <cstring>
+
 #include <fstream>
 #include <sstream>
 
