@@ -33,13 +33,6 @@ AddTemaLibrary(tema_algorithms
         algorithms/match_test.cpp
         algorithms/print_utf8_test.cpp)
 
-AddTemaLibrary(tema_modules
-        SOURCES
-        modules/propositional_logic.cpp
-
-        DEPS
-        tema_core)
-
 find_package(FLEX REQUIRED)
 flex_target(tema_flex_lexer compiler/flex_lexer.l ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp)
 add_library(tema_raw_lexer ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp)

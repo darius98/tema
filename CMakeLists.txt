@@ -36,7 +36,3 @@ InitTemaTests()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 AddTemaCoverageTarget()
-
-AddTemaExecutable(random
-        SOURCES random.cpp
-        DEPS tema_compiler tema_algorithms)

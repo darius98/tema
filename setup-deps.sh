@@ -8,7 +8,7 @@ case "$(uname -s)" in
      ;;
 
    Linux)
-     apt-get install libfl-dev flex
+     sudo apt-get install libfl-dev flex
      ;;
    *)
      echo 'Other OS'
