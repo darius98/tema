@@ -5,7 +5,7 @@ namespace tema {
 var_not_found::var_not_found()
     : std::runtime_error{"variable not found"} {}
 
-scope::scope(scope* parent)
+scope::scope(const scope* parent)
     : parent_(parent) {}
 
 bool scope::has_parent() const {

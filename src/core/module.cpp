@@ -10,38 +10,32 @@ std::string_view module::get_name() const {
     return name;
 }
 
-const scope& module::get_scope() const {
-    return data;
+const scope& module::get_internal_scope() const {
+    return internal_scope;
+}
+
+const scope& module::get_public_scope() const {
+    return public_scope;
 }
 
 const std::vector<module::decl>& module::get_decls() const {
     return decls;
 }
 
-void module::add_variable_decl(location loc, bool exported, variable_ptr var) {
-    if (exported) {
-        data.add_var(var);
+void module::add_variable_decl(var_decl var) {
+    internal_scope.add_var(var.var);
+    if (var.exported) {
+        public_scope.add_var(var.var);
     }
-    decls.emplace_back(var_decl{std::move(loc), exported, std::move(var)});
+    decls.emplace_back(std::move(var));
 }
 
-void module::add_statement_decl(location loc,
-                                bool exported,
-                                stmt_decl_type type,
-                                std::string stmt_name,
-                                statement_ptr stmt,
-                                std::optional<scope> proof_description) {
-    if (exported) {
-        data.add_statement(stmt);
+void module::add_statement_decl(stmt_decl stmt) {
+    internal_scope.add_statement(stmt.stmt);
+    if (stmt.exported) {
+        public_scope.add_statement(stmt.stmt);
     }
-    decls.emplace_back(stmt_decl{
-            std::move(loc),
-            exported,
-            type,
-            std::move(stmt_name),
-            std::move(stmt),
-            std::move(proof_description),
-    });
+    decls.emplace_back(std::move(stmt));
 }
 
 }  // namespace tema

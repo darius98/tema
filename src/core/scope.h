@@ -16,14 +16,14 @@ struct var_not_found : public std::runtime_error {
 
 struct scope {
 private:
-    scope* parent_;
+    const scope* parent_;
 
     std::map<symbol, variable_ptr, std::less<>> vars_by_symbol;
 
     std::vector<statement_ptr> statements;
 
 public:
-    explicit scope(scope* parent = nullptr);
+    explicit scope(const scope* parent = nullptr);
 
     [[nodiscard]] bool has_parent() const;
     [[nodiscard]] const scope* parent() const;
