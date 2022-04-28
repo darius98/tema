@@ -7,7 +7,7 @@ using namespace mcga::matchers;
 
 void expect_fails_to_parse(std::string_view code, mcga::test::Context context = mcga::test::Context()) {
     mcga::test::expect([code] {
-        (void) parse_module_from_string(code);
+        (void) parse_module_code(code);
     },
                        throwsA<parse_error>, std::move(context));
 }

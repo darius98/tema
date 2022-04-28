@@ -12,8 +12,8 @@ struct parse_error: std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 
-[[nodiscard]] module parse_module(std::istream& stream, std::string file_name);
-[[nodiscard]] module parse_module_from_string(std::string_view code);
-[[nodiscard]] module parse_module_from_file(std::string file_name);
+[[nodiscard]] module parse_module_stream(std::istream& stream, std::string file_name);
+[[nodiscard]] module parse_module_code(std::string_view code);
+[[nodiscard]] module parse_module_file(std::string file_name);
 
 }  // namespace tema

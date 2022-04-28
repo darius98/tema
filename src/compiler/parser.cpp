@@ -1,73 +1,11 @@
 #include "compiler/parser.h"
 
-#include <cstring>
-
 #include <fstream>
 #include <sstream>
-
-#include <FlexLexer.h>
 
 #include "compiler/lexer.h"
 
 namespace tema {
-
-class flex_lexer_scanner {
-    yyFlexLexer lexer;
-    location loc;
-    int last_token = -1;
-    int next_token = -1;
-
-    void update_location_from_last_token() {
-        if (last_token == tok_eol) {
-            loc.line += 1;
-            loc.col = 1;
-            return;
-        }
-        if (is_keyword_token(last_token) ||
-            last_token == tok_identifier ||
-            last_token == tok_string_literal ||
-            last_token == tok_whitespace) {
-            loc.col += static_cast<int>(std::strlen(lexer.YYText()));
-            return;
-        }
-        loc.col += 1;
-    }
-
-public:
-    flex_lexer_scanner(std::istream& in, std::string file_name)
-        : lexer(&in, nullptr), loc{std::move(file_name), 1, 1} {}
-
-    std::pair<int, const char*> consume_token(bool allow_eof = false) {
-        if (next_token != -1) {
-            last_token = next_token;
-            next_token = -1;
-        } else {
-            do {
-                if (last_token >= 0) {
-                    update_location_from_last_token();
-                }
-                const auto token_type = lexer.yylex();
-                if (token_type < 0) {
-                    throw parse_error{"Unknown token '" + std::string(lexer.YYText()) + "' at " + loc.file_name + ":" + std::to_string(loc.line) + ":" + std::to_string(loc.col)};
-                }
-                last_token = token_type;
-            } while (last_token == tok_whitespace || last_token == tok_eol);
-        }
-        if (last_token == tok_eof && !allow_eof) {
-            throw parse_error{loc.file_name + ":" + std::to_string(loc.line) + ":" + std::to_string(loc.col) + ": Unexpected end of file"};
-        }
-        return {last_token, lexer.YYText()};
-    }
-
-    // Note: this only works for one token.
-    void unconsume_last_token() {
-        next_token = last_token;
-    }
-
-    const location& current_loc() const {
-        return loc;
-    }
-};
 
 using partial_statement = std::variant<variable_ptr, expr_ptr, statement_ptr>;
 using opt_partial_statement = std::optional<partial_statement>;
@@ -383,25 +321,25 @@ public:
     }
 };
 
-module parse_module(std::istream& in, std::string file_name) {
+module parse_module_stream(std::istream& in, std::string file_name) {
     flex_lexer_scanner scanner(in, std::move(file_name));
     return parser(scanner).parse_module();
 }
 
-module parse_module_from_string(std::string_view code) {
+module parse_module_code(std::string_view code) {
     std::stringstream string_stream;
     // TODO: This is quite inefficient, why do we need to copy the data / allocate? We should just
     //  be able to read from the string_view directly.
     string_stream.write(code.data(), static_cast<std::streamsize>(code.size()));
-    return parse_module(string_stream, "<anonymous module>");
+    return parse_module_stream(string_stream, "<anonymous module>");
 }
 
-module parse_module_from_file(std::string file_name) {
+module parse_module_file(std::string file_name) {
     std::ifstream file_stream(file_name);
     if (file_stream.fail()) {
         throw parse_error{"Could not open file '" + file_name + "'."};
     }
-    return parse_module(file_stream, std::move(file_name));
+    return parse_module_stream(file_stream, std::move(file_name));
 }
 
 }  // namespace tema

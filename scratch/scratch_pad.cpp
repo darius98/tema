@@ -17,7 +17,7 @@ void print_module(const tema::module& mod) {
 
 int main(int, char** argv) {
     try {
-        const auto mod = tema::parse_module_from_file(argv[1]);
+        const auto mod = tema::parse_module_file(argv[1]);
         print_module(mod);
     } catch (tema::parse_error& err) {
         std::cout << err.what();
