@@ -11,6 +11,8 @@ if (UNIX AND NOT APPLE)
 
     include_directories(/usr/local/include/)
     link_directories(/usr/local/lib/)
+elseif(APPLE)
+    include_directories(/usr/local/opt/flex/include)
 endif ()
 
 include(FetchContent)
