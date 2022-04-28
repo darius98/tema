@@ -20,8 +20,9 @@ extern const std::map<int, rel_type> token_rel_map;
 bool is_keyword_token(int tok);
 
 enum token {
-    // Keywords
-    tok_export = 1,
+    tok_eof = 0,
+
+    tok_export,
     tok_definition,
     tok_theorem,
     tok_exercise,

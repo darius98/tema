@@ -37,7 +37,7 @@ public:
     flex_lexer_scanner(std::istream& in, std::string file_name)
         : lexer(&in, nullptr), loc{std::move(file_name), 1, 1} {}
 
-    std::pair<int, const char*> consume_token() {
+    std::pair<int, const char*> consume_token(bool allow_eof = false) {
         if (next_token != -1) {
             last_token = next_token;
             next_token = -1;
@@ -52,6 +52,9 @@ public:
                 }
                 last_token = token_type;
             } while (last_token == tok_whitespace || last_token == tok_eol);
+        }
+        if (last_token == tok_eof && !allow_eof) {
+            throw parse_error{loc.file_name + ":" + std::to_string(loc.line) + ":" + std::to_string(loc.col) + ": Unexpected end of file"};
         }
         return {last_token, lexer.YYText()};
     }
@@ -241,8 +244,8 @@ class parser {
             if (!allow_extend && can_finish()) {
                 return finish();
             }
-            auto [token, text] = scanner.consume_token();
-            if (is_keyword_token(token)) {
+            auto [token, text] = scanner.consume_token(true);
+            if (token == tok_eof || is_keyword_token(token)) {
                 scanner.unconsume_last_token();
                 return finish();
             }
@@ -325,7 +328,9 @@ class parser {
 
         mod.add_statement_decl(module::stmt_decl{
                 .loc = std::move(decl_loc),
-                .exported = is_exported || (stmt_type == module::stmt_decl_type::theorem),
+                .exported = is_exported ||
+                            stmt_type == module::stmt_decl_type::definition ||
+                            stmt_type == module::stmt_decl_type::theorem,
                 .type = stmt_type,
                 .name = std::move(stmt_name),
                 .stmt = std::move(stmt),
@@ -335,16 +340,16 @@ class parser {
 
     bool parse_decl(module& mod) {
         bool is_exported = false;
-        auto tok = scanner.consume_token().first;
+        auto tok = scanner.consume_token(true).first;
+        if (tok == tok_eof) {
+            return false;
+        }
         if (tok == tok_export) {
             is_exported = true;
             tok = scanner.consume_token().first;
-        }
-        if (tok == 0) {
-            if (is_exported) {
-                throw_parse_error("Unexpected 'export' with no declaration.");
+            if (tok != tok_var) {
+                throw_parse_error("Unexpected token: only variable declarations can be manually exported.");
             }
-            return false;
         }
         switch (tok) {
             case tok_var: {

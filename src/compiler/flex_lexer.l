@@ -57,6 +57,7 @@ string_literal \"([^\\\"]|\\.)*\"
 }
 {string_literal}       { return tema::token::tok_string_literal; }
 
+"#".*                    { }
 "("                    { return tema::token::tok_open_paren; }
 ")"                    { return tema::token::tok_close_paren; }
 "\n"                   { return tema::token::tok_eol; }

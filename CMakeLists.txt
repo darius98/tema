@@ -29,3 +29,7 @@ InitTemaTests()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 AddTemaCoverageTarget()
+
+AddTemaExecutable(scratch_pad
+        SOURCES scratch/scratch_pad.cpp
+        DEPS tema_compiler tema_algorithms)

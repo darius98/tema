@@ -2,7 +2,7 @@ var p
 var q
 var r
 
-export definition "Truth" ⊤
+definition "Truth" ⊤
 
 theorem "Law of excluded middle" p∨¬p
 proof missing

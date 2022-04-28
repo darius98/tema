@@ -1,0 +1,23 @@
+var A
+var B
+var x
+
+definition "set not in" ¬(x∈A) ⟷ x∉B
+
+definition "set union" x∈A∪B ⟷ (x∈A ∨ x∈B)
+definition "set intersection" x∈A∩B ⟷ (x∈A ∧ x∈B)
+definition "set difference" x∈A\B ⟷ (x∈A ∧ x∉B)
+definition "set symmetric difference" A⊖B = (A\B) ∪ (B\A)
+
+definition "set is included or equal" A⊆B ⟷ (∀t (t∈A → t∈B))
+
+# TODO: This should be only when A and B are sets, but we don't have the concept of variable "kinds" yet.
+definition "set equality" A=B ⟷ (A⊆B ∧ B⊆A)
+definition "set inequality" A≠B ⟷ ¬(A=B)
+
+definition "set not is included or equal" A⊈B ⟷ ¬(A⊆B)
+definition "set includes or equal" B⊇A ⟷ A⊆B
+definition "set not includes or equal" B⊉A ⟷ A⊈B
+definition "set not is included" A⊄B ⟷ ¬(A⊂B)
+definition "set includes" B⊃A ⟷ A⊂B
+definition "set not includes" B⊅A ⟷ A⊄B
