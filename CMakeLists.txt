@@ -5,6 +5,14 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
+if (UNIX AND NOT APPLE)
+    include_directories(/usr/include/)
+    link_directories(/usr/lib/)
+
+    include_directories(/usr/local/include/)
+    link_directories(/usr/local/lib/)
+endif ()
+
 include(FetchContent)
 
 include(cmake/Coverage.cmake)
