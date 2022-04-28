@@ -19,6 +19,9 @@ jobs:
       with:
         version: "14.0"
 
+    - name: SetUpDeps
+      run: ${{github.workspace}}/setup-deps.sh
+
     - name: Check
       run: ${{github.workspace}}/check.sh
       env:
@@ -40,6 +43,9 @@ jobs:
         with:
           version: 11
           platform: x64
+
+      - name: SetUpDeps
+        run: ${{github.workspace}}/setup-deps.sh
 
       - name: Check
         run: ${{github.workspace}}/check.sh
