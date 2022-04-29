@@ -362,16 +362,12 @@ bool parse_decl(flex_lexer_scanner& scanner, module& mod) {
     return true;
 }
 
-module parse_module(flex_lexer_scanner& scanner) {
+module parse_module_stream(std::istream& in, std::string file_name) {
+    flex_lexer_scanner scanner(in, std::move(file_name));
     module mod(scanner.current_loc().file_name);
     while (parse_decl(scanner, mod)) {
     }
     return mod;
-}
-
-module parse_module_stream(std::istream& in, std::string file_name) {
-    flex_lexer_scanner scanner(in, std::move(file_name));
-    return parse_module(scanner);
 }
 
 module parse_module_code(std::string_view code) {
