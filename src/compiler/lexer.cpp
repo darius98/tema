@@ -56,11 +56,11 @@ const std::map<int, int> token_priority_map{
         {tok_open_paren, 5},
 };
 
-const std::map<int, statement_ptr (*)(statement_ptr)> unary_statement_factories{
+const std::map<int, statement_ptr (*)(statement_ptr)> token_unary_stmt_factory_map{
         {tok_neg, neg},
 };
 
-const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> binary_statement_factories{
+const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> token_binary_stmt_factory_map{
         {tok_implies, implies},
         {tok_equiv, equiv},
         {tok_conj, [](statement_ptr a, statement_ptr b) {
@@ -71,14 +71,14 @@ const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> binary_stat
          }},
 };
 
-const std::map<int, binop_type> token_binop_map{
+const std::map<int, binop_type> token_binary_expr_op_map{
         {tok_set_union, binop_type::set_union},
         {tok_set_intersection, binop_type::set_intersection},
         {tok_set_difference, binop_type::set_difference},
         {tok_set_sym_difference, binop_type::set_sym_difference},
 };
 
-const std::map<int, rel_type> token_rel_map{
+const std::map<int, rel_type> token_rel_op_map{
         {tok_eq, rel_type::eq},
         {tok_n_eq, rel_type::n_eq},
         {tok_less, rel_type::less},
@@ -105,6 +105,14 @@ bool is_keyword_token(int tok) {
     return std::find_if(keyword_table.begin(), keyword_table.end(), [tok](const auto& pair) {
                return pair.second == tok;
            }) != keyword_table.end();
+}
+
+void throw_parse_error(const location& loc, std::string msg) {
+    throw parse_error{"Parse error at " + loc.file_name + ":" + std::to_string(loc.line) + ":" + std::to_string(loc.col) + ": " + std::move(msg)};
+}
+
+void throw_unexpected_token_error(const location& loc) {
+    throw_parse_error(loc, "unexpected token.");
 }
 
 void flex_lexer_scanner::update_location_from_last_token() {
@@ -139,15 +147,23 @@ std::pair<int, const char*> flex_lexer_scanner::consume_token(bool allow_eof) {
             }
             const auto token_type = lexer->yylex();
             if (token_type < 0) {
-                throw parse_error{"Unknown token '" + std::string(lexer->YYText()) + "' at " + loc.file_name + ":" + std::to_string(loc.line) + ":" + std::to_string(loc.col)};
+                throw_parse_error(loc, "Unknown token '" + std::string(lexer->YYText()) + "'");
             }
             last_token = token_type;
         } while (last_token == tok_whitespace || last_token == tok_eol);
     }
     if (last_token == tok_eof && !allow_eof) {
-        throw parse_error{loc.file_name + ":" + std::to_string(loc.line) + ":" + std::to_string(loc.col) + ": Unexpected end of file"};
+        throw_parse_error(loc, "Unexpected end of file");
     }
     return {last_token, lexer->YYText()};
+}
+
+const char* flex_lexer_scanner::consume_token_exact(int required_token, const char* error_msg) {
+    auto [token, text] = consume_token();
+    if (token != required_token) {
+        throw_parse_error(loc, error_msg);
+    }
+    return text;
 }
 
 // Note: this only works for one token.

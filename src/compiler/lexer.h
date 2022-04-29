@@ -14,10 +14,10 @@ namespace tema {
 // Used in the flex lexer definition file.
 extern const std::map<std::string, int, std::less<>> keyword_table;
 extern const std::map<int, int> token_priority_map;
-extern const std::map<int, statement_ptr (*)(statement_ptr)> unary_statement_factories;
-extern const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> binary_statement_factories;
-extern const std::map<int, binop_type> token_binop_map;
-extern const std::map<int, rel_type> token_rel_map;
+extern const std::map<int, statement_ptr (*)(statement_ptr)> token_unary_stmt_factory_map;
+extern const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> token_binary_stmt_factory_map;
+extern const std::map<int, binop_type> token_binary_expr_op_map;
+extern const std::map<int, rel_type> token_rel_op_map;
 
 bool is_keyword_token(int tok);
 
@@ -84,6 +84,10 @@ enum token {
     tok_whitespace,
 };
 
+[[noreturn]] void throw_parse_error(const location& loc, std::string msg);
+
+[[noreturn]] void throw_unexpected_token_error(const location& loc);
+
 class flex_lexer_scanner {
     std::unique_ptr<yyFlexLexer> lexer;
     location loc;
@@ -98,6 +102,8 @@ public:
     ~flex_lexer_scanner();
 
     [[nodiscard]] std::pair<int, const char*> consume_token(bool allow_eof = false);
+
+    const char* consume_token_exact(int required_token, const char* error_msg);
 
     // Note: this only works for one token.
     void unconsume_last_token();
