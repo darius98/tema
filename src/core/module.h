@@ -13,6 +13,8 @@ struct location {
     std::string file_name;
     int line;
     int col;
+
+    bool operator==(const location&) const = default;
 };
 
 struct module {

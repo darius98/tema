@@ -8,6 +8,87 @@
 
 namespace tema {
 
+static const std::map<int, int> token_priority_map{
+        {tok_set_union, 1},
+        {tok_set_intersection, 1},
+        {tok_set_difference, 1},
+        {tok_set_sym_difference, 1},
+
+        {tok_eq, 2},
+        {tok_n_eq, 2},
+        {tok_less, 2},
+        {tok_n_less, 2},
+        {tok_eq_less, 2},
+        {tok_n_eq_less, 2},
+        {tok_greater, 2},
+        {tok_n_greater, 2},
+        {tok_eq_greater, 2},
+        {tok_n_eq_greater, 2},
+        {tok_in, 2},
+        {tok_n_in, 2},
+        {tok_includes, 2},
+        {tok_n_includes, 2},
+        {tok_eq_includes, 2},
+        {tok_n_eq_includes, 2},
+        {tok_is_included, 2},
+        {tok_n_is_included, 2},
+        {tok_eq_is_included, 2},
+        {tok_n_eq_is_included, 2},
+
+        {tok_neg, 3},
+        {tok_implies, 4},
+        {tok_equiv, 4},
+        {tok_conj, 4},
+        {tok_disj, 4},
+
+        {tok_open_paren, 5},
+};
+
+static const std::map<int, statement_ptr (*)(statement_ptr)> token_unary_stmt_factory_map{
+        {tok_neg, neg},
+};
+
+static const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> token_binary_stmt_factory_map{
+        {tok_implies, implies},
+        {tok_equiv, equiv},
+        {tok_conj, [](statement_ptr a, statement_ptr b) {
+             return conj(std::move(a), std::move(b));
+         }},
+        {tok_disj, [](statement_ptr a, statement_ptr b) {
+             return disj(std::move(a), std::move(b));
+         }},
+};
+
+static const std::map<int, binop_type> token_binary_expr_op_map{
+        {tok_set_union, binop_type::set_union},
+        {tok_set_intersection, binop_type::set_intersection},
+        {tok_set_difference, binop_type::set_difference},
+        {tok_set_sym_difference, binop_type::set_sym_difference},
+};
+
+static const std::map<int, rel_type> token_rel_op_map{
+        {tok_eq, rel_type::eq},
+        {tok_n_eq, rel_type::n_eq},
+        {tok_less, rel_type::less},
+        {tok_n_less, rel_type::n_less},
+        {tok_eq_less, rel_type::eq_less},
+        {tok_n_eq_less, rel_type::n_eq_less},
+        {tok_greater, rel_type::greater},
+        {tok_n_greater, rel_type::n_greater},
+        {tok_eq_greater, rel_type::eq_greater},
+        {tok_n_eq_greater, rel_type::n_eq_greater},
+        {tok_in, rel_type::in},
+        {tok_n_in, rel_type::n_in},
+        {tok_includes, rel_type::includes},
+        {tok_n_includes, rel_type::n_includes},
+        {tok_eq_includes, rel_type::eq_includes},
+        {tok_n_eq_includes, rel_type::n_eq_includes},
+        {tok_is_included, rel_type::is_included},
+        {tok_n_is_included, rel_type::n_is_included},
+        {tok_eq_is_included, rel_type::eq_is_included},
+        {tok_n_eq_is_included, rel_type::n_eq_is_included},
+};
+
 using partial_statement = std::variant<variable_ptr, expr_ptr, statement_ptr>;
 
 class reverse_polish_notation_builder {
@@ -164,7 +245,7 @@ statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_sco
         if (token == tok_forall) {
             auto forall_var_name = scanner.consume_token_exact(tok_identifier, "Expected variable name (an identifier).");
             scope forall_scope(&enclosing_scope);
-            auto forall_var = var(forall_var_name);
+            auto forall_var = var(symbol{forall_var_name});
             forall_scope.add_var(forall_var);
             auto forall_stmt = parse_stmt(scanner, forall_scope, false);
             rpn_builder.add_partial(forall(std::move(forall_var), std::move(forall_stmt)));
@@ -210,13 +291,13 @@ void parse_var_decl(flex_lexer_scanner& scanner, module& mod, bool is_exported) 
     mod.add_variable_decl(module::var_decl{
             .loc = scanner.current_loc(),
             .exported = is_exported,
-            .var = var(identifier),
+            .var = var(symbol{identifier}),
     });
 }
 
 std::string parse_stmt_name(flex_lexer_scanner& scanner) {
     auto literal = scanner.consume_token_exact(tok_string_literal, "Expected statement name as a string literal");
-    auto str_literal = std::string(literal + 1);
+    auto str_literal = std::string(literal.substr(1));
     str_literal.erase(str_literal.size() - 1, 1);
     return str_literal;
 }

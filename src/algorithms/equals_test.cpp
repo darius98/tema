@@ -7,7 +7,7 @@
 using namespace tema;
 using namespace mcga::matchers;
 
-void impl_expect_equals(bool expected, const char* sign, const auto& a, const auto& b, mcga::test::Context context) {
+void impl_expect_equals(bool expected, std::string_view sign, const auto& a, const auto& b, mcga::test::Context context) {
     mcga::test::expectMsg(equals(a.get(), b.get()) == expected,
                           print_utf8(a.get()) + sign + print_utf8(b.get()),
                           std::move(context));

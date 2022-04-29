@@ -13,11 +13,6 @@ namespace tema {
 
 // Used in the flex lexer definition file.
 extern const std::map<std::string, int, std::less<>> keyword_table;
-extern const std::map<int, int> token_priority_map;
-extern const std::map<int, statement_ptr (*)(statement_ptr)> token_unary_stmt_factory_map;
-extern const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> token_binary_stmt_factory_map;
-extern const std::map<int, binop_type> token_binary_expr_op_map;
-extern const std::map<int, rel_type> token_rel_op_map;
 
 bool is_keyword_token(int tok);
 
@@ -101,9 +96,9 @@ public:
 
     ~flex_lexer_scanner();
 
-    [[nodiscard]] std::pair<int, const char*> consume_token(bool allow_eof = false);
+    [[nodiscard]] std::pair<token, std::string_view> consume_token(bool allow_eof = false);
 
-    const char* consume_token_exact(int required_token, const char* error_msg);
+    std::string_view consume_token_exact(token required_token, std::string_view error_msg);
 
     // Note: this only works for one token.
     void unconsume_last_token();
