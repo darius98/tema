@@ -44,4 +44,7 @@ AddTemaLibrary(tema_compiler
 
         TESTS
         compiler/lexer_test.cpp
-        compiler/parser_test.cpp)
+        compiler/parser_test.cpp
+
+        TESTS_DEPS
+        tema_algorithms)

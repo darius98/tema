@@ -10,7 +10,7 @@ function(InitTemaTests)
 endfunction()
 
 function(AddTemaTarget TYPE NAME)
-    cmake_parse_arguments(P "" "" "SOURCES;TESTS;DEPS" ${ARGN})
+    cmake_parse_arguments(P "" "" "SOURCES;TESTS;DEPS;TESTS_DEPS" ${ARGN})
     if (TYPE STREQUAL "LIBRARY")
         add_library(${NAME} ${P_SOURCES})
     elseif (TYPE STREQUAL "EXECUTABLE")
@@ -30,6 +30,9 @@ function(AddTemaTarget TYPE NAME)
         add_executable(${NAME}_test ${P_TESTS})
         AddTargetCompileFlags(${NAME}_test)
         target_link_libraries(${NAME}_test PRIVATE ${NAME} mcga_test_static mcga_matchers)
+        if (P_TESTS_DEPS)
+            target_link_libraries(${NAME}_test PRIVATE ${P_TESTS_DEPS})
+        endif ()
 
         set(PROFRAW_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_test.profraw)
         set(COMMAND "MallocNanoZone=0 LLVM_PROFILE_FILE=${PROFRAW_FILE_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_test --executor=smooth")
@@ -80,9 +83,15 @@ function(AddTemaCoverageTarget)
                 -show-branches=count
                 -show-line-counts
                 -use-color -Xdemangler c++filt -Xdemangler -n
+                -line-coverage-lt=100
+                -ignore-filename-regex=".*FlexLexer.*"
                 -format=html > ${CMAKE_BINARY_DIR}/coverage.html)
         add_dependencies(coverage_report coverage_collect)
-        add_custom_target(coverage COMMAND llvm-cov report ${BINARY_FILE_ARGS} -instr-profile=${CMAKE_BINARY_DIR}/merged.profdata)
+        add_custom_target(coverage COMMAND llvm-cov report ${BINARY_FILE_ARGS}
+                -instr-profile=${CMAKE_BINARY_DIR}/merged.profdata
+                -show-region-summary=0
+                -ignore-filename-regex=".*FlexLexer.*"
+                )
         add_dependencies(coverage coverage_report)
     else ()
         add_custom_target(coverage COMMAND echo "coverage not supported in this build")

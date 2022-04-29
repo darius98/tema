@@ -52,10 +52,10 @@ static const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> toke
         {tok_implies, implies},
         {tok_equiv, equiv},
         {tok_conj, [](statement_ptr a, statement_ptr b) {
-             return conj(std::move(a), std::move(b));
+             return conj({std::move(a), std::move(b)});
          }},
         {tok_disj, [](statement_ptr a, statement_ptr b) {
-             return disj(std::move(a), std::move(b));
+             return disj({std::move(a), std::move(b)});
          }},
 };
 
@@ -92,8 +92,21 @@ static const std::map<int, rel_type> token_rel_op_map{
 using partial_statement = std::variant<variable_ptr, expr_ptr, statement_ptr>;
 
 class reverse_polish_notation_builder {
+    enum class expectation {
+        expect_operand,
+        expect_operator,
+    };
+
+    expectation state = expectation::expect_operand;
     std::vector<partial_statement> partials;
     std::vector<int> operators;
+
+    void check_expectation(expectation from, expectation to, const location& loc) {
+        if (state != from) {
+            throw_unexpected_token_error(loc);
+        }
+        state = to;
+    }
 
     template<util::one_of<statement_ptr, expr_ptr> As>
     [[nodiscard]] As pop_last_partial(As (*var_wrapper)(variable_ptr), const location& loc) {
@@ -167,16 +180,15 @@ class reverse_polish_notation_builder {
         throw_unexpected_token_error(loc);
     }
 
-public:
-    void reduce_last_operator(const location& loc) {
-        if (operators.empty()) {
-            throw_unexpected_token_error(loc);
+    void reduce_operators(const location& loc, auto predicate) {
+        while (!operators.empty() && predicate()) {
+            int operator_token = operators.back();
+            operators.pop_back();
+            partials.push_back(reduce_operator(operator_token, loc));
         }
-        int operator_token = operators.back();
-        operators.pop_back();
-        partials.push_back(reduce_operator(operator_token, loc));
     }
 
+public:
     bool can_finish() {
         return operators.empty() &&
                partials.size() == 1 &&
@@ -185,9 +197,7 @@ public:
     }
 
     statement_ptr finish(const location& loc) {
-        while (!operators.empty()) {
-            reduce_last_operator(loc);
-        }
+        reduce_operators(loc, [] { return true; });
         if (!can_finish()) {
             throw_unexpected_token_error(loc);
         }
@@ -197,39 +207,43 @@ public:
         return get<statement_ptr>(std::move(partials[0]));
     }
 
-    void add_partial(partial_statement partial) {
+    void add_partial(partial_statement partial, const location& loc) {
+        check_expectation(expectation::expect_operand, expectation::expect_operator, loc);
         partials.push_back(std::move(partial));
     }
 
-    void open_paren() {
+    void open_paren(const location& loc) {
+        check_expectation(expectation::expect_operand, expectation::expect_operand, loc);
         operators.push_back(tok_open_paren);
     }
 
     void close_paren(const location& loc) {
-        while (!operators.empty() && operators.back() != tok_open_paren) {
-            reduce_last_operator(loc);
-        }
+        check_expectation(expectation::expect_operator, expectation::expect_operator, loc);
+        reduce_operators(loc, [this] { return operators.back() != tok_open_paren; });
         if (operators.empty()) {
             throw_unexpected_token_error(loc);
         }
         operators.pop_back();  // Remove the open paren.
     }
 
-    void add_operator(const location& loc, int operator_token) {
-        const auto token_priority_it = token_priority_map.find(operator_token);
-        if (token_priority_it == token_priority_map.end()) {
-            throw_unexpected_token_error(loc);
+    void add_operator(int operator_token, const location& loc) {
+        // TODO: A more generic unary operator check.
+        if (operator_token == tok_neg) {
+            check_expectation(expectation::expect_operand, expectation::expect_operand, loc);
+        } else {
+            check_expectation(expectation::expect_operator, expectation::expect_operand, loc);
         }
-        int token_priority = token_priority_it->second;
-        while (!operators.empty() && token_priority_map.find(operators.back())->second < token_priority) {
-            reduce_last_operator(loc);
-        }
+        int token_priority = token_priority_map.find(operator_token)->second;
+        reduce_operators(loc, [this, token_priority] {
+            return token_priority_map.find(operators.back())->second < token_priority;
+        });
         operators.push_back(operator_token);
     }
 };
 
 // This function uses a "reverse polish notation"-based algorithm to parse statements,
 // except when encountering a forall node where it does a recursive call.
+// Similar to the "shunting-yard algorithm".
 statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_scope, bool allow_extend) {
     const location& loc = scanner.current_loc();  // This is a reference, so always up to date.
     reverse_polish_notation_builder rpn_builder;
@@ -248,7 +262,7 @@ statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_sco
             auto forall_var = var(symbol{forall_var_name});
             forall_scope.add_var(forall_var);
             auto forall_stmt = parse_stmt(scanner, forall_scope, false);
-            rpn_builder.add_partial(forall(std::move(forall_var), std::move(forall_stmt)));
+            rpn_builder.add_partial(forall(std::move(forall_var), std::move(forall_stmt)), loc);
             continue;
         }
         switch (token) {
@@ -259,19 +273,19 @@ statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_sco
                 } catch (const var_not_found&) {
                     throw_parse_error(loc, "Unknown variable '" + std::string(text) + "'.");
                 }
-                rpn_builder.add_partial(std::move(var));
+                rpn_builder.add_partial(std::move(var), loc);
                 break;
             }
             case tok_truth: {
-                rpn_builder.add_partial(truth());
+                rpn_builder.add_partial(truth(), loc);
                 break;
             }
             case tok_contradiction: {
-                rpn_builder.add_partial(contradiction());
+                rpn_builder.add_partial(contradiction(), loc);
                 break;
             }
             case tok_open_paren: {
-                rpn_builder.open_paren();
+                rpn_builder.open_paren(loc);
                 break;
             }
             case tok_close_paren: {
@@ -279,7 +293,7 @@ statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_sco
                 break;
             }
             default: {
-                rpn_builder.add_operator(loc, token);
+                rpn_builder.add_operator(token, loc);
                 break;
             }
         }
@@ -337,16 +351,15 @@ bool parse_decl(flex_lexer_scanner& scanner, module& mod) {
     if (tok == tok_eof) {
         return false;
     }
-    bool is_exported = false;
-    if (tok == tok_export) {
-        is_exported = true;
-        scanner.consume_token_exact(tok_var, "Unexpected token: only variable declarations can be manually exported.");
+    if (tok == tok_export || tok == tok_var) {
+        bool is_exported = (tok == tok_export);
+        if (is_exported) {
+            scanner.consume_token_exact(tok_var, "Unexpected token: only variable declarations can be manually exported.");
+        }
+        parse_var_decl(scanner, mod, is_exported);
+        return true;
     }
     switch (tok) {
-        case tok_var: {
-            parse_var_decl(scanner, mod, is_exported);
-            break;
-        }
         case tok_definition:
             parse_stmt_decl(scanner, mod, module::stmt_decl_type::definition);
             break;
