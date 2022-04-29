@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="tema_algorithms_test" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="--executor=smooth" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="tema" TARGET_NAME="tema_algorithms_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="tema" RUN_TARGET_NAME="tema_algorithms_test">
+    <envs>
+      <env name="MallocNanoZone" value="0" />
+    </envs>
+    <method v="2">
+      <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+    </method>
+  </configuration>
+</component>
