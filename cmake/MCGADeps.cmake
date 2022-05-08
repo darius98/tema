@@ -4,6 +4,10 @@ FetchContent_Declare(mcga_cli URL https://github.com/darius98/mcga-cli/archive/r
 FetchContent_Populate(mcga_cli)
 add_subdirectory(${mcga_cli_SOURCE_DIR} ${mcga_cli_BINARY_DIR} EXCLUDE_FROM_ALL)
 
+FetchContent_Declare(mcga_proc URL https://github.com/darius98/mcga-proc/archive/refs/heads/master.zip)
+FetchContent_Populate(mcga_proc)
+add_subdirectory(${mcga_proc_SOURCE_DIR} ${mcga_proc_BINARY_DIR} EXCLUDE_FROM_ALL)
+
 FetchContent_Declare(mcga_matchers URL https://github.com/darius98/mcga-matchers/archive/refs/heads/master.zip)
 FetchContent_Populate(mcga_matchers)
 add_subdirectory(${mcga_matchers_SOURCE_DIR} ${mcga_matchers_BINARY_DIR} EXCLUDE_FROM_ALL)

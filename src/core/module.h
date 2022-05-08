@@ -25,9 +25,9 @@ struct module {
     };
 
     enum class stmt_decl_type {
-        definition,
-        theorem,
-        exercise,
+        definition = 0,
+        theorem = 1,
+        exercise = 2,
     };
 
     struct stmt_decl {

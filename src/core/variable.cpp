@@ -1,11 +1,13 @@
 #include "core/variable.h"
 
+#include "util/export.h"
+
 namespace tema {
 
 variable::variable(symbol name)
     : name(std::move(name)) {}
 
-variable_ptr var(symbol name) {
+TEMA_EXPORT variable_ptr var(symbol name) {
     return std::make_shared<const variable>(std::move(name));
 }
 

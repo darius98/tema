@@ -1,4 +1,4 @@
-AddTemaLibrary(tema_core
+AddTemaSharedLibrary(tema_core
         SOURCES
         core/expression.cpp
         core/module.cpp
@@ -33,18 +33,25 @@ AddTemaLibrary(tema_algorithms
         algorithms/match_test.cpp
         algorithms/print_utf8_test.cpp)
 
-AddFlexLibrary(tema_compiler_lexer compiler/flex_lexer.l)
+GenerateXXD(${CMAKE_CURRENT_SOURCE_DIR}/util/export.h xxd_export_h_code)
+AddFlexLibrary(tema_compiler_lexer compiler/lexer_flex.l)
 AddTemaLibrary(tema_compiler
         SOURCES
+        compiler/compile.cpp
         compiler/lexer.cpp
         compiler/parser.cpp
+        compiler/print_cxx.cpp
+        compiler/translate.cpp
 
         DEPS
-        tema_core tema_compiler_lexer
+        tema_core tema_compiler_lexer mcga_proc
 
         TESTS
+        compiler/compile_test.cpp
         compiler/lexer_test.cpp
         compiler/parser_test.cpp
+        compiler/print_cxx_test.cpp
+        compiler/translate_test.cpp
 
         TESTS_DEPS
         tema_algorithms)

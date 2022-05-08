@@ -6,6 +6,7 @@ include(cmake/ConfigFlex.cmake)
 include(cmake/Coverage.cmake)
 include(cmake/Tema.cmake)
 include(cmake/Flags.cmake)
+include(cmake/XXD.cmake)
 
 InitTemaTests()
 

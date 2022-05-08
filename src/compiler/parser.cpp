@@ -8,7 +8,9 @@
 
 namespace tema {
 
-static const std::map<int, int> token_priority_map{
+namespace {
+
+const std::map<int, int> token_priority_map{
         {tok_set_union, 1},
         {tok_set_intersection, 1},
         {tok_set_difference, 1},
@@ -44,11 +46,11 @@ static const std::map<int, int> token_priority_map{
         {tok_open_paren, 5},
 };
 
-static const std::map<int, statement_ptr (*)(statement_ptr)> token_unary_stmt_factory_map{
+const std::map<int, statement_ptr (*)(statement_ptr)> token_unary_stmt_factory_map{
         {tok_neg, neg},
 };
 
-static const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> token_binary_stmt_factory_map{
+const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> token_binary_stmt_factory_map{
         {tok_implies, implies},
         {tok_equiv, equiv},
         {tok_conj, [](statement_ptr a, statement_ptr b) {
@@ -59,14 +61,14 @@ static const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> toke
          }},
 };
 
-static const std::map<int, binop_type> token_binary_expr_op_map{
+const std::map<int, binop_type> token_binary_expr_op_map{
         {tok_set_union, binop_type::set_union},
         {tok_set_intersection, binop_type::set_intersection},
         {tok_set_difference, binop_type::set_difference},
         {tok_set_sym_difference, binop_type::set_sym_difference},
 };
 
-static const std::map<int, rel_type> token_rel_op_map{
+const std::map<int, rel_type> token_rel_op_map{
         {tok_eq, rel_type::eq},
         {tok_n_eq, rel_type::n_eq},
         {tok_less, rel_type::less},
@@ -375,7 +377,9 @@ bool parse_decl(flex_lexer_scanner& scanner, module& mod) {
     return true;
 }
 
-module parse_module_stream(std::istream& in, std::string file_name) {
+}  // namespace
+
+module parse_module(std::istream& in, std::string file_name) {
     flex_lexer_scanner scanner(in, std::move(file_name));
     module mod(scanner.current_loc().file_name);
     while (parse_decl(scanner, mod)) {
@@ -383,20 +387,20 @@ module parse_module_stream(std::istream& in, std::string file_name) {
     return mod;
 }
 
-module parse_module_code(std::string_view code) {
+module parse_module(std::string_view code) {
     std::stringstream string_stream;
     // TODO: This is quite inefficient, why do we need to copy the data / allocate? We should just
     //  be able to read from the string_view directly.
     string_stream.write(code.data(), static_cast<std::streamsize>(code.size()));
-    return parse_module_stream(string_stream, "<anonymous module>");
+    return parse_module(string_stream, "<anonymous module>");
 }
 
-module parse_module_file(std::string file_name) {
+module parse_module(const std::filesystem::path& file_name) {
     std::ifstream file_stream(file_name);
     if (file_stream.fail()) {
-        throw parse_error{"Could not open file '" + file_name + "'."};
+        throw parse_error{"Could not open file '" + file_name.string() + "'."};
     }
-    return parse_module_stream(file_stream, std::move(file_name));
+    return parse_module(file_stream, file_name.string());
 }
 
 }  // namespace tema

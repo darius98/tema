@@ -10,6 +10,7 @@
 
 #include "algorithms/equals.h"
 #include "algorithms/print_utf8.h"
+#include "util/temp_file.h"
 
 using namespace tema;
 using namespace mcga::matchers;
@@ -22,7 +23,7 @@ void expect_equals(const statement_ptr& a, const statement_ptr& b, mcga::test::C
 
 void fail_to_parse_module(std::string_view code, mcga::test::Context context = mcga::test::Context()) {
     mcga::test::expect([code] {
-        (void) parse_module_code(code);
+        (void) parse_module(code);
     },
                        throwsA<parse_error>, std::move(context));
 }
@@ -35,7 +36,7 @@ void fail_to_parse_stmts(const std::vector<std::string>& vars, const std::vector
     for (const auto& stmt: stmts) {
         auto module_code = module_header + "theorem \"random-" + std::to_string(&stmt - stmts.data()) + "\" " + std::string{stmt} + " proof missing\n";
         try {
-            (void) parse_module_code(module_code);
+            (void) parse_module(std::string_view{module_code});
             mcga::test::fail(stmt + " did not throw");
         } catch (const parse_error&) {
         } catch (...) {
@@ -52,7 +53,7 @@ tema::module parse_stmts(const std::vector<std::string>& vars, const std::vector
     for (const auto& stmt: stmts) {
         module_code += "theorem \"random-" + std::to_string(&stmt - stmts.data()) + "\" " + std::string{stmt} + " proof missing\n";
     }
-    return parse_module_code(module_code);
+    return parse_module(std::string_view{module_code});
 }
 
 TEST_CASE("compiler parser") {
@@ -83,13 +84,13 @@ TEST_CASE("compiler parser") {
     });
 
     test("valid declarations", [] {
-        auto mod = parse_module_code(R"(
+        auto mod = parse_module(std::string_view{R"(
     var p
     export var q
     definition "Truth-definition" ⊤
     theorem "Truth-theorem" ⊤ proof missing
     exercise "Truth-exercise" ⊤ proof missing
-)");
+)"});
         expect(mod.get_decls(), hasSize(5));
 
         expect(holds_alternative<module::var_decl>(mod.get_decls()[0]), isTrue);
@@ -189,39 +190,23 @@ TEST_CASE("compiler parser") {
     });
 
     test("parse from file", [] {
-        std::random_device rng;
-        std::uniform_int_distribution<char> letter_distribution{'a', 'z'};
-        std::string file_name = "/tmp/tema-parser-test-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.txt";
-        for (auto& ch: file_name) {
-            if (ch == 'X') {
-                ch = letter_distribution(rng);
-            }
-        }
-        std::ofstream out_file(file_name);
-        out_file << R"(
+        util::temp_file temp_file{"tema"};
+        temp_file.writer << R"(
 var p
 export var q
 definition "Truth-definition" ⊤
 theorem "Truth-theorem" ⊤ proof missing
 exercise "Truth-exercise" ⊤ proof missing
 )";
-        out_file.close();
-        auto mod = parse_module_file(file_name);
+        temp_file.writer.flush();
+        auto mod = parse_module(temp_file.file_path);
         expect(mod.get_decls(), hasSize(5));
-        std::remove(file_name.c_str());  // Best-effort, if this fails it doesn't really matter.
     });
 
     test("parse from non-existent file", [] {
-        std::random_device rng;
-        std::uniform_int_distribution<char> letter_distribution{'a', 'z'};
-        std::string file_name = "/tmp/tema-parser-test-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.txt";
-        for (auto& ch: file_name) {
-            if (ch == 'X') {
-                ch = letter_distribution(rng);
-            }
-        }
-        mcga::test::expect([&file_name] {
-            (void) parse_module_file(file_name);
+        mcga::test::expect([] {
+            std::filesystem::path file_name = util::temp_file::make_name("tema");
+            (void) parse_module(file_name);
         },
                            throwsA<parse_error>);
     });

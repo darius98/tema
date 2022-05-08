@@ -2,7 +2,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-include_directories(PUBLIC ${CMAKE_SOURCE_DIR}/src/)
+include_directories(${CMAKE_SOURCE_DIR}/src/)
 
 set(CLANG_WARNINGS
         -Werror
@@ -47,8 +47,12 @@ function(AddTargetCompileFlags TARGET)
         target_compile_options(${TARGET} PRIVATE ${warnings})
     endif ()
 
-    target_compile_options(${TARGET} PRIVATE -fPIE -fvisibility=hidden)
-    target_link_options(${TARGET} PRIVATE -fPIE -fvisibility=hidden)
+    if (APPLE)
+        target_compile_definitions(${TARGET} PRIVATE -DTEMA_APPLE)
+    else ()
+        target_compile_definitions(${TARGET} PRIVATE -DTEMA_LINUX)
+    endif ()
+
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         target_compile_options(${TARGET} PRIVATE -fsanitize=address,undefined -fno-sanitize-recover=undefined)
         target_link_options(${TARGET} PRIVATE -fsanitize=address,undefined)

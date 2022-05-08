@@ -18,6 +18,6 @@ endif ()
 find_package(FLEX REQUIRED)
 
 function(AddFlexLibrary NAME FLEX_FILE)
-    flex_target(${NAME}_config compiler/flex_lexer.l ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.flex.cpp)
+    flex_target(${NAME}_config ${FLEX_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.flex.cpp)
     add_library(${NAME} ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.flex.cpp)
 endfunction()
