@@ -62,10 +62,18 @@ endfunction()
 
 function(AddTemaCoverageTarget)
     if (COLLECT_COVERAGE)
+        set(EXTRA_PATHS "")
+        if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
+            set(EXTRA_PATHS "/Library/Developer/CommandLineTools/usr/bin/")
+        endif ()
+
+        find_program(LLVM_COV llvm-cov REQUIRED PATHS ${EXTRA_PATHS})
+        find_program(LLVM_PROFDATA llvm-profdata REQUIRED PATHS ${EXTRA_PATHS})
+
         get_property(test_profraw_files GLOBAL PROPERTY TEST_PROFRAW_FILES)
         get_property(test_binary_files GLOBAL PROPERTY TEST_BINARY_FILES)
 
-        add_custom_target(coverage_collect COMMAND llvm-profdata merge -sparse ${test_profraw_files} -o ${CMAKE_BINARY_DIR}/merged.profdata)
+        add_custom_target(coverage_collect COMMAND ${LLVM_PROFDATA} merge -sparse ${test_profraw_files} -o ${CMAKE_BINARY_DIR}/merged.profdata)
 
         set(BINARY_FILE_ARGS "")
         set(FIRST_ARG ON)
@@ -78,7 +86,7 @@ function(AddTemaCoverageTarget)
             list(APPEND BINARY_FILE_ARGS ${binary_file})
         endforeach ()
 
-        add_custom_target(coverage_report COMMAND llvm-cov show ${BINARY_FILE_ARGS}
+        add_custom_target(coverage_report COMMAND ${LLVM_COV} show ${BINARY_FILE_ARGS}
                 -instr-profile=${CMAKE_BINARY_DIR}/merged.profdata
                 -show-branches=count
                 -show-line-counts
@@ -87,7 +95,7 @@ function(AddTemaCoverageTarget)
                 -ignore-filename-regex=".*FlexLexer.*"
                 -format=html > ${CMAKE_BINARY_DIR}/coverage.html)
         add_dependencies(coverage_report coverage_collect)
-        add_custom_target(coverage COMMAND llvm-cov report ${BINARY_FILE_ARGS}
+        add_custom_target(coverage COMMAND ${LLVM_COV} report ${BINARY_FILE_ARGS}
                 -instr-profile=${CMAKE_BINARY_DIR}/merged.profdata
                 -show-region-summary=0
                 -ignore-filename-regex=".*FlexLexer.*"
