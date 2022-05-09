@@ -47,12 +47,18 @@ const std::map<int, int> token_priority_map{
 };
 
 const std::map<int, statement_ptr (*)(statement_ptr)> token_unary_stmt_factory_map{
-        {tok_neg, neg},
+        {tok_neg, [](statement_ptr a) {
+             return neg(std::move(a));
+         }},
 };
 
 const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> token_binary_stmt_factory_map{
-        {tok_implies, implies},
-        {tok_equiv, equiv},
+        {tok_implies, [](statement_ptr a, statement_ptr b) {
+             return implies(std::move(a), std::move(b));
+         }},
+        {tok_equiv, [](statement_ptr a, statement_ptr b) {
+             return equiv(std::move(a), std::move(b));
+         }},
         {tok_conj, [](statement_ptr a, statement_ptr b) {
              return conj({std::move(a), std::move(b)});
          }},
@@ -111,7 +117,7 @@ class reverse_polish_notation_builder {
     }
 
     template<util::one_of<statement_ptr, expr_ptr> As>
-    [[nodiscard]] As pop_last_partial(As (*var_wrapper)(variable_ptr), const location& loc) {
+    [[nodiscard]] As pop_last_partial(const location& loc) {
         if (partials.empty()) {
             throw_unexpected_token_error(loc);
         }
@@ -120,15 +126,19 @@ class reverse_polish_notation_builder {
         if (holds_alternative<As>(partial)) {
             return get<As>(std::move(partial));
         } else if (holds_alternative<variable_ptr>(partial)) {
-            return var_wrapper(get<variable_ptr>(std::move(partial)));
+            if constexpr (std::is_same_v<As, statement_ptr>) {
+                return var_stmt(get<variable_ptr>(std::move(partial)));
+            } else {
+                return var_expr(get<variable_ptr>(std::move(partial)));
+            }
         }
         throw_unexpected_token_error(loc);
     }
 
     template<util::one_of<statement_ptr, expr_ptr> As>
-    [[nodiscard]] std::pair<As, As> pop_last_2_partials(As (*var_wrapper)(variable_ptr), const location& loc) {
-        auto last = pop_last_partial(var_wrapper, loc);
-        auto before_last = pop_last_partial(var_wrapper, loc);
+    [[nodiscard]] std::pair<As, As> pop_last_2_partials(const location& loc) {
+        auto last = pop_last_partial<As>(loc);
+        auto before_last = pop_last_partial<As>(loc);
         return std::pair{std::move(before_last), std::move(last)};
     }
 
@@ -137,7 +147,7 @@ class reverse_polish_notation_builder {
         if (it == token_unary_stmt_factory_map.end()) {
             return nullptr;
         }
-        return (it->second)(pop_last_partial(var_stmt, loc));
+        return (it->second)(pop_last_partial<statement_ptr>(loc));
     }
 
     statement_ptr try_reduce_binary_stmt(int operator_token, const location& loc) {
@@ -145,7 +155,7 @@ class reverse_polish_notation_builder {
         if (it == token_binary_stmt_factory_map.end()) {
             return nullptr;
         }
-        return std::apply(it->second, pop_last_2_partials(var_stmt, loc));
+        return std::apply(it->second, pop_last_2_partials<statement_ptr>(loc));
     }
 
     expr_ptr try_reduce_binary_expr(int operator_token, const location& loc) {
@@ -153,7 +163,7 @@ class reverse_polish_notation_builder {
         if (it == token_binary_expr_op_map.end()) {
             return nullptr;
         }
-        auto [expr1, expr2] = pop_last_2_partials(var_expr, loc);
+        auto [expr1, expr2] = pop_last_2_partials<expr_ptr>(loc);
         return binop(std::move(expr1), it->second, std::move(expr2));
     }
 
@@ -162,7 +172,7 @@ class reverse_polish_notation_builder {
         if (it == token_rel_op_map.end()) {
             return nullptr;
         }
-        auto [expr1, expr2] = pop_last_2_partials(var_expr, loc);
+        auto [expr1, expr2] = pop_last_2_partials<expr_ptr>(loc);
         return rel_stmt(std::move(expr1), it->second, std::move(expr2));
     }
 
@@ -379,9 +389,9 @@ bool parse_decl(flex_lexer_scanner& scanner, module& mod) {
 
 }  // namespace
 
-module parse_module(std::istream& in, std::string file_name) {
-    flex_lexer_scanner scanner(in, std::move(file_name));
-    module mod(scanner.current_loc().file_name);
+module parse_module(std::istream& in, const std::filesystem::path& file_name) {
+    flex_lexer_scanner scanner(in, file_name);
+    module mod(file_name.stem());
     while (parse_decl(scanner, mod)) {
     }
     return mod;
@@ -393,14 +403,6 @@ module parse_module(std::string_view code) {
     //  be able to read from the string_view directly.
     string_stream.write(code.data(), static_cast<std::streamsize>(code.size()));
     return parse_module(string_stream, "<anonymous module>");
-}
-
-module parse_module(const std::filesystem::path& file_name) {
-    std::ifstream file_stream(file_name);
-    if (file_stream.fail()) {
-        throw parse_error{"Could not open file '" + file_name.string() + "'."};
-    }
-    return parse_module(file_stream, file_name.string());
 }
 
 }  // namespace tema

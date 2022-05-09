@@ -11,7 +11,7 @@ struct print_cxx_options {
     // Not used atm.
     bool debug{false};
 
-    // Include the proofs in the generated module. Otherwise, only includes the interface.
+    // Include the proofs in the generated module.
     bool include_proofs{false};
 };
 

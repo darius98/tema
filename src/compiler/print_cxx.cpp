@@ -158,7 +158,7 @@ struct var_name_discovery_visitor {
     int& idx;
     std::map<variable_ptr, std::string>& var_names;
 
-    explicit var_name_discovery_visitor(int& idx, std::map<variable_ptr, std::string>& var_names)
+    var_name_discovery_visitor(int& idx, std::map<variable_ptr, std::string>& var_names)
         : idx{idx}, var_names{var_names} {}
 
     void operator()(const statement::truth&) const {

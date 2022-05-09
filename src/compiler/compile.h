@@ -23,6 +23,6 @@ struct compile_options {
     std::vector<std::string> extra_flags{};
 };
 
-std::filesystem::path compile_module(const std::filesystem::path& cxx_file, const compile_options& options = compile_options{});
+std::filesystem::path compile_module(const std::filesystem::path& cxx_file, const compile_options& options = {});
 
 }  // namespace tema

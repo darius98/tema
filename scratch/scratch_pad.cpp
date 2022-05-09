@@ -21,7 +21,8 @@ struct timer {
 tema::module timed_parse_module(const std::filesystem::path& in_filename) {
     timer t{"parse " + in_filename.string()};
     try {
-        return tema::parse_module(in_filename);
+        std::ifstream stream{in_filename};
+        return tema::parse_module(stream, in_filename);
     } catch (const tema::parse_error& err) {
         std::cerr << "Failed to parse: " << err.what();
         exit(1);

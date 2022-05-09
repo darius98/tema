@@ -65,6 +65,12 @@ consteval const char* get_compiled_module_extension() {
 }  // namespace
 
 std::filesystem::path compile_module(const std::filesystem::path& cxx_file, const compile_options& options) {
+    std::filesystem::path output = options.output_file;
+    if (output.empty()) {
+        output = cxx_file;
+        output.replace_extension(get_compiled_module_extension());
+    }
+
     std::vector<const char*> compile_command{get_compiler_path(options.cxx_compiler_path.c_str())};
     compile_command.insert(compile_command.end(), common_compile_flags.begin(), common_compile_flags.end());
     if (options.debug) {
@@ -79,11 +85,6 @@ std::filesystem::path compile_module(const std::filesystem::path& cxx_file, cons
         }
     }
     compile_command.push_back("-o");
-    std::filesystem::path output = options.output_file;
-    if (output.empty()) {
-        output = cxx_file;
-        output.replace_extension(get_compiled_module_extension());
-    }
     compile_command.push_back(output.c_str());
     compile_command.push_back(cxx_file.c_str());
     // TODO: Invoke compile_command!

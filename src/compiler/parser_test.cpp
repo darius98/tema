@@ -28,10 +28,10 @@ void fail_to_parse_module(std::string_view code, mcga::test::Context context = m
                        throwsA<parse_error>, std::move(context));
 }
 
-void fail_to_parse_stmts(const std::vector<std::string>& vars, const std::vector<std::string>& stmts) {
+void fail_to_parse_stmts(std::initializer_list<const char*> vars, const std::vector<std::string>& stmts) {
     std::string module_header;
     for (const auto& var: vars) {
-        module_header += "export var " + var + "\n";
+        module_header += "export var " + std::string{var} + "\n";
     }
     for (const auto& stmt: stmts) {
         auto module_code = module_header + "theorem \"random-" + std::to_string(&stmt - stmts.data()) + "\" " + std::string{stmt} + " proof missing\n";
@@ -45,10 +45,10 @@ void fail_to_parse_stmts(const std::vector<std::string>& vars, const std::vector
     }
 }
 
-tema::module parse_stmts(const std::vector<std::string>& vars, const std::vector<std::string>& stmts) {
+tema::module parse_stmts(std::initializer_list<const char*> vars, const std::vector<std::string>& stmts) {
     std::string module_code;
     for (const auto& var: vars) {
-        module_code += "export var " + var + "\n";
+        module_code += "export var " + std::string{var} + "\n";
     }
     for (const auto& stmt: stmts) {
         module_code += "theorem \"random-" + std::to_string(&stmt - stmts.data()) + "\" " + std::string{stmt} + " proof missing\n";
@@ -187,27 +187,5 @@ TEST_CASE("compiler parser") {
                                     "e∈q∪(p∨¬p) ⟷ (e∈p ∨ e∈q)",  // Statement inside expression
                                     "e∈q∪() ⟷ (e∈p ∨ e∈q)",      // Empty parens inside expression
                             });
-    });
-
-    test("parse from file", [] {
-        util::temp_file temp_file{"tema"};
-        temp_file.writer << R"(
-var p
-export var q
-definition "Truth-definition" ⊤
-theorem "Truth-theorem" ⊤ proof missing
-exercise "Truth-exercise" ⊤ proof missing
-)";
-        temp_file.writer.flush();
-        auto mod = parse_module(temp_file.file_path);
-        expect(mod.get_decls(), hasSize(5));
-    });
-
-    test("parse from non-existent file", [] {
-        mcga::test::expect([] {
-            std::filesystem::path file_name = util::temp_file::make_name("tema");
-            (void) parse_module(file_name);
-        },
-                           throwsA<parse_error>);
     });
 }
