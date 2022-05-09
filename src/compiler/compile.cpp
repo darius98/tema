@@ -3,47 +3,62 @@
 #include <array>
 #include <vector>
 
+#include "mcga/proc.hpp"
+
 namespace tema {
 
 namespace {
 
-constexpr std::array common_compile_flags{
-        "-shared",
-        "-fPIC",
-        "-fPIE",
-        "-fvisibility=hidden",
-        "-std=c++20",
-        "-ltema_core",
-};
+std::vector<std::string> get_debug_compile_flags() {
+    return {
+            "-g",
+            "-O0",
+            "-Werror",
+            "-Wall",
+            "-Wextra",
+            "-Wnon-virtual-dtor",
+            "-Wold-style-cast",
+            "-Wcast-align",
+            "-Wunused",
+            "-Woverloaded-virtual",
+            "-Wpedantic",
+            "-Wconversion",
+            "-Wsign-conversion",
+            "-Wsign-compare",
+            "-Wnull-dereference",
+            "-Wdouble-promotion",
+            "-Wformat=2",
+            "-Wimplicit-fallthrough",
+            "-fsanitize=address,undefined",
+            "-fno-sanitize-recover=undefined",
+    };
+}
 
-constexpr std::array debug_compile_flags{
-        "-g",
-        "-O0",
-        "-Werror",
-        "-Wall",
-        "-Wextra",
-        "-Wnon-virtual-dtor",
-        "-Wold-style-cast",
-        "-Wcast-align",
-        "-Wunused",
-        "-Woverloaded-virtual",
-        "-Wpedantic",
-        "-Wconversion",
-        "-Wsign-conversion",
-        "-Wsign-compare",
-        "-Wnull-dereference",
-        "-Wdouble-promotion",
-        "-Wformat=2",
-        "-Wimplicit-fallthrough",
-        "-fsanitize=address,undefined",
-        "-fno-sanitize-recover=undefined",
-};
+std::vector<std::string> get_release_compile_flags() {
+    return {
+            "-O3",
+    };
+}
 
-constexpr std::array release_compile_flags = std::array{
-        "-O3",
-};
 
-const char* get_compiler_path(const char* cxx_option) {
+std::vector<std::string> get_common_compile_flags() {
+    return {
+            "-shared",
+            "-fPIC",
+            "-fPIE",
+            "-fvisibility=hidden",
+            "-std=c++20",
+            "-ltema_core",
+            "-o",  // This is the last one, to be followed by the output path.
+    };
+}
+
+auto str_data_getter(std::string& s) {
+    return s.data();
+}
+
+char* get_compiler_path(char* cxx_option) {
+    static char default_compiler[] = "/usr/bin/cc";
     if (cxx_option != nullptr && cxx_option[0] != '\0') {
         return cxx_option;
     }
@@ -51,7 +66,7 @@ const char* get_compiler_path(const char* cxx_option) {
     if (cxx_env != nullptr && cxx_env[0] != '\0') {
         return cxx_env;
     }
-    return "cc";
+    return default_compiler;
 }
 
 consteval const char* get_compiled_module_extension() {
@@ -64,31 +79,39 @@ consteval const char* get_compiled_module_extension() {
 
 }  // namespace
 
-std::filesystem::path compile_module(const std::filesystem::path& cxx_file, const compile_options& options) {
-    std::filesystem::path output = options.output_file;
-    if (output.empty()) {
-        output = cxx_file;
-        output.replace_extension(get_compiled_module_extension());
+std::filesystem::path compile_module(const std::filesystem::path& cxx_file_path, compile_options options) {
+    static auto debug_compile_flags = get_debug_compile_flags();
+    static auto release_compile_flags = get_release_compile_flags();
+    static auto common_compile_flags = get_common_compile_flags();
+    std::string cxx_file = cxx_file_path.string();
+    if (options.output_file.empty()) {
+        options.output_file = cxx_file_path;
+        options.output_file.replace_extension(get_compiled_module_extension());
     }
+    std::string output = std::move(options.output_file).string();
 
-    std::vector<const char*> compile_command{get_compiler_path(options.cxx_compiler_path.c_str())};
-    compile_command.insert(compile_command.end(), common_compile_flags.begin(), common_compile_flags.end());
+    auto cxx_compiler_path = std::move(options.cxx_compiler_path).string();
+    std::vector<char*> compile_command{get_compiler_path(cxx_compiler_path.data())};
     if (options.debug) {
-        compile_command.insert(compile_command.end(), debug_compile_flags.begin(), debug_compile_flags.end());
+        std::transform(debug_compile_flags.begin(), debug_compile_flags.end(), std::back_inserter(compile_command), str_data_getter);
     } else {
-        compile_command.insert(compile_command.end(), release_compile_flags.begin(), release_compile_flags.end());
+        std::transform(release_compile_flags.begin(), release_compile_flags.end(), std::back_inserter(compile_command), str_data_getter);
     }
+    std::transform(common_compile_flags.begin(), common_compile_flags.end(), std::back_inserter(compile_command), str_data_getter);
+    compile_command.push_back(output.data());
     if (!options.extra_flags.empty()) {
         compile_command.resize(compile_command.size() + options.extra_flags.size());
-        for (const auto& flag: options.extra_flags) {
-            compile_command.push_back(flag.c_str());
+        for (auto& flag: options.extra_flags) {
+            compile_command.push_back(flag.data());
         }
     }
-    compile_command.push_back("-o");
-    compile_command.push_back(output.c_str());
-    compile_command.push_back(cxx_file.c_str());
-    // TODO: Invoke compile_command!
-//    auto proc = mcga::proc::Subprocess::Fork();
+    compile_command.push_back(cxx_file.data());
+    auto proc = mcga::proc::Subprocess::Invoke(compile_command[0], compile_command.data());
+    proc->waitBlocking();
+    if (!proc->isExited() || proc->getReturnCode() != 0) {
+        // TODO: Better error handling of fatal errors.
+        std::abort();
+    }
     return output;
 }
 
