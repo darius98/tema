@@ -1,45 +1,43 @@
 #include "compiler/compile.h"
-#include "compiler/parser.h"
+#include "compiler/precompiled_module.h"
 #include "compiler/translate.h"
 
 #include <chrono>
 #include <fstream>
 #include <iostream>
 
-#include <dlfcn.h>
-
 struct timer {
     std::string name;
     std::chrono::high_resolution_clock::time_point start_time{std::chrono::high_resolution_clock::now()};
 
-    ~timer() {
+    explicit timer(std::string name): name(std::move(name)) {
+        std::cout << this->name << ":\n";
+    }
+
+    void step(std::string_view step_name) {
         const auto end_time = std::chrono::high_resolution_clock::now();
         const auto duration = (end_time - start_time);
-        std::cout << name << " took " << std::chrono::duration_cast<std::chrono::microseconds>(duration).count() << "us\n";
+        std::cout << "\t" << step_name << "\t" << std::chrono::duration_cast<std::chrono::microseconds>(duration).count() << "us\n";
+        start_time = end_time;
     }
 };
 
-tema::module load_module(const std::string& so_filename) {
-    timer t{"load " + so_filename};
-    const auto dl = dlopen(so_filename.c_str(), RTLD_LOCAL | RTLD_LAZY);
-    std::cout << dlerror() << "\n";
-    const auto symbol = reinterpret_cast<tema::module (*)()>(dlsym(dl, "_tema_module"));
-    std::cout << dlerror() << "\n" << symbol << "\n";
-    return symbol();
-}
-
-int main(int argc, char** argv) {
-    for (int i = 1; i < argc; i += 1) {
-        std::filesystem::path module_path = argv[i];
-        module_path.replace_extension(".tema.dylib");
-//        std::cout << module_path.string() << "\n";
-//        const auto cxx_file = tema::translate_module(module_path);
-//        std::cout << cxx_file.string() << "\n";
-//        const auto dll_file = tema::compile_module(cxx_file, {
-//                                                                     .extra_flags = {"-I./src"}
-//                                                             });
-//        std::cout << dll_file.string() << "\n";
-        const auto mod_compiled = load_module(module_path);
+int main() {
+    for (const auto& entry: std::filesystem::directory_iterator("./modules")) {
+        if (entry.is_regular_file()) {
+            const auto& module_path = entry.path();
+            if (module_path.extension() == ".tema") {
+                timer t{module_path.stem().string()};
+                const auto cxx_file = tema::translate_module(module_path);
+                t.step("translate");
+                const auto dll_file = tema::compile_module(cxx_file, {.extra_flags = {"-I./src"}});
+                t.step("CXX compile");
+                tema::precompiled_module module(dll_file);
+                t.step("DLL load");
+                (void)module.load_module();
+                t.step("module load");
+            }
+        }
     }
     return 0;
 }

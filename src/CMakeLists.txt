@@ -40,6 +40,7 @@ AddTemaLibrary(tema_compiler
         compiler/compile.cpp
         compiler/lexer.cpp
         compiler/parser.cpp
+        compiler/precompiled_module.cpp
         compiler/print_cxx.cpp
         compiler/translate.cpp
 
@@ -50,8 +51,12 @@ AddTemaLibrary(tema_compiler
         compiler/compile_test.cpp
         compiler/lexer_test.cpp
         compiler/parser_test.cpp
+        compiler/precompiled_module_test.cpp
         compiler/print_cxx_test.cpp
         compiler/translate_test.cpp
 
         TESTS_DEPS
         tema_algorithms)
+if (NOT APPLE)
+    target_link_libraries(tema_compiler PRIVATE dl)
+endif ()
