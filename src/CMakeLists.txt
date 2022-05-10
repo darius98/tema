@@ -1,4 +1,4 @@
-AddTemaSharedLibrary(tema_core
+AddTemaLibrary(tema_core
         SOURCES
         core/expression.cpp
         core/module.cpp

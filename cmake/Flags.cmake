@@ -46,6 +46,7 @@ function(AddTargetCompileFlags TARGET)
     if (warnings)
         target_compile_options(${TARGET} PRIVATE ${warnings})
     endif ()
+    target_link_options(${TARGET} PRIVATE -rdynamic)
 
     if (APPLE)
         target_compile_definitions(${TARGET} PRIVATE -DTEMA_APPLE)

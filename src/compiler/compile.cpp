@@ -45,11 +45,16 @@ std::vector<std::string> get_common_compile_flags() {
     return {
             "-shared",
             "-fPIC",
-            "-fPIE",
             "-fvisibility=hidden",
             "-std=c++20",
-            "-ltema_core",
             "-o",  // This is the last one, to be followed by the output path.
+    };
+}
+
+std::vector<std::string> get_apple_compile_flags() {
+    return {
+            "-undefined",
+            "dynamic_lookup",
     };
 }
 
@@ -83,9 +88,13 @@ std::filesystem::path compile_module(const std::filesystem::path& cxx_file_path,
     static auto debug_compile_flags = get_debug_compile_flags();
     static auto release_compile_flags = get_release_compile_flags();
     static auto common_compile_flags = get_common_compile_flags();
+    static auto apple_compile_flags = get_apple_compile_flags();
     std::string cxx_file = cxx_file_path.string();
     if (options.output_file.empty()) {
         options.output_file = cxx_file_path;
+        while (options.output_file.has_extension()) {
+            options.output_file.replace_extension("");
+        }
         options.output_file.replace_extension(get_compiled_module_extension());
     }
     std::string output = std::move(options.output_file).string();
@@ -99,13 +108,17 @@ std::filesystem::path compile_module(const std::filesystem::path& cxx_file_path,
     }
     std::transform(common_compile_flags.begin(), common_compile_flags.end(), std::back_inserter(compile_command), str_data_getter);
     compile_command.push_back(output.data());
+#ifdef TEMA_APPLE
+    std::transform(apple_compile_flags.begin(), apple_compile_flags.end(), std::back_inserter(compile_command), str_data_getter);
+#endif
     if (!options.extra_flags.empty()) {
-        compile_command.resize(compile_command.size() + options.extra_flags.size());
+        compile_command.reserve(compile_command.size() + options.extra_flags.size());
         for (auto& flag: options.extra_flags) {
             compile_command.push_back(flag.data());
         }
     }
     compile_command.push_back(cxx_file.data());
+    compile_command.push_back(nullptr);
     auto proc = mcga::proc::Subprocess::Invoke(compile_command[0], compile_command.data());
     proc->waitBlocking();
     if (!proc->isExited() || proc->getReturnCode() != 0) {

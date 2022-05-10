@@ -288,7 +288,7 @@ void print_module_decls(const module& mod, const std::map<variable_ptr, std::str
 
 void print_tema_module_function(const module& mod, std::ostream& to, const print_cxx_options& options) {
     to << R"(
-::tema::module tema_module() asm("tema_module");
+::tema::module tema_module() asm("_tema_module");
 TEMA_EXPORT ::tema::module tema_module() {
   ::tema::module mod{")"
        << mod.get_name() << R"("};
