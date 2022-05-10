@@ -1,6 +1,6 @@
 #include "compiler/compile.h"
+#include "compiler/parser.h"
 #include "compiler/precompiled_module.h"
-#include "compiler/translate.h"
 
 #include <chrono>
 #include <fstream>
@@ -10,7 +10,8 @@ struct timer {
     std::string name;
     std::chrono::high_resolution_clock::time_point start_time{std::chrono::high_resolution_clock::now()};
 
-    explicit timer(std::string name): name(std::move(name)) {
+    explicit timer(std::string name)
+        : name(std::move(name)) {
         std::cout << this->name << ":\n";
     }
 
@@ -28,14 +29,20 @@ int main() {
             const auto& module_path = entry.path();
             if (module_path.extension() == ".tema") {
                 timer t{module_path.stem().string()};
-                const auto cxx_file = tema::translate_module(module_path);
-                t.step("translate");
+                std::ifstream file_stream(module_path);
+                const auto mod = tema::parse_module(file_stream, module_path.string());
+                t.step("parse tema");
+                auto cxx_file = module_path;
+                cxx_file.replace_extension(".tema.cc");
+                std::ofstream out_file(cxx_file);
+                tema::print_cxx_to(mod, out_file);
+                t.step("print c++");
                 const auto dll_file = tema::compile_module(cxx_file, {.extra_flags = {"-I./src"}});
-                t.step("CXX compile");
+                t.step("compile c++");
                 tema::precompiled_module module(dll_file);
-                t.step("DLL load");
-                (void)module.load_module();
-                t.step("module load");
+                t.step("load DLL");
+                (void) module.load_module();
+                t.step("load tema");
             }
         }
     }

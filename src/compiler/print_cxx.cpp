@@ -306,6 +306,7 @@ TEMA_EXPORT ::tema::module tema_module() {
 void print_cxx_to(const module& mod, std::ostream& to, const print_cxx_options& options) {
     print_module_header(mod, to);
     print_tema_module_function(mod, to, options);
+    to.flush();
 }
 
 std::string print_cxx(const module& mod, const print_cxx_options& options) {
