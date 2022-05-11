@@ -49,9 +49,9 @@ function(AddTargetCompileFlags TARGET)
     target_link_options(${TARGET} PRIVATE -rdynamic)
 
     if (APPLE)
-        target_compile_definitions(${TARGET} PRIVATE -DTEMA_APPLE)
+        target_compile_definitions(${TARGET} PRIVATE -DTEMA_PLATFORM_TARGET_OS='A')
     else ()
-        target_compile_definitions(${TARGET} PRIVATE -DTEMA_LINUX)
+        target_compile_definitions(${TARGET} PRIVATE -DTEMA_PLATFORM_TARGET_OS='L')
     endif ()
 
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
