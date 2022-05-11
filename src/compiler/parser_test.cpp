@@ -1,8 +1,5 @@
 #include "compiler/parser.h"
 
-#include <cstdio>
-#include <fstream>
-#include <random>
 #include <string>
 #include <vector>
 
@@ -10,13 +7,12 @@
 
 #include "algorithms/equals.h"
 #include "algorithms/print_utf8.h"
-#include "util/temp_file.h"
 
 using namespace tema;
 using namespace mcga::matchers;
 
 void expect_equals(const statement_ptr& a, const statement_ptr& b, mcga::test::Context context = mcga::test::Context()) {
-    mcga::test::expectMsg(equals(a.get(), b.get()) == true,
+    mcga::test::expectMsg(equals(a.get(), b.get()),
                           print_utf8(a.get()) + " == " + print_utf8(b.get()),
                           std::move(context));
 }

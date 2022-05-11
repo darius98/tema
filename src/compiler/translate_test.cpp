@@ -4,7 +4,7 @@
 // TODO: Add back these test!
 
 test("parse from file", [] {
-    util::temp_file temp_file{"tema"};
+    mcga::test::temp_file temp_file{"tema"};
     temp_file.writer << R"(
 var p
 export var q
@@ -19,7 +19,7 @@ exercise "Truth-exercise" ⊤ proof missing
 
 test("parse from non-existent file", [] {
     mcga::test::expect([] {
-        std::filesystem::path file_name = util::temp_file::make_name("tema");
+        std::filesystem::path file_name = mcga::test::make_temp_file_name("tema");
         (void) parse_module(file_name);
     },
                        throwsA<parse_error>);

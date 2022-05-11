@@ -63,7 +63,7 @@ auto str_data_getter(std::string& s) {
 }
 
 char* get_compiler_path(char* cxx_option) {
-    static char default_compiler[] = "/usr/bin/cc";
+    static char default_compiler[] = "/usr/bin/c++";
     if (cxx_option != nullptr && cxx_option[0] != '\0') {
         return cxx_option;
     }
@@ -122,8 +122,9 @@ std::filesystem::path compile_module(const std::filesystem::path& cxx_file_path,
     auto proc = mcga::proc::Subprocess::Invoke(compile_command[0], compile_command.data());
     proc->waitBlocking();
     if (!proc->isExited() || proc->getReturnCode() != 0) {
-        // TODO: Better error handling of fatal errors.
-        std::abort();
+        proc->kill();
+        // TODO: Include compiler error! Better error message!
+        throw std::runtime_error{"Compilation failed."};
     }
     return output;
 }
