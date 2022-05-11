@@ -1,3 +1,7 @@
 .build/
 .idea/
 *.profraw
+*.tema.cc
+*.tema.so
+*.tema.dylib
+*.xxd.h

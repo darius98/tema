@@ -85,7 +85,6 @@ std::string_view flex_lexer_scanner::consume_token_exact(token required_token, s
     return text;
 }
 
-// Note: this only works for one token.
 void flex_lexer_scanner::unconsume_last_token() {
     next_token = last_token;
 }

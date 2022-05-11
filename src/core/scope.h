@@ -7,10 +7,11 @@
 
 #include "core/statement.h"
 #include "core/variable.h"
+#include "util/export.h"
 
 namespace tema {
 
-struct var_not_found : public std::runtime_error {
+struct TEMA_EXPORT var_not_found : public std::runtime_error {
     var_not_found();
 };
 

@@ -7,6 +7,9 @@ AddTemaLibrary(tema_core
         core/statement.cpp
         core/variable.cpp
 
+        DEPS
+        mcga_meta
+
         TESTS
         core/expression_test.cpp
         core/module_test.cpp
@@ -24,7 +27,7 @@ AddTemaLibrary(tema_algorithms
         algorithms/print_utf8.cpp
 
         DEPS
-        tema_core
+        tema_core mcga_meta
 
         TESTS
         algorithms/apply_vars_test.cpp
@@ -33,18 +36,34 @@ AddTemaLibrary(tema_algorithms
         algorithms/match_test.cpp
         algorithms/print_utf8_test.cpp)
 
-AddFlexLibrary(tema_compiler_lexer compiler/flex_lexer.l)
+
+GenerateXXD(${CMAKE_CURRENT_SOURCE_DIR}/util/export.h xxd_export_h_code)
+
+AddFlexLibrary(tema_compiler_lexer compiler/lexer_flex.l)
+target_link_libraries(tema_compiler_lexer PUBLIC mcga_meta)
+
 AddTemaLibrary(tema_compiler
         SOURCES
+        compiler/compile.cpp
         compiler/lexer.cpp
         compiler/parser.cpp
+        compiler/precompiled_module.cpp
+        compiler/print_cxx.cpp
+        compiler/translate.cpp
 
         DEPS
-        tema_core tema_compiler_lexer
+        tema_core tema_compiler_lexer mcga_proc
 
         TESTS
+        compiler/compile_test.cpp
         compiler/lexer_test.cpp
         compiler/parser_test.cpp
+        compiler/precompiled_module_test.cpp
+        compiler/print_cxx_test.cpp
+        compiler/translate_test.cpp
 
         TESTS_DEPS
         tema_algorithms)
+if (NOT APPLE)
+    target_link_libraries(tema_compiler PRIVATE dl)
+endif ()
