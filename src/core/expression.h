@@ -2,8 +2,9 @@
 
 #include <memory>
 
+#include <mcga/meta/tpack.hpp>
+
 #include "core/variable.h"
-#include "util/tpack.h"
 
 namespace tema {
 
@@ -23,16 +24,16 @@ struct expression {
         expr_ptr right;
     };
 
-    using types = util::tpack<binop, variable_ptr>;
+    using types = mcga::meta::tpack<binop, variable_ptr>;
 
 private:
-    util::variant_for<types> data;
+    mcga::meta::variant_for<types> data;
 
     // Ensure that expressions are only created through the friend factories below
     struct private_tag {};
 
 public:
-    expression(private_tag, util::one_of_pack<types> auto t)
+    expression(private_tag, mcga::meta::one_of_pack<types> auto t)
         : data(std::move(t)) {}
 
     expression(const expression&) = delete;

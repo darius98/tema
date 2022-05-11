@@ -1,6 +1,6 @@
 #include "compiler/lexer.h"
 
-#include "mcga/test_ext/matchers.hpp"
+#include <mcga/test_ext/matchers.hpp>
 
 #include "compiler/parser.h"
 

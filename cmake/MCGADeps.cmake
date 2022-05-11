@@ -1,5 +1,9 @@
 include(FetchContent)
 
+FetchContent_Declare(mcga_meta URL https://github.com/darius98/mcga-meta/archive/refs/heads/master.zip)
+FetchContent_Populate(mcga_meta)
+add_subdirectory(${mcga_meta_SOURCE_DIR} ${mcga_meta_BINARY_DIR} EXCLUDE_FROM_ALL)
+
 FetchContent_Declare(mcga_cli URL https://github.com/darius98/mcga-cli/archive/refs/heads/master.zip)
 FetchContent_Populate(mcga_cli)
 add_subdirectory(${mcga_cli_SOURCE_DIR} ${mcga_cli_BINARY_DIR} EXCLUDE_FROM_ALL)

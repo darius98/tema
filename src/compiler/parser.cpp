@@ -3,8 +3,9 @@
 #include <fstream>
 #include <sstream>
 
+#include <mcga/meta/tpack.hpp>
+
 #include "compiler/lexer.h"
-#include "util/tpack.h"
 
 namespace tema {
 
@@ -116,7 +117,7 @@ class reverse_polish_notation_builder {
         state = to;
     }
 
-    template<util::one_of<statement_ptr, expr_ptr> As>
+    template<mcga::meta::one_of<statement_ptr, expr_ptr> As>
     [[nodiscard]] As pop_last_partial(const location& loc) {
         if (partials.empty()) {
             throw_unexpected_token_error(loc);
@@ -135,7 +136,7 @@ class reverse_polish_notation_builder {
         throw_unexpected_token_error(loc);
     }
 
-    template<util::one_of<statement_ptr, expr_ptr> As>
+    template<mcga::meta::one_of<statement_ptr, expr_ptr> As>
     [[nodiscard]] std::pair<As, As> pop_last_2_partials(const location& loc) {
         auto last = pop_last_partial<As>(loc);
         auto before_last = pop_last_partial<As>(loc);

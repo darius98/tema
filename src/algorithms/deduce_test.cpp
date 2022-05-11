@@ -1,6 +1,6 @@
 #include "algorithms/deduce.h"
 
-#include "mcga/test_ext/matchers.hpp"
+#include <mcga/test_ext/matchers.hpp>
 
 #include "algorithms/equals.h"
 #include "algorithms/print_utf8.h"

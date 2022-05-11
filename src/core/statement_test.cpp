@@ -1,6 +1,6 @@
 #include "core/statement.h"
 
-#include "mcga/test_ext/matchers.hpp"
+#include <mcga/test_ext/matchers.hpp>
 
 using namespace tema;
 using namespace mcga::matchers;

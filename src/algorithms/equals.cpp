@@ -11,7 +11,7 @@ using var_mapping = std::map<const variable*, const variable*>;
 // Check if two variables are "equal", taking into account variables bound using "forall" statements.
 bool var_equals(const var_mapping* bound_vars,
                 const variable* a,
-                const util::one_of<expression, statement> auto* b) {
+                const mcga::meta::one_of<expression, statement> auto* b) {
     if (!b->is_var()) {
         return false;
     }
@@ -23,8 +23,8 @@ bool var_equals(const var_mapping* bound_vars,
 }
 
 bool visit_recursive(auto& visitor,
-                     const util::one_of<expression, statement> auto* a,
-                     const util::one_of<expression, statement> auto* new_b) {
+                     const mcga::meta::one_of<expression, statement> auto* a,
+                     const mcga::meta::one_of<expression, statement> auto* new_b) {
     if (a == new_b) {
         // Optimize the case when it's the same pointer
         return true;

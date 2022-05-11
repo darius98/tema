@@ -3,7 +3,7 @@
 #include <array>
 #include <vector>
 
-#include "mcga/proc.hpp"
+#include <mcga/proc.hpp>
 
 namespace tema {
 

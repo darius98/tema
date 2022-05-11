@@ -29,7 +29,7 @@ function(AddTemaTarget TYPE NAME)
         target_link_options(${NAME} PRIVATE -fprofile-instr-generate -fcoverage-mapping)
     endif ()
     if (P_DEPS)
-        target_link_libraries(${NAME} PRIVATE ${P_DEPS})
+        target_link_libraries(${NAME} PUBLIC ${P_DEPS})
     endif ()
     if (P_TESTS)
         AddTemaExecutable(${NAME}_test

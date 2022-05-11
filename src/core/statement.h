@@ -3,11 +3,12 @@
 #include <memory>
 #include <vector>
 
+#include <mcga/meta/tpack.hpp>
+
 #include "core/expression.h"
 #include "core/relationship.h"
 #include "core/variable.h"
 #include "util/cvref_same_as.h"
-#include "util/tpack.h"
 
 namespace tema {
 
@@ -45,16 +46,16 @@ struct statement {
         statement_ptr inner;
     };
 
-    using types = util::tpack<truth, contradiction, implies, equiv, neg, conj, disj, forall, variable_ptr, relationship>;
+    using types = mcga::meta::tpack<truth, contradiction, implies, equiv, neg, conj, disj, forall, variable_ptr, relationship>;
 
 private:
-    util::variant_for<types> data;
+    mcga::meta::variant_for<types> data;
 
     // Ensure that statements are only created through the friend factories below
     struct private_tag {};
 
 public:
-    statement(private_tag, util::one_of_pack<types> auto t)
+    statement(private_tag, mcga::meta::one_of_pack<types> auto t)
         : data(std::move(t)) {}
 
     statement(const statement&) = delete;

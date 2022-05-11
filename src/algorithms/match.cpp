@@ -16,8 +16,8 @@ namespace tema {
 using var_mapping = std::map<const variable*, const variable*>;
 
 [[nodiscard]] bool visit_recursive(auto& visitor,
-                                   const util::one_of<statement, expression> auto* a,
-                                   util::one_of<statement_ptr, expr_ptr> auto new_app_node) {
+                                   const mcga::meta::one_of<statement, expression> auto* a,
+                                   mcga::meta::one_of<statement_ptr, expr_ptr> auto new_app_node) {
     auto old_app_node = std::move(visitor.app_node);
     visitor.app_node = std::move(new_app_node);
     const auto sub_stmt_matches = a->template accept_r<bool>(visitor);
