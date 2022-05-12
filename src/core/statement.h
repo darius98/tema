@@ -4,11 +4,11 @@
 #include <vector>
 
 #include <mcga/meta/tpack.hpp>
+#include <mcga/meta/cvref_same_as.hpp>
 
 #include "core/expression.h"
 #include "core/relationship.h"
 #include "core/variable.h"
-#include "util/cvref_same_as.h"
 
 namespace tema {
 
@@ -130,13 +130,13 @@ using statement_ptr = statement::statement_ptr;
 
 [[nodiscard]] statement_ptr conj(std::vector<statement_ptr> stmts);
 
-[[nodiscard]] statement_ptr conj(util::cvref_same_as<statement_ptr> auto&&... stmts) {
+[[nodiscard]] statement_ptr conj(mcga::meta::cvref_same_as<statement_ptr> auto&&... stmts) {
     return conj({std::forward<decltype(stmts)>(stmts)...});
 }
 
 [[nodiscard]] statement_ptr disj(std::vector<statement_ptr> stmts);
 
-[[nodiscard]] statement_ptr disj(util::cvref_same_as<statement_ptr> auto&&... stmts) {
+[[nodiscard]] statement_ptr disj(mcga::meta::cvref_same_as<statement_ptr> auto&&... stmts) {
     return disj({std::forward<decltype(stmts)>(stmts)...});
 }
 

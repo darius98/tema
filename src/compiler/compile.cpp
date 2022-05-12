@@ -1,10 +1,11 @@
 #include "compiler/compile.h"
-#include "config.h"
 
 #include <array>
 #include <vector>
 
 #include <mcga/proc.hpp>
+
+#include "config.h"
 
 namespace tema {
 
@@ -59,7 +60,7 @@ std::vector<std::string> get_apple_compile_flags() {
 }
 
 std::size_t concatenate_vectors_get_part_size(const mcga::meta::one_of<std::string, std::vector<std::string>> auto& part) {
-    if constexpr (util::cvref_same_as<decltype(part), std::string>) {
+    if constexpr (mcga::meta::cvref_same_as<decltype(part), std::string>) {
         return std::size_t(1);
     } else {
         return part.size();
@@ -67,7 +68,7 @@ std::size_t concatenate_vectors_get_part_size(const mcga::meta::one_of<std::stri
 }
 
 void concatenate_vectors_append(std::vector<std::string>& result, const mcga::meta::one_of<std::string, std::vector<std::string>> auto&& part) {
-    if constexpr (util::cvref_same_as<decltype(part), std::string>) {
+    if constexpr (mcga::meta::cvref_same_as<decltype(part), std::string>) {
         result.push_back(std::move(part));
     } else {
         for (auto it = part.begin(); it != part.end(); it++) {
@@ -95,14 +96,6 @@ std::string get_compiler_path(std::string cxx_option) {
     return "/usr/bin/c++";
 }
 
-consteval std::string_view get_compiled_module_extension() {
-    if constexpr (is_apple()) {
-        return ".tema.dylib";
-    } else {
-        return ".tema.so";
-    }
-}
-
 std::filesystem::path get_output_path(std::filesystem::path output_path, const std::filesystem::path& input_path) {
     if (output_path.empty()) {
         output_path = input_path;
@@ -112,10 +105,6 @@ std::filesystem::path get_output_path(std::filesystem::path output_path, const s
         output_path.replace_extension(get_compiled_module_extension());
     }
     return output_path;
-}
-
-auto str_data_getter(std::string& s) {
-    return s.data();
 }
 
 }  // namespace
@@ -139,7 +128,9 @@ std::filesystem::path compile_module(const std::filesystem::path& cxx_file, comp
     auto [output_path, compile_command] = get_compilation_command(cxx_file, std::move(options));
     std::vector<char*> args;
     args.reserve(compile_command.size());
-    std::transform(compile_command.begin(), compile_command.end(), std::back_inserter(args), str_data_getter);
+    std::transform(compile_command.begin(), compile_command.end(), std::back_inserter(args), [&](std::string& s) {
+        return s.data();
+    });
     args.push_back(nullptr);
     auto proc = mcga::proc::Subprocess::Invoke(args[0], args.data());
     proc->waitBlocking();

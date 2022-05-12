@@ -7,7 +7,7 @@
 
 #include "core/statement.h"
 #include "core/variable.h"
-#include "util/export.h"
+#include "export.h"
 
 namespace tema {
 

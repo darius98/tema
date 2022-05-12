@@ -5,8 +5,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "core/export.h"
 #include "core/module.h"
-#include "util/export.h"
 
 namespace tema {
 

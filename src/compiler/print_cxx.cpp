@@ -1,7 +1,5 @@
 #include "compiler/print_cxx.h"
 
-#include "util/export.h.xxd.h"
-
 #include <sstream>
 
 namespace tema {
@@ -229,10 +227,9 @@ std::map<variable_ptr, std::string> discover_variables(const module& mod) {
 }
 
 void print_module_header(const module&, std::ostream& to) {
-    to << R"(#include "core/module.h"
+    to << R"(#include "core/export.h"
+#include "core/module.h"
 
-)" << xxd_export_h_code
-       << R"(
 using namespace tema;
 
 )";

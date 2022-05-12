@@ -5,15 +5,19 @@ set -e
 CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Debug}"
 BUILD_DIR="${BUILD_DIR:-${CMAKE_BUILD_TYPE}}"
 
-BUILD_DIR_FULL=.build/${BUILD_DIR}
+export CMAKE_BUILD_DIR=.build/${BUILD_DIR}
+export CMAKE_INSTALL_DIR=${CMAKE_BUILD_DIR}/_install
 
 echo "\nConfigure & build project\n"
-mkdir -p ${BUILD_DIR_FULL}
-cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -B${BUILD_DIR_FULL} -H.
-cmake --build ${BUILD_DIR_FULL} -j8
+mkdir -p ${CMAKE_BUILD_DIR}
+cmake -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -B${CMAKE_BUILD_DIR} -H.
+cmake --build ${CMAKE_BUILD_DIR} -j8
+
+# We need the project installed before running the tests
+cmake --build ${CMAKE_BUILD_DIR} --target install
 
 echo "\nRun tests\n"
-${BUILD_DIR_FULL}/run_tests.sh
+${CMAKE_BUILD_DIR}/run_tests.sh
 
 echo "\nLLVM Coverage Report:\n"
-cmake --build ${BUILD_DIR_FULL} --target coverage
+cmake --build ${CMAKE_BUILD_DIR} --target coverage

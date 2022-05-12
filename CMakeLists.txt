@@ -6,11 +6,11 @@ include(cmake/ConfigFlex.cmake)
 include(cmake/Coverage.cmake)
 include(cmake/Tema.cmake)
 include(cmake/Flags.cmake)
-include(cmake/XXD.cmake)
 
 InitTemaTests()
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 AddTemaCoverageTarget()
 

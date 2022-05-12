@@ -2,7 +2,7 @@ set_property(GLOBAL PROPERTY TEST_PROFRAW_FILES)
 set_property(GLOBAL PROPERTY TEST_BINARY_FILES)
 
 function(InitTemaTests)
-    file(WRITE ${CMAKE_BINARY_DIR}/run_tests.sh "#!/usr/bin/env sh\n\nset -e\n\n")
+    file(WRITE ${CMAKE_BINARY_DIR}/run_tests.sh "#!/usr/bin/env sh\n\nset -e\n\nexport CMAKE_INSTALL_DIR=${CMAKE_INSTALL_PREFIX}\n\n")
     file(CHMOD ${CMAKE_BINARY_DIR}/run_tests.sh PERMISSIONS
             OWNER_READ OWNER_WRITE OWNER_EXECUTE
             GROUP_READ GROUP_EXECUTE
@@ -32,25 +32,7 @@ function(AddTemaTarget TYPE NAME)
         target_link_libraries(${NAME} PUBLIC ${P_DEPS})
     endif ()
     if (P_TESTS)
-        AddTemaExecutable(${NAME}_test
-                NO_COVERAGE
-                SOURCES ${P_TESTS}
-                DEPS ${NAME} ${P_TESTS_DEPS} mcga_test_static mcga_matchers)
-        set(PROFRAW_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_test.profraw)
-        set(COMMAND "MallocNanoZone=0 LLVM_PROFILE_FILE=${PROFRAW_FILE_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_test --executor=smooth")
-        file(APPEND ${CMAKE_BINARY_DIR}/run_tests.sh "echo 'Tests for ${NAME}\\n\t${COMMAND}'\n")
-        file(APPEND ${CMAKE_BINARY_DIR}/run_tests.sh "${COMMAND}\n")
-        file(APPEND ${CMAKE_BINARY_DIR}/run_tests.sh "echo '\\n'\n")
-        if (COLLECT_COVERAGE)
-            target_link_options(${NAME}_test PRIVATE -fprofile-instr-generate -fcoverage-mapping)
-            get_property(tmp GLOBAL PROPERTY TEST_PROFRAW_FILES)
-            list(APPEND tmp ${PROFRAW_FILE_NAME})
-            set_property(GLOBAL PROPERTY TEST_PROFRAW_FILES "${tmp}")
-
-            get_property(tmp GLOBAL PROPERTY TEST_BINARY_FILES)
-            list(APPEND tmp ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_test)
-            set_property(GLOBAL PROPERTY TEST_BINARY_FILES "${tmp}")
-        endif ()
+        AddTemaTest(${NAME}_test SOURCES ${P_TESTS} DEPS ${NAME} ${P_TESTS_DEPS})
     endif ()
 endfunction()
 
@@ -60,6 +42,29 @@ endfunction()
 
 function(AddTemaExecutable NAME)
     AddTemaTarget(EXECUTABLE ${NAME} ${ARGN})
+endfunction()
+
+function(AddTemaTest NAME)
+    cmake_parse_arguments(P "NO_COVERAGE" "" "SOURCES;DEPS" ${ARGN})
+    AddTemaExecutable(${NAME}
+            NO_COVERAGE
+            SOURCES ${P_SOURCES}
+            DEPS ${P_DEPS} mcga_test_static mcga_matchers)
+    set(PROFRAW_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.profraw)
+    set(COMMAND "MallocNanoZone=0 LLVM_PROFILE_FILE=${PROFRAW_FILE_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${NAME} --executor=smooth")
+    file(APPEND ${CMAKE_BINARY_DIR}/run_tests.sh "echo 'Tests for ${NAME}\\n\t${COMMAND}'\n")
+    file(APPEND ${CMAKE_BINARY_DIR}/run_tests.sh "${COMMAND}\n")
+    file(APPEND ${CMAKE_BINARY_DIR}/run_tests.sh "echo '\\n'\n")
+    if (COLLECT_COVERAGE)
+        target_link_options(${NAME} PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+        get_property(tmp GLOBAL PROPERTY TEST_PROFRAW_FILES)
+        list(APPEND tmp ${PROFRAW_FILE_NAME})
+        set_property(GLOBAL PROPERTY TEST_PROFRAW_FILES "${tmp}")
+
+        get_property(tmp GLOBAL PROPERTY TEST_BINARY_FILES)
+        list(APPEND tmp ${CMAKE_CURRENT_BINARY_DIR}/${NAME})
+        set_property(GLOBAL PROPERTY TEST_BINARY_FILES "${tmp}")
+    endif ()
 endfunction()
 
 function(AddTemaCoverageTarget)

@@ -17,6 +17,11 @@ AddTemaLibrary(tema_core
         core/statement_test.cpp
         core/scope_test.cpp
         core/variable_test.cpp)
+# These headers are required for pre-compiling modules.
+file(GLOB tema_core_headers core/*.h)
+message(STATUS "${tema_core_headers}")
+install(FILES ${tema_core_headers} DESTINATION include/tema/core/)
+install(DIRECTORY ${mcga_meta_SOURCE_DIR}/include DESTINATION .)
 
 AddTemaLibrary(tema_algorithms
         SOURCES
@@ -36,12 +41,8 @@ AddTemaLibrary(tema_algorithms
         algorithms/match_test.cpp
         algorithms/print_utf8_test.cpp)
 
-
-GenerateXXD(${CMAKE_CURRENT_SOURCE_DIR}/util/export.h xxd_export_h_code)
-
 AddFlexLibrary(tema_compiler_lexer compiler/lexer_flex.l)
-target_link_libraries(tema_compiler_lexer PUBLIC mcga_meta)
-
+target_link_libraries(tema_compiler_lexer PUBLIC tema_core)
 AddTemaLibrary(tema_compiler
         SOURCES
         compiler/compile.cpp
@@ -52,7 +53,7 @@ AddTemaLibrary(tema_compiler
         compiler/translate.cpp
 
         DEPS
-        tema_core tema_compiler_lexer mcga_proc
+        tema_compiler_lexer mcga_proc
 
         TESTS
         compiler/compile_test.cpp

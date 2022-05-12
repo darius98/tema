@@ -6,9 +6,18 @@
 #include <vector>
 
 #include "compiler/print_cxx.h"
+#include "config.h"
 #include "core/module.h"
 
 namespace tema {
+
+constexpr std::string_view get_compiled_module_extension() {
+    if constexpr (is_apple()) {
+        return ".tema.dylib";
+    } else {
+        return ".tema.so";
+    }
+}
 
 struct compile_options {
     // Compile using "-O0 -g", warning flags, address and UB sanitizers. If false, will use "-O3".
