@@ -17,9 +17,9 @@ AddTemaLibrary(tema_core
         core/statement_test.cpp
         core/scope_test.cpp
         core/variable_test.cpp)
+
 # These headers are required for pre-compiling modules.
 file(GLOB tema_core_headers core/*.h)
-message(STATUS "${tema_core_headers}")
 install(FILES ${tema_core_headers} DESTINATION include/tema/core/)
 install(DIRECTORY ${mcga_meta_SOURCE_DIR}/include DESTINATION .)
 

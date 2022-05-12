@@ -7,6 +7,8 @@
 
 #include "config.h"
 
+extern char **environ;
+
 namespace tema {
 
 namespace {
@@ -132,7 +134,8 @@ std::filesystem::path compile_module(const std::filesystem::path& cxx_file, comp
         return s.data();
     });
     args.push_back(nullptr);
-    auto proc = mcga::proc::Subprocess::Invoke(args[0], args.data());
+    // Forward environment variables as well.
+    auto proc = mcga::proc::Subprocess::Invoke(args[0], args.data(), environ);
     proc->waitBlocking();
     if (!proc->isExited() || proc->getReturnCode() != 0) {
         // TODO: Include compiler error! Better error message!
