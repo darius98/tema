@@ -1,6 +1,7 @@
 #include "compiler/compile.h"
 
 #include <array>
+#include <iostream>
 #include <vector>
 
 #include <mcga/proc.hpp>
@@ -139,6 +140,8 @@ std::filesystem::path compile_module(const std::filesystem::path& cxx_file, comp
     proc->waitBlocking();
     if (!proc->isExited() || proc->getReturnCode() != 0) {
         // TODO: Include compiler error! Better error message!
+        // TODO(@branch): Remove!
+        std::cout << "errno: " << errno << " " << strerror(errno) << "\n";
         throw std::runtime_error{"Compilation failed."};
     }
     return output_path;
