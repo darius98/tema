@@ -135,6 +135,7 @@ std::filesystem::path compile_module(const std::filesystem::path& cxx_file, comp
         return s.data();
     });
     args.push_back(nullptr);
+    errno = 0;
     // Forward environment variables as well.
     auto proc = mcga::proc::Subprocess::Invoke(args[0], args.data(), environ);
     proc->waitBlocking();
