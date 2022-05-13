@@ -204,7 +204,7 @@ struct var_name_discovery_visitor {
 
     void add_var(const variable_ptr& var) {
         if (!var_names.contains(var)) {
-            var_names.emplace(var, "var_" + std::to_string(idx));
+            var_names.emplace(var, "v_" + std::to_string(idx));
             idx += 1;
         }
     }

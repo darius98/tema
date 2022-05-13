@@ -23,12 +23,10 @@ jobs:
       run: ${{github.workspace}}/setup-deps.sh
 
     - name: Check
-      run: ${{github.workspace}}/check.sh
+      run: ${{github.workspace}}/check.sh ${{ matrix.build_type }} ${{ matrix.build_type }}-Clang
       env:
         CC: clang
         CXX: clang++
-        CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
-        BUILD_DIR: ${{ matrix.build_type }}-Clang
 
   check-gcc:
     runs-on: ubuntu-20.04
@@ -48,9 +46,7 @@ jobs:
         run: ${{github.workspace}}/setup-deps.sh
 
       - name: Check
-        run: ${{github.workspace}}/check.sh
+        run: ${{github.workspace}}/check.sh ${{ matrix.build_type }} ${{ matrix.build_type }}-GCC
         env:
           CC: gcc
           CXX: g++
-          CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
-          BUILD_DIR: ${{ matrix.build_type }}-GCC

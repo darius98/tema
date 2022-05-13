@@ -14,6 +14,10 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 AddTemaCoverageTarget()
 
+add_custom_target(check ${CMAKE_SOURCE_DIR}/check.sh ${CMAKE_BUILD_TYPE}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        USES_TERMINAL)
+
 AddTemaExecutable(scratch_pad
         SOURCES scratch/scratch_pad.cpp
         DEPS tema_compiler tema_algorithms)
