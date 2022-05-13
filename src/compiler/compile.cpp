@@ -136,8 +136,13 @@ std::filesystem::path compile_module(const std::filesystem::path& cxx_file, comp
     });
     args.push_back(nullptr);
     errno = 0;
-    // Forward environment variables as well.
-    auto proc = mcga::proc::Subprocess::Invoke(args[0], args.data(), environ);
+    // TODO: Pipe stdout/stderr?
+    auto proc = mcga::proc::Subprocess::Fork([&args]() {
+        if (execve(args[0], args.data(), environ) < 0) {
+            std::cout << "[COMPILER]: errno: " << errno << " " << strerror(errno) << "\n";
+        }
+        exit(EXIT_FAILURE);
+    });
     proc->waitBlocking();
     if (!proc->isExited() || proc->getReturnCode() != 0) {
         // TODO: Include compiler error! Better error message!
