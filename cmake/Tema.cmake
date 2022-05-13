@@ -2,7 +2,17 @@ set_property(GLOBAL PROPERTY TEST_PROFRAW_FILES)
 set_property(GLOBAL PROPERTY TEST_BINARY_FILES)
 
 function(InitTemaTests)
-    file(WRITE ${CMAKE_BINARY_DIR}/run_tests.sh "#!/usr/bin/env sh\n\nset -e\n\nexport CMAKE_INSTALL_DIR=${CMAKE_INSTALL_PREFIX}\n\n")
+    file(WRITE ${CMAKE_BINARY_DIR}/run_tests.sh
+            "#!/usr/bin/env sh\n"
+            "\n"
+            "set -e\n"
+            "\n"
+            "export CMAKE_INSTALL_DIR=${CMAKE_INSTALL_PREFIX}\n")
+    if (APPLE)
+        file(APPEND ${CMAKE_BINARY_DIR}/run_tests.sh
+                "export MallocNanoZone=0\n")
+    endif ()
+
     file(CHMOD ${CMAKE_BINARY_DIR}/run_tests.sh PERMISSIONS
             OWNER_READ OWNER_WRITE OWNER_EXECUTE
             GROUP_READ GROUP_EXECUTE
@@ -45,17 +55,19 @@ function(AddTemaExecutable NAME)
 endfunction()
 
 function(AddTemaTest NAME)
-    cmake_parse_arguments(P "NO_COVERAGE" "" "SOURCES;DEPS" ${ARGN})
+    cmake_parse_arguments(P "NO_COVERAGE" "" "SOURCES;DEPS;ENV" ${ARGN})
     AddTemaExecutable(${NAME}
             NO_COVERAGE
             SOURCES ${P_SOURCES}
             DEPS ${P_DEPS} mcga_test_static mcga_matchers)
     set(PROFRAW_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.profraw)
-    set(COMMAND "LLVM_PROFILE_FILE=${PROFRAW_FILE_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${NAME} --executor=smooth")
-    if (APPLE)
-        set(COMMAND "MallocNanoZone=0 ${COMMAND}")
-    endif ()
-    file(APPEND ${CMAKE_BINARY_DIR}/run_tests.sh "echo 'Tests for ${NAME}\\n\t${COMMAND}'\n")
+    set(COMMAND "")
+    foreach(TEST_ENV_VAR ${P_ENV})
+        set(COMMAND "${COMMAND} ${TEST_ENV_VAR}")
+    endforeach()
+    set(COMMAND "${COMMAND} LLVM_PROFILE_FILE=${PROFRAW_FILE_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${NAME} --executor=smooth")
+    string(STRIP "${COMMAND}" COMMAND)
+    file(APPEND ${CMAKE_BINARY_DIR}/run_tests.sh "\necho 'Running ${NAME}\\n\t${COMMAND}'\n")
     file(APPEND ${CMAKE_BINARY_DIR}/run_tests.sh "${COMMAND}\n")
     file(APPEND ${CMAKE_BINARY_DIR}/run_tests.sh "echo '\\n'\n")
     if (COLLECT_COVERAGE)
