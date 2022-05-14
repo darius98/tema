@@ -69,5 +69,5 @@ jobs:
       - name: Check
         run: ${{github.workspace}}/check.sh ${{ matrix.build_type }}
         env:
-          CC: /usr/bin/gcc
-          CXX: /usr/bin/g++
+          CC: /usr/bin/gcc-11
+          CXX: /usr/bin/g++-11

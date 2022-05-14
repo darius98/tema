@@ -1,7 +1,6 @@
 #include "compiler/compile.h"
 
 #include <array>
-#include <iostream>
 #include <vector>
 
 #include <mcga/proc.hpp>
@@ -135,23 +134,11 @@ std::filesystem::path compile_module(const std::filesystem::path& cxx_file, comp
         return s.data();
     });
     args.push_back(nullptr);
-    errno = 0;
-    // TODO: Pipe stdout/stderr?
-    auto proc = mcga::proc::Subprocess::Fork([&args]() {
-        if (execve(args[0], args.data(), environ) < 0) {
-            std::cout << "[COMPILER]: errno: " << errno << " " << strerror(errno) << "\n";
-        }
-        exit(EXIT_FAILURE);
-    });
+    // Forward environment variables as well.
+    auto proc = mcga::proc::Subprocess::Invoke(args[0], args.data(), environ);
     proc->waitBlocking();
     if (!proc->isExited() || proc->getReturnCode() != 0) {
         // TODO: Include compiler error! Better error message!
-        // TODO(@branch): Remove!
-        for (const auto& part: compile_command) {
-            std::cout << part << " ";
-        }
-        std::cout << "\n";
-        std::cout << "errno: " << errno << " " << strerror(errno) << "\n";
         throw std::runtime_error{"Compilation failed."};
     }
     return output_path;
