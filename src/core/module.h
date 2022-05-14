@@ -9,17 +9,16 @@
 
 namespace tema {
 
-struct location {
-    std::string file_name;
+struct file_location {
     int line;
     int col;
 
-    bool operator==(const location&) const = default;
+    bool operator==(const file_location&) const = default;
 };
 
 struct module {
     struct var_decl {
-        location loc;
+        file_location loc;
         bool exported;
         variable_ptr var;
     };
@@ -31,7 +30,7 @@ struct module {
     };
 
     struct stmt_decl {
-        location loc;
+        file_location loc;
         bool exported;
         stmt_decl_type type;
         std::string name;
@@ -43,14 +42,16 @@ struct module {
 
 private:
     std::string name;
+    std::string file_name;
     scope internal_scope;
     scope public_scope;
     std::vector<decl> decls;
 
 public:
-    explicit module(std::string name);
+    explicit module(std::string name, std::string file_name);
 
     [[nodiscard]] std::string_view get_name() const;
+    [[nodiscard]] std::string_view get_file_name() const;
     [[nodiscard]] const scope& get_internal_scope() const;
     [[nodiscard]] const scope& get_public_scope() const;
     [[nodiscard]] const std::vector<decl>& get_decls() const;

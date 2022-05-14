@@ -28,7 +28,7 @@ struct compile_options {
     // <input_file> is a file, or stdout if input is stdin.
     std::filesystem::path output_file{};
 
-    // Path to the location where tema is installed. Defaults to the value
+    // Path to the file_location where tema is installed. Defaults to the value
     // provided by CMake at build time.
     std::filesystem::path install_path{default_install_path};
 

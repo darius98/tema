@@ -26,12 +26,12 @@ bool is_keyword_token(int tok) {
            }) != keyword_table.end();
 }
 
-void throw_parse_error(const location& loc, std::string msg) {
-    throw parse_error{"Parse error at " + loc.file_name + ":" + std::to_string(loc.line) + ":" + std::to_string(loc.col) + ": " + std::move(msg)};
+void throw_parse_error(std::string file_name, file_location loc, std::string msg) {
+    throw parse_error{"Parse error at " + std::move(file_name) + ":" + std::to_string(loc.line) + ":" + std::to_string(loc.col) + ": " + std::move(msg)};
 }
 
-void throw_unexpected_token_error(const location& loc) {
-    throw_parse_error(loc, "unexpected token.");
+void throw_unexpected_token_error(std::string file_name, file_location loc) {
+    throw_parse_error(std::move(file_name), loc, "unexpected token.");
 }
 
 void flex_lexer_scanner::update_location_from_last_token() {
@@ -51,7 +51,7 @@ void flex_lexer_scanner::update_location_from_last_token() {
 }
 
 flex_lexer_scanner::flex_lexer_scanner(std::istream& in, std::string file_name)
-    : lexer(std::make_unique<yyFlexLexer>(&in, nullptr)), loc{std::move(file_name), 1, 1} {}
+    : lexer(std::make_unique<yyFlexLexer>(&in, nullptr)), file_name(std::move(file_name)) {}
 
 flex_lexer_scanner::~flex_lexer_scanner() = default;
 
@@ -66,13 +66,13 @@ std::pair<token, std::string_view> flex_lexer_scanner::consume_token(bool allow_
             }
             const auto token_type = lexer->yylex();
             if (token_type < 0) {
-                throw_parse_error(loc, "Unknown token '" + std::string(lexer->YYText()) + "'");
+                throw_parse_error(file_name, loc, "Unknown token '" + std::string(lexer->YYText()) + "'");
             }
             last_token = token_type;
         } while (last_token == tok_whitespace || last_token == tok_eol);
     }
     if (last_token == tok_eof && !allow_eof) {
-        throw_parse_error(loc, "Unexpected end of file");
+        throw_parse_error(file_name, loc, "Unexpected end of file");
     }
     return {static_cast<token>(last_token), lexer->YYText()};
 }
@@ -80,7 +80,7 @@ std::pair<token, std::string_view> flex_lexer_scanner::consume_token(bool allow_
 std::string_view flex_lexer_scanner::consume_token_exact(token required_token, std::string_view error_msg) {
     auto [token, text] = consume_token();
     if (token != required_token) {
-        throw_parse_error(loc, std::string(error_msg));
+        throw_parse_error(file_name, loc, std::string(error_msg));
     }
     return text;
 }
@@ -89,7 +89,11 @@ void flex_lexer_scanner::unconsume_last_token() {
     next_token = last_token;
 }
 
-const location& flex_lexer_scanner::current_loc() const {
+std::string_view flex_lexer_scanner::get_file_name() const {
+    return file_name;
+}
+
+const file_location& flex_lexer_scanner::current_loc() const {
     return loc;
 }
 

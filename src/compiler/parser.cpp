@@ -110,17 +110,20 @@ class reverse_polish_notation_builder {
     std::vector<partial_statement> partials;
     std::vector<int> operators;
 
-    void check_expectation(expectation from, expectation to, const location& loc) {
+    const file_location& loc;
+    std::string file_name;
+
+    void check_expectation(expectation from, expectation to) {
         if (state != from) {
-            throw_unexpected_token_error(loc);
+            throw_unexpected_token_error(file_name, loc);
         }
         state = to;
     }
 
     template<mcga::meta::one_of<statement_ptr, expr_ptr> As>
-    [[nodiscard]] As pop_last_partial(const location& loc) {
+    [[nodiscard]] As pop_last_partial() {
         if (partials.empty()) {
-            throw_unexpected_token_error(loc);
+            throw_unexpected_token_error(file_name, loc);
         }
         auto partial = std::move(partials.back());
         partials.pop_back();
@@ -133,75 +136,80 @@ class reverse_polish_notation_builder {
                 return var_expr(get<variable_ptr>(std::move(partial)));
             }
         }
-        throw_unexpected_token_error(loc);
+        throw_unexpected_token_error(file_name, loc);
     }
 
     template<mcga::meta::one_of<statement_ptr, expr_ptr> As>
-    [[nodiscard]] std::pair<As, As> pop_last_2_partials(const location& loc) {
-        auto last = pop_last_partial<As>(loc);
-        auto before_last = pop_last_partial<As>(loc);
+    [[nodiscard]] std::pair<As, As> pop_last_2_partials() {
+        As last = pop_last_partial<As>();
+        As before_last = pop_last_partial<As>();
         return std::pair{std::move(before_last), std::move(last)};
     }
 
-    statement_ptr try_reduce_unary_stmt(int operator_token, const location& loc) {
+    statement_ptr try_reduce_unary_stmt(int operator_token) {
         const auto it = token_unary_stmt_factory_map.find(operator_token);
         if (it == token_unary_stmt_factory_map.end()) {
             return nullptr;
         }
-        return (it->second)(pop_last_partial<statement_ptr>(loc));
+        return (it->second)(pop_last_partial<statement_ptr>());
     }
 
-    statement_ptr try_reduce_binary_stmt(int operator_token, const location& loc) {
+    statement_ptr try_reduce_binary_stmt(int operator_token) {
         const auto it = token_binary_stmt_factory_map.find(operator_token);
         if (it == token_binary_stmt_factory_map.end()) {
             return nullptr;
         }
-        return std::apply(it->second, pop_last_2_partials<statement_ptr>(loc));
+        return std::apply(it->second, pop_last_2_partials<statement_ptr>());
     }
 
-    expr_ptr try_reduce_binary_expr(int operator_token, const location& loc) {
+    expr_ptr try_reduce_binary_expr(int operator_token) {
         const auto it = token_binary_expr_op_map.find(operator_token);
         if (it == token_binary_expr_op_map.end()) {
             return nullptr;
         }
-        auto [expr1, expr2] = pop_last_2_partials<expr_ptr>(loc);
+        auto [expr1, expr2] = pop_last_2_partials<expr_ptr>();
         return binop(std::move(expr1), it->second, std::move(expr2));
     }
 
-    statement_ptr try_reduce_relationship(int operator_token, const location& loc) {
+    statement_ptr try_reduce_relationship(int operator_token) {
         const auto it = token_rel_op_map.find(operator_token);
         if (it == token_rel_op_map.end()) {
             return nullptr;
         }
-        auto [expr1, expr2] = pop_last_2_partials<expr_ptr>(loc);
+        auto [expr1, expr2] = pop_last_2_partials<expr_ptr>();
         return rel_stmt(std::move(expr1), it->second, std::move(expr2));
     }
 
-    partial_statement reduce_operator(int operator_token, const location& loc) {
-        if (auto stmt = try_reduce_unary_stmt(operator_token, loc); stmt) {
+    partial_statement reduce_operator(int operator_token) {
+        if (auto stmt = try_reduce_unary_stmt(operator_token); stmt) {
             return stmt;
         }
-        if (auto stmt = try_reduce_binary_stmt(operator_token, loc); stmt) {
+        if (auto stmt = try_reduce_binary_stmt(operator_token); stmt) {
             return stmt;
         }
-        if (auto expr = try_reduce_binary_expr(operator_token, loc); expr) {
+        if (auto expr = try_reduce_binary_expr(operator_token); expr) {
             return expr;
         }
-        if (auto stmt = try_reduce_relationship(operator_token, loc); stmt) {
+        if (auto stmt = try_reduce_relationship(operator_token); stmt) {
             return stmt;
         }
-        throw_unexpected_token_error(loc);
+        throw_unexpected_token_error(file_name, loc);
     }
 
-    void reduce_operators(const location& loc, auto predicate) {
+    void reduce_operators_until(auto predicate) {
         while (!operators.empty() && predicate()) {
             int operator_token = operators.back();
             operators.pop_back();
-            partials.push_back(reduce_operator(operator_token, loc));
+            partials.push_back(reduce_operator(operator_token));
         }
     }
 
 public:
+    reverse_polish_notation_builder(
+            const file_location& loc,
+            std::string file_name)
+        : loc(loc), file_name(std::move(file_name)) {}
+
     bool can_finish() {
         return operators.empty() &&
                partials.size() == 1 &&
@@ -209,10 +217,10 @@ public:
                 holds_alternative<variable_ptr>(partials[0]));
     }
 
-    statement_ptr finish(const location& loc) {
-        reduce_operators(loc, [] { return true; });
+    statement_ptr finish() {
+        reduce_operators_until([] { return true; });
         if (!can_finish()) {
-            throw_unexpected_token_error(loc);
+            throw_unexpected_token_error(file_name, loc);
         }
         if (holds_alternative<variable_ptr>(partials[0])) {
             return var_stmt(get<variable_ptr>(std::move(partials[0])));
@@ -220,34 +228,34 @@ public:
         return get<statement_ptr>(std::move(partials[0]));
     }
 
-    void add_partial(partial_statement partial, const location& loc) {
-        check_expectation(expectation::expect_operand, expectation::expect_operator, loc);
+    void add_partial(partial_statement partial) {
+        check_expectation(expectation::expect_operand, expectation::expect_operator);
         partials.push_back(std::move(partial));
     }
 
-    void open_paren(const location& loc) {
-        check_expectation(expectation::expect_operand, expectation::expect_operand, loc);
+    void open_paren() {
+        check_expectation(expectation::expect_operand, expectation::expect_operand);
         operators.push_back(tok_open_paren);
     }
 
-    void close_paren(const location& loc) {
-        check_expectation(expectation::expect_operator, expectation::expect_operator, loc);
-        reduce_operators(loc, [this] { return operators.back() != tok_open_paren; });
+    void close_paren() {
+        check_expectation(expectation::expect_operator, expectation::expect_operator);
+        reduce_operators_until([this] { return operators.back() != tok_open_paren; });
         if (operators.empty()) {
-            throw_unexpected_token_error(loc);
+            throw_unexpected_token_error(file_name, loc);
         }
         operators.pop_back();  // Remove the open paren.
     }
 
-    void add_operator(int operator_token, const location& loc) {
+    void add_operator(int operator_token) {
         // TODO: A more generic unary operator check.
         if (operator_token == tok_neg) {
-            check_expectation(expectation::expect_operand, expectation::expect_operand, loc);
+            check_expectation(expectation::expect_operand, expectation::expect_operand);
         } else {
-            check_expectation(expectation::expect_operator, expectation::expect_operand, loc);
+            check_expectation(expectation::expect_operator, expectation::expect_operand);
         }
         int token_priority = token_priority_map.find(operator_token)->second;
-        reduce_operators(loc, [this, token_priority] {
+        reduce_operators_until([this, token_priority] {
             return token_priority_map.find(operators.back())->second < token_priority;
         });
         operators.push_back(operator_token);
@@ -258,16 +266,16 @@ public:
 // except when encountering a forall node where it does a recursive call.
 // Similar to the "shunting-yard algorithm".
 statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_scope, bool allow_extend) {
-    const location& loc = scanner.current_loc();  // This is a reference, so always up to date.
-    reverse_polish_notation_builder rpn_builder;
+    // This keeps a reference to the location, so is always up to date.
+    reverse_polish_notation_builder rpn_builder(scanner.current_loc(), std::string{scanner.get_file_name()});
     while (true) {
         if (!allow_extend && rpn_builder.can_finish()) {
-            return rpn_builder.finish(loc);
+            return rpn_builder.finish();
         }
         auto [token, text] = scanner.consume_token(true);
         if (token == tok_eof || is_keyword_token(token)) {
             scanner.unconsume_last_token();
-            return rpn_builder.finish(loc);
+            return rpn_builder.finish();
         }
         if (token == tok_forall) {
             auto forall_var_name = scanner.consume_token_exact(tok_identifier, "Expected variable name (an identifier).");
@@ -275,7 +283,7 @@ statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_sco
             auto forall_var = var(symbol{forall_var_name});
             forall_scope.add_var(forall_var);
             auto forall_stmt = parse_stmt(scanner, forall_scope, false);
-            rpn_builder.add_partial(forall(std::move(forall_var), std::move(forall_stmt)), loc);
+            rpn_builder.add_partial(forall(std::move(forall_var), std::move(forall_stmt)));
             continue;
         }
         switch (token) {
@@ -284,29 +292,31 @@ statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_sco
                 try {
                     var = enclosing_scope.get_var(symbol_view{text});
                 } catch (const var_not_found&) {
-                    throw_parse_error(loc, "Unknown variable '" + std::string(text) + "'.");
+                    throw_parse_error(std::string{scanner.get_file_name()},
+                                      scanner.current_loc(),
+                                      "Unknown variable '" + std::string(text) + "'.");
                 }
-                rpn_builder.add_partial(std::move(var), loc);
+                rpn_builder.add_partial(std::move(var));
                 break;
             }
             case tok_truth: {
-                rpn_builder.add_partial(truth(), loc);
+                rpn_builder.add_partial(truth());
                 break;
             }
             case tok_contradiction: {
-                rpn_builder.add_partial(contradiction(), loc);
+                rpn_builder.add_partial(contradiction());
                 break;
             }
             case tok_open_paren: {
-                rpn_builder.open_paren(loc);
+                rpn_builder.open_paren();
                 break;
             }
             case tok_close_paren: {
-                rpn_builder.close_paren(loc);
+                rpn_builder.close_paren();
                 break;
             }
             default: {
-                rpn_builder.add_operator(token, loc);
+                rpn_builder.add_operator(token);
                 break;
             }
         }
@@ -336,7 +346,9 @@ std::optional<scope> parse_proof(flex_lexer_scanner& scanner, const module&) {
         return std::nullopt;
     }
     // TODO: Set up a syntax for proofs and parse it here.
-    throw_parse_error(scanner.current_loc(), "Statement proofs are not currently supported. Use the 'proof missing' keyword.");
+    throw_parse_error(std::string{scanner.get_file_name()},
+                      scanner.current_loc(),
+                      "Statement proofs are not currently supported. Use the 'proof missing' keyword.");
 }
 
 void parse_stmt_decl(flex_lexer_scanner& scanner, module& mod, module::stmt_decl_type stmt_type) {
@@ -383,7 +395,9 @@ bool parse_decl(flex_lexer_scanner& scanner, module& mod) {
             parse_stmt_decl(scanner, mod, module::stmt_decl_type::exercise);
             break;
         default:
-            throw_parse_error(scanner.current_loc(), "Expected variable or statement declaration.");
+            throw_parse_error(std::string{scanner.get_file_name()},
+                              scanner.current_loc(),
+                              "Expected variable or statement declaration.");
     }
     return true;
 }
@@ -392,7 +406,7 @@ bool parse_decl(flex_lexer_scanner& scanner, module& mod) {
 
 module parse_module(std::istream& in, const std::filesystem::path& file_name) {
     flex_lexer_scanner scanner(in, file_name);
-    module mod(file_name.stem());
+    module mod(file_name.stem(), file_name);
     while (parse_decl(scanner, mod)) {
     }
     return mod;

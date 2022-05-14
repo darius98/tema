@@ -8,8 +8,9 @@ using namespace mcga::matchers;
 
 TEST_CASE("module") {
     test("constructor", [&] {
-        module mod("module name");
-        expect(mod.get_name(), isEqualTo("module name"));
+        module mod("stuff", "/stuff.tema");
+        expect(mod.get_name(), "stuff");
+        expect(mod.get_file_name(), "/stuff.tema");
         expect(mod.get_internal_scope().has_parent(), isFalse);
         expect(mod.get_internal_scope().own_vars(), isEmpty);
         expect(mod.get_internal_scope().own_statements(), isEmpty);
@@ -20,17 +21,16 @@ TEST_CASE("module") {
     });
 
     test("add variable declarations", [&] {
-        module mod("module name");
+        module mod("stuff", "/stuff.tema");
         const auto x = var("X");
         const auto y = var("Y");
         mod.add_variable_decl(module::var_decl{
-                .loc = {"/var/X.tema", 2, 5},
+                .loc = {2, 5},
                 .exported = false,
                 .var = x,
         });
         expect(mod.get_decls(), hasSize(1));
         expect(holds_alternative<module::var_decl>(mod.get_decls()[0]), isTrue);
-        expect(get<module::var_decl>(mod.get_decls()[0]).loc.file_name, "/var/X.tema");
         expect(get<module::var_decl>(mod.get_decls()[0]).loc.line, 2);
         expect(get<module::var_decl>(mod.get_decls()[0]).loc.col, 5);
         expect(get<module::var_decl>(mod.get_decls()[0]).exported, isFalse);
@@ -43,13 +43,12 @@ TEST_CASE("module") {
         expect(mod.get_public_scope().own_statements(), isEmpty);
 
         mod.add_variable_decl(module::var_decl{
-                .loc = {"/var/Y.tema", 3, 4},
+                .loc = {3, 4},
                 .exported = true,
                 .var = y,
         });
         expect(mod.get_decls(), hasSize(2));
         expect(holds_alternative<module::var_decl>(mod.get_decls()[1]), isTrue);
-        expect(get<module::var_decl>(mod.get_decls()[1]).loc.file_name, "/var/Y.tema");
         expect(get<module::var_decl>(mod.get_decls()[1]).loc.line, 3);
         expect(get<module::var_decl>(mod.get_decls()[1]).loc.col, 4);
         expect(get<module::var_decl>(mod.get_decls()[1]).exported, isTrue);
@@ -64,12 +63,12 @@ TEST_CASE("module") {
     });
 
     test("add statement declarations", [&] {
-        module mod("module name");
+        module mod("stuff", "/stuff.tema");
         const auto x = truth();
         const auto y = contradiction();
 
         mod.add_statement_decl(module::stmt_decl{
-                .loc = {"/var/X.tema", 2, 5},
+                .loc = {2, 5},
                 .exported = false,
                 .type = module::stmt_decl_type::definition,
                 .name = "Truth",
@@ -78,7 +77,6 @@ TEST_CASE("module") {
         });
         expect(mod.get_decls(), hasSize(1));
         expect(holds_alternative<module::stmt_decl>(mod.get_decls()[0]), isTrue);
-        expect(get<module::stmt_decl>(mod.get_decls()[0]).loc.file_name, "/var/X.tema");
         expect(get<module::stmt_decl>(mod.get_decls()[0]).loc.line, 2);
         expect(get<module::stmt_decl>(mod.get_decls()[0]).loc.col, 5);
         expect(get<module::stmt_decl>(mod.get_decls()[0]).exported, isFalse);
@@ -94,7 +92,7 @@ TEST_CASE("module") {
         expect(mod.get_public_scope().own_statements(), isEmpty);
 
         mod.add_statement_decl(module::stmt_decl{
-                .loc = {"/var/Y.tema", 3, 4},
+                .loc = {3, 4},
                 .exported = true,
                 .type = module::stmt_decl_type::theorem,
                 .name = "Contradiction",
@@ -103,7 +101,6 @@ TEST_CASE("module") {
         });
         expect(mod.get_decls(), hasSize(2));
         expect(holds_alternative<module::stmt_decl>(mod.get_decls()[1]), isTrue);
-        expect(get<module::stmt_decl>(mod.get_decls()[1]).loc.file_name, "/var/Y.tema");
         expect(get<module::stmt_decl>(mod.get_decls()[1]).loc.line, 3);
         expect(get<module::stmt_decl>(mod.get_decls()[1]).loc.col, 4);
         expect(get<module::stmt_decl>(mod.get_decls()[1]).exported, isTrue);

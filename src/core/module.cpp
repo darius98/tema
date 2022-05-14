@@ -5,11 +5,15 @@
 
 namespace tema {
 
-TEMA_EXPORT module::module(std::string name)
-    : name(std::move(name)) {}
+TEMA_EXPORT module::module(std::string name, std::string file_name)
+    : name(std::move(name)), file_name(std::move(file_name)) {}
 
 TEMA_EXPORT std::string_view module::get_name() const {
     return name;
+}
+
+TEMA_EXPORT std::string_view module::get_file_name() const {
+    return file_name;
 }
 
 TEMA_EXPORT const scope& module::get_internal_scope() const {

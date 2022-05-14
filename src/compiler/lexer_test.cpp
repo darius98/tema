@@ -14,12 +14,12 @@ TEST("is_keyword_token") {
 
 TEST("throw_parse_error and throw_unexpected_token_error") {
     expect([&] {
-        throw_parse_error({}, "msg");
+        throw_parse_error("", {}, "msg");
     },
            throwsA<parse_error>);
 
     expect([&] {
-        throw_unexpected_token_error({});
+        throw_unexpected_token_error("", {});
     },
            throwsA<parse_error>);
 }
@@ -87,21 +87,21 @@ TEST_CASE("flex_lexer_scanner") {
         expect(scanner->consume_token_exact(tok_proof, ""), "proof");
     });
 
-    test("location", [&] {
+    test("file_location", [&] {
         *stream << "var stuff export \n\n   \t\"String literal\"   xx<>\n";
         (void) scanner->consume_token();
-        expect(scanner->current_loc(), location{"/file", 1, 1});
+        expect(scanner->current_loc(), file_location{1, 1});
         (void) scanner->consume_token();
-        expect(scanner->current_loc(), location{"/file", 1, 5});
+        expect(scanner->current_loc(), file_location{1, 5});
         (void) scanner->consume_token();
-        expect(scanner->current_loc(), location{"/file", 1, 11});
+        expect(scanner->current_loc(), file_location{1, 11});
         (void) scanner->consume_token();
-        expect(scanner->current_loc(), location{"/file", 3, 5});
+        expect(scanner->current_loc(), file_location{3, 5});
         (void) scanner->consume_token();
-        expect(scanner->current_loc(), location{"/file", 3, 24});
+        expect(scanner->current_loc(), file_location{3, 24});
         (void) scanner->consume_token();
-        expect(scanner->current_loc(), location{"/file", 3, 26});
+        expect(scanner->current_loc(), file_location{3, 26});
         (void) scanner->consume_token();
-        expect(scanner->current_loc(), location{"/file", 3, 27});
+        expect(scanner->current_loc(), file_location{3, 27});
     });
 }

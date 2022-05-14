@@ -256,16 +256,16 @@ void print_module_decls(const module& mod, const std::map<variable_ptr, std::str
         if (holds_alternative<module::var_decl>(decl)) {
             const auto& var_decl = get<module::var_decl>(decl);
             to << "  mod.add_variable_decl(module::var_decl{\n"
-                  "    .loc = {\""
-               << var_decl.loc.file_name << "\", " << var_decl.loc.line << ", " << var_decl.loc.col << "},\n"
+                  "    .loc = {"
+               << var_decl.loc.line << ", " << var_decl.loc.col << "},\n"
                << "    .exported = " << (var_decl.exported ? "true" : "false") << ",\n"
                << "    .var = " << vars.find(var_decl.var)->second << ",\n"
                << "  });\n";
         } else {
             const auto& stmt_decl = get<module::stmt_decl>(decl);
             to << "  mod.add_statement_decl(module::stmt_decl{\n"
-                  "    .loc = {\""
-               << stmt_decl.loc.file_name << "\", " << stmt_decl.loc.line << ", " << stmt_decl.loc.col << "},\n"
+                  "    .loc = {"
+               << stmt_decl.loc.line << ", " << stmt_decl.loc.col << "},\n"
                << "    .exported = " << (stmt_decl.exported ? "true" : "false") << ",\n"
                << "    .type = module::stmt_decl_type::" << to_cxx(stmt_decl.type) << ",\n"
                << "    .name = \"" << stmt_decl.name << "\",\n"
@@ -292,7 +292,7 @@ void print_tema_module_function(const module& mod, std::ostream& to, const print
 ::tema::module tema_module() asm("_tema_module");
 TEMA_EXPORT ::tema::module tema_module() {
   ::tema::module mod{")"
-       << mod.get_name() << R"("};
+       << mod.get_name() << R"(", ")" << mod.get_file_name() << R"("};
 )";
     const auto var_names = discover_variables(mod);
     print_module_vars(var_names, to);
