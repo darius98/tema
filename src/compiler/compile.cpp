@@ -53,17 +53,10 @@ std::vector<std::string> get_common_compile_flags() {
     };
 }
 
-std::vector<std::string> get_apple_compile_flags() {
-    std::string apple_sysroot;
-    auto sysroot_from_env = std::getenv("TEMA_APPLE_SYSROOT");
-    if (sysroot_from_env != nullptr && sysroot_from_env[0] != '\0') {
-        apple_sysroot = sysroot_from_env;
-    } else {
-        apple_sysroot = default_apple_sysroot;
-    }
+std::vector<std::string> get_apple_compile_flags(std::string apple_sysroot) {
     return {
             "-isysroot",
-            apple_sysroot,
+            std::move(apple_sysroot),
             "-undefined",
             "dynamic_lookup",
     };
@@ -115,7 +108,7 @@ std::pair<std::filesystem::path, std::vector<std::string>> get_compilation_comma
             options.cxx_compiler_path.string(),
             get_common_compile_flags(),
             options.debug ? get_debug_compile_flags() : get_release_compile_flags(),
-            is_apple() ? get_apple_compile_flags() : std::vector<std::string>{},
+            is_apple() ? get_apple_compile_flags(options.apple_sysroot.string()) : std::vector<std::string>{},
             std::string{"-o"},
             output_path.string(),
             std::move(options.extra_flags),

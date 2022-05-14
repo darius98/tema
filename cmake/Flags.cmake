@@ -48,9 +48,11 @@ function(AddTargetCompileFlags TARGET)
     endif ()
     target_link_options(${TARGET} PRIVATE -rdynamic)
 
+    target_compile_definitions(${TARGET} PRIVATE "-DTEMA_DEFAULT_CXX_COMPILER_PATH=\"${CMAKE_CXX_COMPILER}\"")
+
     if (APPLE)
         target_compile_definitions(${TARGET} PRIVATE -DTEMA_PLATFORM_TARGET_OS='A')
-        target_compile_definitions(${TARGET} PRIVATE "-DTEMA_PLATFORM_MACOS_SYSROOT=\"${CMAKE_OSX_SYSROOT}\"")
+        target_compile_definitions(${TARGET} PRIVATE "-DTEMA_DEFAULT_APPLE_SYSROOT=\"${CMAKE_OSX_SYSROOT}\"")
     else ()
         target_compile_definitions(${TARGET} PRIVATE -DTEMA_PLATFORM_TARGET_OS='L')
     endif ()

@@ -27,8 +27,11 @@ struct compile_options {
     // "" goes to <input_file_without_extensions>.tema.(dylib|so) if <input_file> is a file, or stdout if input is stdin.
     std::filesystem::path output_file{};
 
-    // Provide the path to a custom compiler. If empty, falls back to the CXX environment variable. If empty, falls back to "cc".
-    std::filesystem::path cxx_compiler_path{"/usr/bin/c++"};
+    // Provide the path to a custom compiler. Defaults to the value provided by CMake during build time.
+    std::filesystem::path cxx_compiler_path{default_cxx_compiler_path};
+
+    // The sysroot to use with "-isysroot". Defaults to the value provided by CMake during build time. Only used on macOS.
+    std::filesystem::path apple_sysroot{default_apple_sysroot};
 
     std::vector<std::string> extra_flags{};
 };
