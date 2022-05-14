@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.22)
 project(tema)
 
+# Add the sanitizers globally, because of known false positives of ASan
+# on macOS when only part of the executables is instrumented. See for example
+# https://github.com/google/sanitizers/wiki/AddressSanitizerContainerOverflow#false-positives
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=undefined)
+    add_link_options(-fsanitize=address,undefined)
+endif ()
+
 include(cmake/MCGADeps.cmake)
 include(cmake/ConfigFlex.cmake)
 include(cmake/Coverage.cmake)

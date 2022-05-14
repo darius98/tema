@@ -54,6 +54,9 @@ std::vector<std::string> get_common_compile_flags() {
 }
 
 std::vector<std::string> get_apple_compile_flags(std::string apple_sysroot) {
+    if (!is_apple()) {
+        return {};
+    }
     return {
             "-isysroot",
             std::move(apple_sysroot),
@@ -80,7 +83,7 @@ void concatenate_vectors_append(std::vector<std::string>& result, const mcga::me
     }
 }
 
-std::vector<std::string> concatenate_vectors(mcga::meta::one_of<std::string, std::vector<std::string>> auto&&... parts) {
+std::vector<std::string> concatenate_vectors(mcga::meta::one_of<std::string, std::vector<std::string>> auto... parts) {
     const auto size = (concatenate_vectors_get_part_size(parts) + ...);
     std::vector<std::string> result;
     result.reserve(size);
@@ -99,29 +102,29 @@ std::filesystem::path get_output_path(std::filesystem::path output_path, const s
     return output_path;
 }
 
-}  // namespace
-
-std::pair<std::filesystem::path, std::vector<std::string>> get_compilation_command(const std::filesystem::path& cxx_file,
-                                                                                   compile_options options) {
-    auto output_path = get_output_path(options.output_file, cxx_file);
-    auto compile_command = concatenate_vectors(
+std::vector<std::string> get_compilation_command(const std::filesystem::path& cxx_file,
+                                                 const std::filesystem::path& output_file,
+                                                 const compile_options& options) {
+    return concatenate_vectors(
             options.cxx_compiler_path.string(),
             get_common_compile_flags(),
             options.debug ? get_debug_compile_flags() : get_release_compile_flags(),
-            is_apple() ? get_apple_compile_flags(options.apple_sysroot.string()) : std::vector<std::string>{},
-            "-I" + (options.install_path / "include").string(),  // For MCGA meta library
+            get_apple_compile_flags(options.apple_sysroot.string()),
+            "-I" + (options.install_path / "include").string(),           // For MCGA meta library
             "-I" + (options.install_path / "include" / "tema").string(),  // For tema core library
             std::string{"-o"},
-            output_path.string(),
-            std::move(options.extra_flags),
+            output_file.string(),
+            options.extra_flags,
             cxx_file.string());
-    return {output_path, compile_command};
 }
 
-std::filesystem::path compile_module(const std::filesystem::path& cxx_file, compile_options options) {
-    auto [output_path, compile_command] = get_compilation_command(cxx_file, std::move(options));
+}  // namespace
+
+std::filesystem::path compile_module(const std::filesystem::path& cxx_file, const compile_options& options) {
+    auto output_path = get_output_path(options.output_file, cxx_file);
+    auto compile_command = get_compilation_command(cxx_file, output_path, options);
     std::vector<char*> args;
-    args.reserve(compile_command.size());
+    args.reserve(compile_command.size() + 1);
     std::transform(compile_command.begin(), compile_command.end(), std::back_inserter(args), [&](std::string& s) {
         return s.data();
     });

@@ -60,9 +60,4 @@ function(AddTargetCompileFlags TARGET)
         target_compile_definitions(${TARGET} PRIVATE -DTEMA_PLATFORM_TARGET_OS='L')
     endif ()
     # TODO: Windows support at some point! This will need support from mcga::proc, compilation and DLL loading.
-
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        target_compile_options(${TARGET} PRIVATE -fsanitize=address,undefined -fno-sanitize-recover=undefined)
-        target_link_options(${TARGET} PRIVATE -fsanitize=address,undefined)
-    endif ()
 endfunction()
