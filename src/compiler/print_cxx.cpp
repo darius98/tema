@@ -1,6 +1,10 @@
 #include "compiler/print_cxx.h"
 
+#include <fstream>
+#include <iostream>
 #include <sstream>
+
+#include "compiler/parser.h"
 
 namespace tema {
 
@@ -306,10 +310,39 @@ void print_cxx_to(const module& mod, std::ostream& to, const print_cxx_options& 
     to.flush();
 }
 
+void print_cxx_to(const module& mod, const std::filesystem::path& output_file, const print_cxx_options& options) {
+    if (output_file == "-") {
+        print_cxx_to(mod, std::cout, options);
+    } else {
+        std::ofstream file_out(output_file);
+        print_cxx_to(mod, file_out, options);
+    }
+}
+
 std::string print_cxx(const module& mod, const print_cxx_options& options) {
     std::stringstream sout;
     print_cxx_to(mod, sout, options);
     return std::move(sout).str();
+}
+
+std::filesystem::path translate_module(const std::filesystem::path& input_file,
+                                       const std::filesystem::path& output_file,
+                                       const print_cxx_options& options) {
+    std::ifstream file_stream(input_file);
+    if (file_stream.fail()) {
+        throw parse_error{"Could not open file '" + input_file.string() + "'."};
+    }
+    const auto mod = parse_module(file_stream, input_file.string());
+
+    std::filesystem::path output_path;
+    if (output_file.empty()) {
+        output_path = input_file;
+        output_path.replace_extension(".tema.cc");
+    } else {
+        output_path = output_file;
+    }
+    print_cxx_to(mod, output_path, options);
+    return output_path;
 }
 
 }  // namespace tema

@@ -37,13 +37,7 @@ int main() {
                 std::ofstream out_file(cxx_file);
                 tema::print_cxx_to(mod, out_file);
                 t.step("print c++");
-                const auto dll_file = tema::compile_module(
-                        cxx_file, {
-                                          .extra_flags = {
-                                                  "-I./src",
-                                                  "-I./.build/debug/_deps/mcga_meta-src/include",
-                                          },
-                                  });
+                const auto dll_file = tema::compile_module(cxx_file);
                 t.step("compile c++");
                 tema::precompiled_module module(dll_file);
                 t.step("load DLL");

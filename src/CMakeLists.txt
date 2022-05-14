@@ -50,7 +50,6 @@ AddTemaLibrary(tema_compiler
         compiler/parser.cpp
         compiler/precompiled_module.cpp
         compiler/print_cxx.cpp
-        compiler/translate.cpp
 
         DEPS
         tema_compiler_lexer mcga_proc
@@ -61,7 +60,6 @@ AddTemaLibrary(tema_compiler
         compiler/parser_test.cpp
         compiler/precompiled_module_test.cpp
         compiler/print_cxx_test.cpp
-        compiler/translate_test.cpp
 
         TESTS_DEPS
         tema_algorithms)
