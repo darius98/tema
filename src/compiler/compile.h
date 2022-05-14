@@ -24,13 +24,20 @@ struct compile_options {
     bool debug{false};
 
     // "-" goes to stdout.
-    // "" goes to <input_file_without_extensions>.tema.(dylib|so) if <input_file> is a file, or stdout if input is stdin.
+    // "" goes to <input_file_without_extensions>.tema.(dylib|so) if
+    // <input_file> is a file, or stdout if input is stdin.
     std::filesystem::path output_file{};
 
-    // Provide the path to a custom compiler. Defaults to the value provided by CMake during build time.
+    // Path to the location where tema is installed. Defaults to the value
+    // provided by CMake at build time.
+    std::filesystem::path install_path{default_install_path};
+
+    // Path to the compiler to use. Defaults to the value provided by CMake
+    // at build time (the compiler used to compile tema itself).
     std::filesystem::path cxx_compiler_path{default_cxx_compiler_path};
 
-    // The sysroot to use with "-isysroot". Defaults to the value provided by CMake during build time. Only used on macOS.
+    // The sysroot to use with "-isysroot". Defaults to the value provided
+    // by CMake at build time. Only used on macOS.
     std::filesystem::path apple_sysroot{default_apple_sysroot_path};
 
     std::vector<std::string> extra_flags{};

@@ -109,6 +109,8 @@ std::pair<std::filesystem::path, std::vector<std::string>> get_compilation_comma
             get_common_compile_flags(),
             options.debug ? get_debug_compile_flags() : get_release_compile_flags(),
             is_apple() ? get_apple_compile_flags(options.apple_sysroot.string()) : std::vector<std::string>{},
+            "-I" + (options.install_path / "include").string(),  // For MCGA meta library
+            "-I" + (options.install_path / "include" / "tema").string(),  // For tema core library
             std::string{"-o"},
             output_path.string(),
             std::move(options.extra_flags),

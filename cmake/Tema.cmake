@@ -7,7 +7,6 @@ function(InitTemaTests)
             "\n"
             "set -e\n"
             "\n"
-            "export CMAKE_INSTALL_DIR=${CMAKE_INSTALL_PREFIX}\n"
             )
     if (APPLE)
         file(APPEND ${CMAKE_BINARY_DIR}/run_tests.sh

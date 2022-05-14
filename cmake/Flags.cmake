@@ -49,6 +49,7 @@ function(AddTargetCompileFlags TARGET)
     target_link_options(${TARGET} PRIVATE -rdynamic)
 
     target_compile_definitions(${TARGET} PRIVATE
+            "-DTEMA_DEFAULT_INSTALL_PATH=\"${CMAKE_INSTALL_PREFIX}\""
             "-DTEMA_DEFAULT_CXX_COMPILER_PATH=\"${CMAKE_CXX_COMPILER}\""
             "-DTEMA_DEFAULT_APPLE_SYSROOT_PATH=\"${CMAKE_OSX_SYSROOT}\"" # For non-Apple systems, it's fine if this is empty, it's unused.
             )
