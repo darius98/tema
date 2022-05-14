@@ -31,7 +31,7 @@ struct compile_options {
     std::filesystem::path cxx_compiler_path{default_cxx_compiler_path};
 
     // The sysroot to use with "-isysroot". Defaults to the value provided by CMake during build time. Only used on macOS.
-    std::filesystem::path apple_sysroot{default_apple_sysroot};
+    std::filesystem::path apple_sysroot{default_apple_sysroot_path};
 
     std::vector<std::string> extra_flags{};
 };
