@@ -7,7 +7,10 @@ function(InitTemaTests)
             "\n"
             "set -e\n"
             "\n"
-            "export CMAKE_INSTALL_DIR=${CMAKE_INSTALL_PREFIX}\n")
+            "export CC=${CMAKE_C_COMPILER}\n"
+            "export CXX=${CMAKE_CXX_COMPILER}\n"
+            "export CMAKE_INSTALL_DIR=${CMAKE_INSTALL_PREFIX}\n"
+            )
     if (APPLE)
         file(APPEND ${CMAKE_BINARY_DIR}/run_tests.sh
                 "export MallocNanoZone=0\n")

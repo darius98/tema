@@ -19,7 +19,6 @@ void compile_and_load_module(const std::filesystem::path& module_path) {
     const auto install_path = std::filesystem::path{std::getenv("CMAKE_INSTALL_DIR")};
     const auto dll_file = tema::compile_module(
             cxx_file, {
-                              .cxx_compiler_path = "/usr/bin/c++",
                               .extra_flags = {
                                       "-I" + (install_path / "include").string(),  // For MCGA
                                       "-I" + (install_path / "include" / "tema").string(),  // For tema core library
