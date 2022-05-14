@@ -28,7 +28,7 @@ struct compile_options {
     std::filesystem::path output_file{};
 
     // Provide the path to a custom compiler. If empty, falls back to the CXX environment variable. If empty, falls back to "cc".
-    std::filesystem::path cxx_compiler_path{};
+    std::filesystem::path cxx_compiler_path{"/usr/bin/c++"};
 
     std::vector<std::string> extra_flags{};
 };
