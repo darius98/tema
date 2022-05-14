@@ -17,6 +17,7 @@ jobs:
       uses: KyleMayes/install-llvm-action@v1
       with:
         version: "14.0"
+        directory: ${{github.workspace}}/llvm
 
     - name: SetUpDeps
       run: ${{github.workspace}}/setup-deps.sh
@@ -24,8 +25,8 @@ jobs:
     - name: Check
       run: ${{github.workspace}}/check.sh ${{ matrix.build_type }}
       env:
-        CC: /usr/bin/clang
-        CXX: /usr/bin/clang++
+        CC: ${{github.workspace}}/llvm/bin/clang
+        CXX: ${{github.workspace}}/llvm/bin/clang++
 
   check-clang-linux:
     runs-on: ubuntu-20.04
@@ -39,6 +40,7 @@ jobs:
         uses: KyleMayes/install-llvm-action@v1
         with:
           version: "14.0"
+          directory: ${{github.workspace}}/llvm
 
       - name: SetUpDeps
         run: ${{github.workspace}}/setup-deps.sh
@@ -46,8 +48,8 @@ jobs:
       - name: Check
         run: ${{github.workspace}}/check.sh ${{ matrix.build_type }}
         env:
-          CC: /usr/bin/clang
-          CXX: /usr/bin/clang++
+          CC: ${{github.workspace}}/llvm/bin/clang
+          CXX: ${{github.workspace}}/llvm/bin/clang++
 
   check-gcc:
     runs-on: ubuntu-20.04
