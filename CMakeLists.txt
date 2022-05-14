@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 project(tema)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include(cmake/MCGADeps.cmake)
 include(cmake/ConfigFlex.cmake)
 include(cmake/Coverage.cmake)
