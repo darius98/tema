@@ -255,15 +255,15 @@ void print_module_decls(const module& mod, const std::map<variable_ptr, std::str
     for (const auto& decl: mod.get_decls()) {
         if (holds_alternative<module::var_decl>(decl)) {
             const auto& var_decl = get<module::var_decl>(decl);
-            to << "  mod.add_variable_decl(module::var_decl{\n"
+            to << "  module::var_decl{\n"
                   "    .loc = {"
                << var_decl.loc.line << ", " << var_decl.loc.col << "},\n"
                << "    .exported = " << (var_decl.exported ? "true" : "false") << ",\n"
                << "    .var = " << vars.find(var_decl.var)->second << ",\n"
-               << "  });\n";
+               << "  },\n";
         } else {
             const auto& stmt_decl = get<module::stmt_decl>(decl);
-            to << "  mod.add_statement_decl(module::stmt_decl{\n"
+            to << "  module::stmt_decl{\n"
                   "    .loc = {"
                << stmt_decl.loc.line << ", " << stmt_decl.loc.col << "},\n"
                << "    .exported = " << (stmt_decl.exported ? "true" : "false") << ",\n"
@@ -282,7 +282,7 @@ void print_module_decls(const module& mod, const std::map<variable_ptr, std::str
             } else {
                 to << "std::nullopt";
             }
-            to << ",\n  });\n";
+            to << ",\n  },\n";
         }
     }
 }
@@ -291,14 +291,16 @@ void print_tema_module_function(const module& mod, std::ostream& to, const print
     to << R"(
 ::tema::module tema_module() asm("_tema_module");
 TEMA_EXPORT ::tema::module tema_module() {
-  ::tema::module mod{")"
-       << mod.get_name() << R"(", ")" << mod.get_file_name() << R"("};
 )";
     const auto var_names = discover_variables(mod);
     print_module_vars(var_names, to);
+    to << R"(  std::vector<module::decl> decls{
+)";
     print_module_decls(mod, var_names, options, to);
     to << R"(
-  return mod;
+  };
+  return ::tema::module{")"
+       << mod.get_name() << R"(", ")" << mod.get_file_name() << R"(", decls};
 })";
 }
 
