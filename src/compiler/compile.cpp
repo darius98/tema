@@ -7,8 +7,6 @@
 
 #include "config.h"
 
-extern char **environ;
-
 namespace tema {
 
 namespace {
@@ -47,6 +45,7 @@ std::vector<std::string> get_release_compile_flags() {
 
 std::vector<std::string> get_common_compile_flags() {
     return {
+            "-DTEMA_PLATFORM_TARGET_OS=\"'" + std::string(1, char(platform_os::target)) + "'\"",
             "-shared",
             "-fPIC",
             "-fvisibility=hidden",
@@ -54,8 +53,10 @@ std::vector<std::string> get_common_compile_flags() {
     };
 }
 
-std::vector<std::string> get_apple_compile_flags() {
+std::vector<std::string> get_apple_compile_flags(std::string apple_sysroot) {
     return {
+            "-isysroot",
+            std::move(apple_sysroot),
             "-undefined",
             "dynamic_lookup",
     };
@@ -87,17 +88,6 @@ std::vector<std::string> concatenate_vectors(mcga::meta::one_of<std::string, std
     return result;
 }
 
-std::string get_compiler_path(std::string cxx_option) {
-    if (!cxx_option.empty()) {
-        return cxx_option;
-    }
-    const auto cxx_env = std::getenv("CXX");
-    if (cxx_env != nullptr && cxx_env[0] != '\0') {
-        return cxx_env;
-    }
-    return "/usr/bin/c++";
-}
-
 std::filesystem::path get_output_path(std::filesystem::path output_path, const std::filesystem::path& input_path) {
     if (output_path.empty()) {
         output_path = input_path;
@@ -115,10 +105,10 @@ std::pair<std::filesystem::path, std::vector<std::string>> get_compilation_comma
                                                                                    compile_options options) {
     auto output_path = get_output_path(options.output_file, cxx_file);
     auto compile_command = concatenate_vectors(
-            get_compiler_path(std::move(options.cxx_compiler_path)),
+            options.cxx_compiler_path.string(),
             get_common_compile_flags(),
             options.debug ? get_debug_compile_flags() : get_release_compile_flags(),
-            is_apple() ? get_apple_compile_flags() : std::vector<std::string>{},
+            is_apple() ? get_apple_compile_flags(options.apple_sysroot.string()) : std::vector<std::string>{},
             std::string{"-o"},
             output_path.string(),
             std::move(options.extra_flags),
@@ -135,7 +125,7 @@ std::filesystem::path compile_module(const std::filesystem::path& cxx_file, comp
     });
     args.push_back(nullptr);
     // Forward environment variables as well.
-    auto proc = mcga::proc::Subprocess::Invoke(args[0], args.data(), environ);
+    auto proc = mcga::proc::Subprocess::Invoke(args[0], args.data());
     proc->waitBlocking();
     if (!proc->isExited() || proc->getReturnCode() != 0) {
         // TODO: Include compiler error! Better error message!
