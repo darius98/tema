@@ -25,8 +25,8 @@ jobs:
     - name: Check
       run: ${{github.workspace}}/check.sh ${{ matrix.build_type }}
       env:
-        CC: ${{github.workspace}}/llvm/bin/clang
-        CXX: ${{github.workspace}}/llvm/bin/clang++
+        CC: clang
+        CXX: clang++
 
   check-clang-linux:
     runs-on: ubuntu-20.04
@@ -48,8 +48,8 @@ jobs:
       - name: Check
         run: ${{github.workspace}}/check.sh ${{ matrix.build_type }}
         env:
-          CC: ${{github.workspace}}/llvm/bin/clang
-          CXX: ${{github.workspace}}/llvm/bin/clang++
+          CC: clang
+          CXX: clang++
 
   check-gcc:
     runs-on: ubuntu-20.04
@@ -71,5 +71,5 @@ jobs:
       - name: Check
         run: ${{github.workspace}}/check.sh ${{ matrix.build_type }}
         env:
-          CC: /usr/bin/gcc-11
-          CXX: /usr/bin/g++-11
+          CC: gcc
+          CXX: g++
