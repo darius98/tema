@@ -8,6 +8,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=undefined)
     add_link_options(-fsanitize=address,undefined)
 endif ()
+add_compile_options(-fvisibility=hidden)
+add_link_options(-fvisibility=hidden)
 
 include(cmake/MCGADeps.cmake)
 include(cmake/ConfigFlex.cmake)
