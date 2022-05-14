@@ -4,7 +4,7 @@
 
 #include "compiler/compile.h"
 #include "compiler/precompiled_module.h"
-#include "compiler/translate.h"
+#include "compiler/print_cxx.h"
 
 using namespace tema;
 using namespace mcga::test;
