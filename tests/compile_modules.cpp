@@ -12,6 +12,7 @@ using namespace mcga::test;
 using namespace mcga::matchers;
 
 void compile_and_load_module(const std::filesystem::path& module_path) {
+    // TODO: Move a version of this into compile_module, with a default value.
     expectMsg(std::getenv("CMAKE_INSTALL_DIR") != nullptr, "CMAKE_INSTALL_DIR environment variable not found!");
     auto cxx_file = tema::translate_module(module_path);
     expect(cxx_file, std::filesystem::path{module_path}.replace_extension(".tema.cc"));

@@ -12,7 +12,6 @@ echo "\nConfigure & build project\n"
 mkdir -p ${CMAKE_BUILD_DIR}
 cmake -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -B${CMAKE_BUILD_DIR} -H.
 cmake --build ${CMAKE_BUILD_DIR} -j8
-cat ${CMAKE_BUILD_DIR}/compile_commands.json
 
 # We need the project installed before running the tests
 cmake --build ${CMAKE_BUILD_DIR} --target install

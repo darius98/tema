@@ -47,6 +47,7 @@ std::vector<std::string> get_release_compile_flags() {
 
 std::vector<std::string> get_common_compile_flags() {
     return {
+            "-DTEMA_PLATFORM_TARGET_OS=\"'" + std::string(1, char(platform_os::target)) + "'\"",
             "-shared",
             "-fPIC",
             "-fvisibility=hidden",
@@ -56,7 +57,16 @@ std::vector<std::string> get_common_compile_flags() {
 }
 
 std::vector<std::string> get_apple_compile_flags() {
+    std::string apple_sysroot;
+    auto sysroot_from_env = std::getenv("TEMA_APPLE_SYSROOT");
+    if (sysroot_from_env != nullptr && sysroot_from_env[0] != '\0') {
+        apple_sysroot = sysroot_from_env;
+    } else {
+        apple_sysroot = default_apple_sysroot;
+    }
     return {
+            "-isysroot",
+            apple_sysroot,
             "-undefined",
             "dynamic_lookup",
     };

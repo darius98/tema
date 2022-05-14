@@ -50,6 +50,7 @@ function(AddTargetCompileFlags TARGET)
 
     if (APPLE)
         target_compile_definitions(${TARGET} PRIVATE -DTEMA_PLATFORM_TARGET_OS='A')
+        target_compile_definitions(${TARGET} PRIVATE "-DTEMA_PLATFORM_MACOS_SYSROOT=\"${CMAKE_OSX_SYSROOT}\"")
     else ()
         target_compile_definitions(${TARGET} PRIVATE -DTEMA_PLATFORM_TARGET_OS='L')
     endif ()
