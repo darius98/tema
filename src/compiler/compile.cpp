@@ -52,7 +52,6 @@ std::vector<std::string> get_common_compile_flags() {
             "-fPIC",
             "-fvisibility=hidden",
             "-std=c++20",
-            "-v",
     };
 }
 

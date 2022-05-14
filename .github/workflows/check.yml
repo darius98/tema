@@ -13,12 +13,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-#    - name: Install LLVM
-#      uses: KyleMayes/install-llvm-action@v1
-#      with:
-#        version: "14.0"
-#        directory: ${{github.workspace}}/llvm
-
     - name: SetUpDeps
       run: ${{github.workspace}}/setup-deps.sh
 
