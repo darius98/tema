@@ -89,31 +89,31 @@ TEST_CASE("compiler parser") {
 )"});
         expect(mod.get_decls(), hasSize(5));
 
-        expect(holds_alternative<module::var_decl>(mod.get_decls()[0]), isTrue);
-        expect(get<module::var_decl>(mod.get_decls()[0]).exported, isFalse);
-        expect(get<module::var_decl>(mod.get_decls()[0]).var->name, "p");
+        expect(holds_alternative<var_decl>(mod.get_decls()[0]), isTrue);
+        expect(get<var_decl>(mod.get_decls()[0]).exported, isFalse);
+        expect(get<var_decl>(mod.get_decls()[0]).var->name, "p");
 
-        expect(holds_alternative<module::var_decl>(mod.get_decls()[1]), isTrue);
-        expect(get<module::var_decl>(mod.get_decls()[1]).exported, isTrue);
-        expect(get<module::var_decl>(mod.get_decls()[1]).var->name, "q");
+        expect(holds_alternative<var_decl>(mod.get_decls()[1]), isTrue);
+        expect(get<var_decl>(mod.get_decls()[1]).exported, isTrue);
+        expect(get<var_decl>(mod.get_decls()[1]).var->name, "q");
 
-        expect(holds_alternative<module::stmt_decl>(mod.get_decls()[2]), isTrue);
-        expect(get<module::stmt_decl>(mod.get_decls()[2]).exported, isTrue);
-        expect(get<module::stmt_decl>(mod.get_decls()[2]).type, module::stmt_decl_type::definition);
-        expect(get<module::stmt_decl>(mod.get_decls()[2]).name, "Truth-definition");
-        expect(get<module::stmt_decl>(mod.get_decls()[2]).stmt, truth());
+        expect(holds_alternative<stmt_decl>(mod.get_decls()[2]), isTrue);
+        expect(get<stmt_decl>(mod.get_decls()[2]).exported, isTrue);
+        expect(get<stmt_decl>(mod.get_decls()[2]).type, stmt_decl_type::definition);
+        expect(get<stmt_decl>(mod.get_decls()[2]).name, "Truth-definition");
+        expect(get<stmt_decl>(mod.get_decls()[2]).stmt, truth());
 
-        expect(holds_alternative<module::stmt_decl>(mod.get_decls()[3]), isTrue);
-        expect(get<module::stmt_decl>(mod.get_decls()[3]).exported, isTrue);
-        expect(get<module::stmt_decl>(mod.get_decls()[3]).type, module::stmt_decl_type::theorem);
-        expect(get<module::stmt_decl>(mod.get_decls()[3]).name, "Truth-theorem");
-        expect(get<module::stmt_decl>(mod.get_decls()[3]).stmt, truth());
+        expect(holds_alternative<stmt_decl>(mod.get_decls()[3]), isTrue);
+        expect(get<stmt_decl>(mod.get_decls()[3]).exported, isTrue);
+        expect(get<stmt_decl>(mod.get_decls()[3]).type, stmt_decl_type::theorem);
+        expect(get<stmt_decl>(mod.get_decls()[3]).name, "Truth-theorem");
+        expect(get<stmt_decl>(mod.get_decls()[3]).stmt, truth());
 
-        expect(holds_alternative<module::stmt_decl>(mod.get_decls()[4]), isTrue);
-        expect(get<module::stmt_decl>(mod.get_decls()[4]).exported, isFalse);
-        expect(get<module::stmt_decl>(mod.get_decls()[4]).type, module::stmt_decl_type::exercise);
-        expect(get<module::stmt_decl>(mod.get_decls()[4]).name, "Truth-exercise");
-        expect(get<module::stmt_decl>(mod.get_decls()[4]).stmt, truth());
+        expect(holds_alternative<stmt_decl>(mod.get_decls()[4]), isTrue);
+        expect(get<stmt_decl>(mod.get_decls()[4]).exported, isFalse);
+        expect(get<stmt_decl>(mod.get_decls()[4]).type, stmt_decl_type::exercise);
+        expect(get<stmt_decl>(mod.get_decls()[4]).name, "Truth-exercise");
+        expect(get<stmt_decl>(mod.get_decls()[4]).stmt, truth());
     });
 
     test("valid statements", [] {

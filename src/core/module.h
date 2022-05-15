@@ -16,30 +16,30 @@ struct file_location {
     bool operator==(const file_location&) const = default;
 };
 
+struct var_decl {
+    file_location loc;
+    bool exported;
+    variable_ptr var;
+};
+
+enum class stmt_decl_type {
+    definition = 0,
+    theorem = 1,
+    exercise = 2,
+};
+
+struct stmt_decl {
+    file_location loc;
+    bool exported;
+    stmt_decl_type type;
+    std::string name;
+    statement_ptr stmt;
+    std::optional<scope> proof_description;
+};
+
+using decl = std::variant<var_decl, stmt_decl>;
+
 struct module {
-    struct var_decl {
-        file_location loc;
-        bool exported;
-        variable_ptr var;
-    };
-
-    enum class stmt_decl_type {
-        definition = 0,
-        theorem = 1,
-        exercise = 2,
-    };
-
-    struct stmt_decl {
-        file_location loc;
-        bool exported;
-        stmt_decl_type type;
-        std::string name;
-        statement_ptr stmt;
-        std::optional<scope> proof_description;
-    };
-
-    using decl = std::variant<var_decl, stmt_decl>;
-
 private:
     std::string name;
     std::string file_name;

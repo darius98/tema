@@ -37,7 +37,7 @@ TEMA_EXPORT const scope& module::get_public_scope() const {
     return public_scope;
 }
 
-TEMA_EXPORT const std::vector<module::decl>& module::get_decls() const {
+TEMA_EXPORT const std::vector<decl>& module::get_decls() const {
     return decls;
 }
 

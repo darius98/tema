@@ -325,7 +325,7 @@ statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_sco
 
 void parse_var_decl(flex_lexer_scanner& scanner, module& mod, bool is_exported) {
     auto identifier = scanner.consume_token_exact(tok_identifier, "Expected variable name (an identifier).");
-    mod.add_variable_decl(module::var_decl{
+    mod.add_variable_decl(var_decl{
             .loc = scanner.current_loc(),
             .exported = is_exported,
             .var = var(symbol{identifier}),
@@ -351,19 +351,18 @@ std::optional<scope> parse_proof(flex_lexer_scanner& scanner, const module&) {
                       "Statement proofs are not currently supported. Use the 'proof missing' keyword.");
 }
 
-void parse_stmt_decl(flex_lexer_scanner& scanner, module& mod, module::stmt_decl_type stmt_type) {
+void parse_stmt_decl(flex_lexer_scanner& scanner, module& mod, stmt_decl_type stmt_type) {
     auto decl_loc = scanner.current_loc();
     auto stmt_name = parse_stmt_name(scanner);
     auto stmt = parse_stmt(scanner, mod.get_internal_scope(), true);
     std::optional<scope> proof;
-    if (stmt_type != module::stmt_decl_type::definition) {
+    if (stmt_type != stmt_decl_type::definition) {
         proof = parse_proof(scanner, mod);
     }
 
-    mod.add_statement_decl(module::stmt_decl{
-            .loc = std::move(decl_loc),
-            .exported = stmt_type == module::stmt_decl_type::definition ||
-                        stmt_type == module::stmt_decl_type::theorem,
+    mod.add_statement_decl(stmt_decl{
+            .loc = decl_loc,
+            .exported = stmt_type == stmt_decl_type::definition || stmt_type == stmt_decl_type::theorem,
             .type = stmt_type,
             .name = std::move(stmt_name),
             .stmt = std::move(stmt),
@@ -386,13 +385,13 @@ bool parse_decl(flex_lexer_scanner& scanner, module& mod) {
     }
     switch (tok) {
         case tok_definition:
-            parse_stmt_decl(scanner, mod, module::stmt_decl_type::definition);
+            parse_stmt_decl(scanner, mod, stmt_decl_type::definition);
             break;
         case tok_theorem:
-            parse_stmt_decl(scanner, mod, module::stmt_decl_type::theorem);
+            parse_stmt_decl(scanner, mod, stmt_decl_type::theorem);
             break;
         case tok_exercise:
-            parse_stmt_decl(scanner, mod, module::stmt_decl_type::exercise);
+            parse_stmt_decl(scanner, mod, stmt_decl_type::exercise);
             break;
         default:
             throw_parse_error(std::string{scanner.get_file_name()},

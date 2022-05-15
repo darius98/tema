@@ -52,13 +52,13 @@ std::string_view to_cxx(binop_type type) noexcept {
     return table[static_cast<std::underlying_type_t<binop_type>>(type)];
 }
 
-std::string_view to_cxx(module::stmt_decl_type type) noexcept {
+std::string_view to_cxx(stmt_decl_type type) noexcept {
     static constexpr std::string_view table[] = {
             "definition",
             "theorem",
             "exercise",
     };
-    return table[static_cast<std::underlying_type_t<module::stmt_decl_type>>(type)];
+    return table[static_cast<std::underlying_type_t<stmt_decl_type>>(type)];
 }
 
 struct print_cxx_expression_visitor {
@@ -219,12 +219,12 @@ std::map<variable_ptr, std::string> discover_variables(const module& mod) {
     std::map<variable_ptr, std::string> var_names;
     var_name_discovery_visitor discovery_vis{idx, var_names};
     for (const auto& decl: mod.get_decls()) {
-        if (holds_alternative<module::var_decl>(decl)) {
+        if (holds_alternative<var_decl>(decl)) {
             auto var_name = "v_" + std::to_string(idx);
-            var_names.emplace(get<module::var_decl>(decl).var, std::move(var_name));
+            var_names.emplace(get<var_decl>(decl).var, std::move(var_name));
             idx += 1;
         } else {
-            get<module::stmt_decl>(decl).stmt->accept(discovery_vis);
+            get<stmt_decl>(decl).stmt->accept(discovery_vis);
         }
     }
     return var_names;
@@ -253,29 +253,29 @@ void print_proof(const scope&, std::ostream& to) {
 
 void print_module_decls(const module& mod, const std::map<variable_ptr, std::string>& vars, const print_cxx_options& options, std::ostream& to) {
     for (const auto& decl: mod.get_decls()) {
-        if (holds_alternative<module::var_decl>(decl)) {
-            const auto& var_decl = get<module::var_decl>(decl);
-            to << "  module::var_decl{\n"
+        if (holds_alternative<var_decl>(decl)) {
+            const auto& var = get<var_decl>(decl);
+            to << "  var_decl{\n"
                   "    .loc = {"
-               << var_decl.loc.line << ", " << var_decl.loc.col << "},\n"
-               << "    .exported = " << (var_decl.exported ? "true" : "false") << ",\n"
-               << "    .var = " << vars.find(var_decl.var)->second << ",\n"
+               << var.loc.line << ", " << var.loc.col << "},\n"
+               << "    .exported = " << (var.exported ? "true" : "false") << ",\n"
+               << "    .var = " << vars.find(var.var)->second << ",\n"
                << "  },\n";
         } else {
-            const auto& stmt_decl = get<module::stmt_decl>(decl);
-            to << "  module::stmt_decl{\n"
+            const auto& stmt = get<stmt_decl>(decl);
+            to << "  stmt_decl{\n"
                   "    .loc = {"
-               << stmt_decl.loc.line << ", " << stmt_decl.loc.col << "},\n"
-               << "    .exported = " << (stmt_decl.exported ? "true" : "false") << ",\n"
-               << "    .type = module::stmt_decl_type::" << to_cxx(stmt_decl.type) << ",\n"
-               << "    .name = \"" << stmt_decl.name << "\",\n"
+               << stmt.loc.line << ", " << stmt.loc.col << "},\n"
+               << "    .exported = " << (stmt.exported ? "true" : "false") << ",\n"
+               << "    .type = stmt_decl_type::" << to_cxx(stmt.type) << ",\n"
+               << "    .name = \"" << stmt.name << "\",\n"
                << "    .stmt = ";
-            stmt_decl.stmt->accept(print_cxx_statement_visitor{vars, to});
+            stmt.stmt->accept(print_cxx_statement_visitor{vars, to});
             to << ",\n"
                   "    .proof_description = ";
             if (options.include_proofs) {
-                if (stmt_decl.proof_description.has_value()) {
-                    print_proof(stmt_decl.proof_description.value(), to);
+                if (stmt.proof_description.has_value()) {
+                    print_proof(stmt.proof_description.value(), to);
                 } else {
                     to << "std::nullopt";
                 }
@@ -294,7 +294,7 @@ TEMA_EXPORT ::tema::module tema_module() {
 )";
     const auto var_names = discover_variables(mod);
     print_module_vars(var_names, to);
-    to << R"(  std::vector<module::decl> decls{
+    to << R"(  std::vector<decl> decls{
 )";
     print_module_decls(mod, var_names, options, to);
     to << R"(
