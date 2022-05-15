@@ -16,8 +16,8 @@ void expect_apply_vars(const statement_ptr& law,
                        std::set<variable_ptr> expected_unmatched_vars,
                        Context context = Context()) {
     const auto result = apply_vars(law, match_result{std::move(stmt_replacements), std::move(expr_replacements)});
-    expectMsg(equals(result.stmt.get(), expected_application.get()),
-              print_utf8(law.get()) + " ===> " + print_utf8(expected_application.get()) + " (got '" + print_utf8(result.stmt.get()) + "')",
+    expectMsg(equals(*result.stmt, *expected_application),
+              print_utf8(*law) + " ===> " + print_utf8(*expected_application) + " (got '" + print_utf8(*result.stmt) + "')",
               context);
     expect(result.unmatched_vars, std::move(expected_unmatched_vars), std::move(context));
 }

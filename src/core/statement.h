@@ -46,7 +46,11 @@ struct statement {
         statement_ptr inner;
     };
 
-    using types = mcga::meta::tpack<truth, contradiction, implies, equiv, neg, conj, disj, forall, variable_ptr, relationship>;
+    struct var_stmt {
+        variable_ptr var;
+    };
+
+    using types = mcga::meta::tpack<truth, contradiction, implies, equiv, neg, conj, disj, forall, var_stmt, relationship>;
 
 private:
     mcga::meta::variant_for<types> data;

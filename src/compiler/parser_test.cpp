@@ -12,9 +12,7 @@ using namespace tema;
 using namespace mcga::matchers;
 
 void expect_equals(const statement_ptr& a, const statement_ptr& b, mcga::test::Context context = mcga::test::Context()) {
-    mcga::test::expectMsg(equals(a.get(), b.get()),
-                          print_utf8(a.get()) + " == " + print_utf8(b.get()),
-                          std::move(context));
+    mcga::test::expectMsg(equals(*a, *b), print_utf8(*a) + " == " + print_utf8(*b), std::move(context));
 }
 
 void fail_to_parse_module(std::string_view code, mcga::test::Context context = mcga::test::Context()) {

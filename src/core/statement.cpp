@@ -61,10 +61,10 @@ TEMA_EXPORT const statement::forall& statement::as_forall() const {
 }
 
 TEMA_EXPORT bool statement::is_var() const noexcept {
-    return holds_alternative<variable_ptr>(data);
+    return holds_alternative<var_stmt>(data);
 }
 TEMA_EXPORT variable_ptr statement::as_var() const {
-    return get<variable_ptr>(data);
+    return get<var_stmt>(data).var;
 }
 
 TEMA_EXPORT bool statement::is_rel() const noexcept {
@@ -109,7 +109,7 @@ TEMA_EXPORT statement_ptr forall(variable_ptr var, statement_ptr inner) {
 }
 
 TEMA_EXPORT statement_ptr var_stmt(variable_ptr var) {
-    return std::make_shared<const statement>(statement::private_tag{}, std::move(var));
+    return std::make_shared<const statement>(statement::private_tag{}, statement::var_stmt{std::move(var)});
 }
 
 TEMA_EXPORT statement_ptr rel_stmt(relationship rel) {

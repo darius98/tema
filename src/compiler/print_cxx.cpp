@@ -61,31 +61,11 @@ std::string_view to_cxx(stmt_decl_type type) noexcept {
     return table[static_cast<std::underlying_type_t<stmt_decl_type>>(type)];
 }
 
-struct print_cxx_expression_visitor {
+struct print_cxx_visitor {
     const std::map<variable_ptr, std::string>& var_names;
     std::ostream& to;
 
-    print_cxx_expression_visitor(const std::map<variable_ptr, std::string>& var_names, std::ostream& to)
-        : var_names{var_names}, to{to} {}
-
-    void operator()(const variable_ptr& var) const {
-        to << "var_expr(" << var_names.find(var)->second << ")";
-    }
-
-    void operator()(const expression::binop& binop) const {
-        to << "binop(";
-        binop.left->accept(*this);
-        to << ", binop_type::" << to_cxx(binop.type) << ", ";
-        binop.right->accept(*this);
-        to << ")";
-    }
-};
-
-struct print_cxx_statement_visitor {
-    const std::map<variable_ptr, std::string>& var_names;
-    std::ostream& to;
-
-    explicit print_cxx_statement_visitor(const std::map<variable_ptr, std::string>& var_names, std::ostream& to)
+    explicit print_cxx_visitor(const std::map<variable_ptr, std::string>& var_names, std::ostream& to)
         : var_names{var_names}, to{to} {}
 
     void operator()(const statement::truth&) const {
@@ -144,14 +124,24 @@ struct print_cxx_statement_visitor {
         expr.inner->accept(*this);
         to << ")";
     }
-    void operator()(const variable_ptr& var) const {
-        to << "var_stmt(" << var_names.find(var)->second << ")";
+    void operator()(const statement::var_stmt& var) const {
+        to << "var_stmt(" << var_names.find(var.var)->second << ")";
     }
     void operator()(const relationship& rel) const {
         to << "rel_stmt(";
-        rel.left->accept(print_cxx_expression_visitor{var_names, to});
+        rel.left->accept(*this);
         to << ", rel_type::" << to_cxx(rel.type) << ", ";
-        rel.right->accept(print_cxx_expression_visitor{var_names, to});
+        rel.right->accept(*this);
+        to << ")";
+    }
+    void operator()(const variable_ptr& var) const {
+        to << "var_expr(" << var_names.find(var)->second << ")";
+    }
+    void operator()(const expression::binop& binop) const {
+        to << "binop(";
+        binop.left->accept(*this);
+        to << ", binop_type::" << to_cxx(binop.type) << ", ";
+        binop.right->accept(*this);
         to << ")";
     }
 };
@@ -196,11 +186,12 @@ struct var_name_discovery_visitor {
         rel.left->accept(*this);
         rel.right->accept(*this);
     }
-
+    void operator()(const statement::var_stmt& var) {
+        add_var(var.var);
+    }
     void operator()(const variable_ptr& var) {
         add_var(var);
     }
-
     void operator()(const expression::binop& binop) {
         binop.left->accept(*this);
         binop.right->accept(*this);
@@ -270,7 +261,7 @@ void print_module_decls(const module& mod, const std::map<variable_ptr, std::str
                << "    .type = stmt_decl_type::" << to_cxx(stmt.type) << ",\n"
                << "    .name = \"" << stmt.name << "\",\n"
                << "    .stmt = ";
-            stmt.stmt->accept(print_cxx_statement_visitor{vars, to});
+            stmt.stmt->accept(print_cxx_visitor{vars, to});
             to << ",\n"
                   "    .proof_description = ";
             if (options.include_proofs) {

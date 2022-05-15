@@ -2,45 +2,12 @@
 
 namespace tema {
 
-struct apply_vars_expression_visitor {
-    const match_result& replacements;
-    const std::set<const variable*>& bound_vars;
-    std::set<variable_ptr>& unmatched_vars;
-
-    apply_vars_expression_visitor(const match_result& replacements,
-                                  const std::set<const variable*>& bound_vars,
-                                  std::set<variable_ptr>& unmatched_vars)
-        : replacements(replacements), bound_vars(bound_vars), unmatched_vars(unmatched_vars) {}
-
-    expr_ptr operator()(const variable_ptr& var) {
-        const auto it = replacements.expr_replacements.find(var);
-        if (it == replacements.expr_replacements.end()) {
-            if (!bound_vars.contains(var.get())) {
-                unmatched_vars.insert(var);
-            }
-            return nullptr;
-        }
-        return it->second;
-    }
-
-    expr_ptr operator()(const expression::binop& op) {
-        auto left = op.left->accept_r<expr_ptr>(*this);
-        auto right = op.right->accept_r<expr_ptr>(*this);
-        if (left == nullptr && right == nullptr) {
-            return nullptr;
-        }
-        left = left ? left : op.left;
-        right = right ? right : op.right;
-        return binop(std::move(left), op.type, std::move(right));
-    }
-};
-
-struct apply_vars_statement_visitor {
+struct apply_vars_visitor {
     const match_result& replacements;
     std::set<variable_ptr> unmatched_vars;
     std::set<const variable*> bound_vars;  // These are not unmatched because they are bound by a forall/exists statement.
 
-    explicit apply_vars_statement_visitor(const match_result& replacements)
+    explicit apply_vars_visitor(const match_result& replacements)
         : replacements(replacements) {}
 
     statement_ptr operator()(const statement::truth&) const {
@@ -131,19 +98,19 @@ struct apply_vars_statement_visitor {
         }
         return forall(expr.var, inner);
     }
-    statement_ptr operator()(const variable_ptr& var) {
-        const auto it = replacements.stmt_replacements.find(var);
+    statement_ptr operator()(const statement::var_stmt& var) {
+        const auto it = replacements.stmt_replacements.find(var.var);
         if (it == replacements.stmt_replacements.end()) {
-            if (!bound_vars.contains(var.get())) {
-                unmatched_vars.insert(var);
+            if (!bound_vars.contains(var.var.get())) {
+                unmatched_vars.insert(var.var);
             }
             return nullptr;
         }
         return it->second;
     }
     statement_ptr operator()(const relationship& rel) {
-        auto left = rel.left->accept_r<expr_ptr>(apply_vars_expression_visitor{replacements, bound_vars, unmatched_vars});
-        auto right = rel.right->accept_r<expr_ptr>(apply_vars_expression_visitor{replacements, bound_vars, unmatched_vars});
+        auto left = rel.left->accept_r<expr_ptr>(*this);
+        auto right = rel.right->accept_r<expr_ptr>(*this);
         if (left == nullptr && right == nullptr) {
             return nullptr;
         }
@@ -151,10 +118,30 @@ struct apply_vars_statement_visitor {
         right = right ? right : rel.right;
         return rel_stmt(std::move(left), rel.type, std::move(right));
     }
+    expr_ptr operator()(const variable_ptr& var) {
+        const auto it = replacements.expr_replacements.find(var);
+        if (it == replacements.expr_replacements.end()) {
+            if (!bound_vars.contains(var.get())) {
+                unmatched_vars.insert(var);
+            }
+            return nullptr;
+        }
+        return it->second;
+    }
+    expr_ptr operator()(const expression::binop& op) {
+        auto left = op.left->accept_r<expr_ptr>(*this);
+        auto right = op.right->accept_r<expr_ptr>(*this);
+        if (left == nullptr && right == nullptr) {
+            return nullptr;
+        }
+        left = left ? left : op.left;
+        right = right ? right : op.right;
+        return binop(std::move(left), op.type, std::move(right));
+    }
 };
 
 apply_vars_result apply_vars(const statement_ptr& law, const match_result& replacements) {
-    apply_vars_statement_visitor visitor{replacements};
+    apply_vars_visitor visitor{replacements};
     apply_vars_result result;
     result.stmt = law->accept_r<statement_ptr>(visitor);
     result.unmatched_vars = std::move(visitor.unmatched_vars);

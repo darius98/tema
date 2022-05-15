@@ -14,21 +14,21 @@ void expect_matches(const auto& law,
                     const std::map<variable_ptr, statement_ptr>& expected_stmt_repls,
                     const std::map<variable_ptr, expr_ptr>& expected_expr_repls = {},
                     const Context& context = Context()) {
-    const auto result = match(law.get(), application);
+    const auto result = match(*law, application);
     expectMsg(result.has_value(),
-              print_utf8(application.get()) +
+              print_utf8(*application) +
                       " matches " +
-                      print_utf8(law.get()),
+                      print_utf8(*law),
               context);
     for (const auto& [var, repl]: result.value().stmt_replacements) {
-        expectMsg(expected_stmt_repls.contains(var), "Unexpected replacement " + var->name + " (replaced with '" + print_utf8(repl.get()) + "')", context);
-        expect(equals(repl.get(), expected_stmt_repls.find(var)->second.get()), context);
+        expectMsg(expected_stmt_repls.contains(var), "Unexpected replacement " + var->name + " (replaced with '" + print_utf8(*repl) + "')", context);
+        expect(equals(*repl, *expected_stmt_repls.find(var)->second), context);
     }
     expect(result.value().stmt_replacements, hasSize(expected_stmt_repls.size()), context);
 
     for (const auto& [var, repl]: result.value().expr_replacements) {
-        expectMsg(expected_expr_repls.contains(var), "Unexpected replacement " + var->name + " (replaced with '" + print_utf8(repl.get()) + "')", context);
-        expect(equals(repl.get(), expected_expr_repls.find(var)->second.get()), context);
+        expectMsg(expected_expr_repls.contains(var), "Unexpected replacement " + var->name + " (replaced with '" + print_utf8(*repl) + "')", context);
+        expect(equals(*repl, *expected_expr_repls.find(var)->second), context);
     }
     expect(result.value().expr_replacements, hasSize(expected_expr_repls.size()), context);
 }
@@ -36,11 +36,11 @@ void expect_matches(const auto& law,
 void expect_not_matches(const auto& law,
                         const auto& application,
                         Context context = Context()) {
-    const auto result = match(law.get(), application);
+    const auto result = match(*law, application);
     expectMsg(!result.has_value(),
-              print_utf8(application.get()) +
+              print_utf8(*application) +
                       " does not match " +
-                      print_utf8(law.get()),
+                      print_utf8(*law),
               std::move(context));
 }
 

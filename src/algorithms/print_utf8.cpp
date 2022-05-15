@@ -40,47 +40,10 @@ std::string_view to_utf8(binop_type type) noexcept {
     return table[static_cast<std::underlying_type_t<binop_type>>(type)];
 }
 
-struct print_utf8_expression_visitor {
+struct print_utf8_visitor {
     std::ostream& to;
 
-    explicit print_utf8_expression_visitor(std::ostream& to)
-        : to{to} {}
-
-    void operator()(const variable_ptr& var) const {
-        to << var->name;
-    }
-
-    void operator()(const expression::binop& binop) const {
-        visit_sub_expr(*binop.left);
-        to << to_utf8(binop.type);
-        visit_sub_expr(*binop.right);
-    }
-
-    void visit_sub_expr(const expression& expr) const {
-        if (expr.is_var()) {
-            expr.accept(*this);
-        } else {
-            to << "(";
-            expr.accept(*this);
-            to << ")";
-        }
-    }
-};
-
-void print_utf8_to(const expression* expr, std::ostream& to) {
-    expr->accept(print_utf8_expression_visitor{to});
-}
-
-std::string print_utf8(const expression* expr) {
-    std::stringstream sout;
-    print_utf8_to(expr, sout);
-    return std::move(sout).str();
-}
-
-struct print_utf8_statement_visitor {
-    std::ostream& to;
-
-    explicit print_utf8_statement_visitor(std::ostream& to)
+    explicit print_utf8_visitor(std::ostream& to)
         : to{to} {}
 
     void operator()(const statement::truth&) const {
@@ -129,17 +92,25 @@ struct print_utf8_statement_visitor {
         to << "∀" << expr.var->name << " ";
         visit_sub_statement(*expr.inner);
     }
+    void operator()(const statement::var_stmt& var) const {
+        to << var.var->name;
+    }
+    void operator()(const relationship& rel) const {
+        visit_sub_expr(*rel.left);
+        to << to_utf8(rel.type);
+        visit_sub_expr(*rel.right);
+    }
     void operator()(const variable_ptr& var) const {
         to << var->name;
     }
-    void operator()(const relationship& rel) const {
-        print_utf8_to(rel.left.get(), to);
-        to << to_utf8(rel.type);
-        print_utf8_to(rel.right.get(), to);
+    void operator()(const expression::binop& binop) const {
+        visit_sub_expr(*binop.left);
+        to << to_utf8(binop.type);
+        visit_sub_expr(*binop.right);
     }
 
-    void visit_sub_statement(const statement& expr) const {
-        if (expr.is_var() || expr.is_neg() || expr.is_truth() || expr.is_contradiction()) {
+    void visit_sub_expr(const expression& expr) const {
+        if (expr.is_var()) {
             expr.accept(*this);
         } else {
             to << "(";
@@ -147,15 +118,35 @@ struct print_utf8_statement_visitor {
             to << ")";
         }
     }
+
+    void visit_sub_statement(const statement& stmt) const {
+        if (stmt.is_var() || stmt.is_neg() || stmt.is_truth() || stmt.is_contradiction()) {
+            stmt.accept(*this);
+        } else {
+            to << "(";
+            stmt.accept(*this);
+            to << ")";
+        }
+    }
 };
 
-void print_utf8_to(const statement* statement, std::ostream& to) {
-    statement->accept(print_utf8_statement_visitor{to});
+void print_utf8_to(const expression& expr, std::ostream& to) {
+    expr.accept(print_utf8_visitor{to});
 }
 
-std::string print_utf8(const statement* statement) {
+std::string print_utf8(const expression& expr) {
     std::stringstream sout;
-    print_utf8_to(statement, sout);
+    print_utf8_to(expr, sout);
+    return std::move(sout).str();
+}
+
+void print_utf8_to(const statement& stmt, std::ostream& to) {
+    stmt.accept(print_utf8_visitor{to});
+}
+
+std::string print_utf8(const statement& stmt) {
+    std::stringstream sout;
+    print_utf8_to(stmt, sout);
     return std::move(sout).str();
 }
 

@@ -10,24 +10,24 @@ using namespace mcga::matchers;
 using namespace mcga::test;
 
 void expect_deduce(const statement_ptr& law, const statement_ptr& application, const statement_ptr& expected_conclusion, const std::set<variable_ptr> expected_unmatched_vars, Context context = Context()) {
-    const auto result = deduce(law.get(), application);
+    const auto result = deduce(*law, application);
     const auto message = "deduce " +
-                         print_utf8(expected_conclusion.get()) +
+                         print_utf8(*expected_conclusion) +
                          " from law " +
-                         print_utf8(law.get()) +
+                         print_utf8(*law) +
                          " applied as " +
-                         print_utf8(application.get());
+                         print_utf8(*application);
     expectMsg(result.has_value(), message, context);
-    expectMsg(equals(result.value().stmt.get(), expected_conclusion.get()), message, context);
+    expectMsg(equals(*result.value().stmt, *expected_conclusion), message, context);
     expect(result.value().unmatched_vars, isEqualTo(expected_unmatched_vars), context);
 }
 
 void expect_not_deduce(const statement_ptr& law, const statement_ptr& application, Context context = Context()) {
-    const auto result = deduce(law.get(), application);
+    const auto result = deduce(*law, application);
     expectMsg(!result.has_value(),
-              print_utf8(application.get()) +
+              print_utf8(*application) +
                       " does not deduce anything from " +
-                      print_utf8(law.get()),
+                      print_utf8(*law),
               std::move(context));
 }
 
