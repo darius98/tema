@@ -119,12 +119,14 @@ function(AddTemaCoverageTarget)
                 -use-color -Xdemangler c++filt -Xdemangler -n
                 -line-coverage-lt=100
                 -ignore-filename-regex=".*FlexLexer.*"
+                -ignore-filename-regex=".*_deps.*"
                 -format=html > ${CMAKE_BINARY_DIR}/coverage.html)
         add_dependencies(coverage_report coverage_collect)
         add_custom_target(coverage COMMAND ${LLVM_COV} report ${BINARY_FILE_ARGS}
                 -instr-profile=${CMAKE_BINARY_DIR}/merged.profdata
                 -show-region-summary=0
                 -ignore-filename-regex=".*FlexLexer.*"
+                -ignore-filename-regex=".*_deps.*"
                 )
         add_dependencies(coverage coverage_report)
     else ()

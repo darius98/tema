@@ -11,7 +11,7 @@
 
 namespace tema {
 
-constexpr std::string_view get_compiled_module_extension() {
+consteval std::string_view get_compiled_module_extension() {
     if constexpr (is_apple()) {
         return ".tema.dylib";
     } else {

@@ -4,6 +4,8 @@ var r
 
 definition "Truth" ⊤
 
+definition "Contradiction" ¬⊥
+
 theorem "Law of excluded middle" p∨¬p
 proof missing
 

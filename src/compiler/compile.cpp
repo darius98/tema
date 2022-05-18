@@ -54,15 +54,16 @@ std::vector<std::string> get_common_compile_flags() {
 }
 
 std::vector<std::string> get_apple_compile_flags(std::string apple_sysroot) {
-    if (!is_apple()) {
+    if constexpr (!is_apple()) {
         return {};
+    } else {
+        return {
+                "-isysroot",
+                std::move(apple_sysroot),
+                "-undefined",
+                "dynamic_lookup",
+        };
     }
-    return {
-            "-isysroot",
-            std::move(apple_sysroot),
-            "-undefined",
-            "dynamic_lookup",
-    };
 }
 
 std::size_t concatenate_vectors_get_part_size(const mcga::meta::one_of<std::string, std::vector<std::string>> auto& part) {
