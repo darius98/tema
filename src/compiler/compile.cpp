@@ -45,7 +45,7 @@ std::vector<std::string> get_release_compile_flags() {
 
 std::vector<std::string> get_common_compile_flags() {
     return {
-            "-DTEMA_PLATFORM_TARGET_OS=\"'" + std::string(1, char(platform_os::target)) + "'\"",
+            "-DTEMA_PLATFORM_TARGET_OS=\"'" + std::string(1, static_cast<char>(platform_os::target)) + "'\"",
             "-shared",
             "-fPIC",
             "-fvisibility=hidden",
@@ -67,7 +67,7 @@ std::vector<std::string> get_apple_compile_flags(std::string apple_sysroot) {
 
 std::size_t concatenate_vectors_get_part_size(const mcga::meta::one_of<std::string, std::vector<std::string>> auto& part) {
     if constexpr (mcga::meta::cvref_same_as<decltype(part), std::string>) {
-        return std::size_t(1);
+        return static_cast<std::size_t>(1);
     } else {
         return part.size();
     }

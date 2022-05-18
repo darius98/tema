@@ -56,7 +56,7 @@ struct match_visitor {
         const auto& app_terms = app_stmt->as_conj().inner;
         // TODO: Use ranges to iterate both arrays at once.
         for (auto it = expr.inner.begin(); it != expr.inner.end(); it++) {
-            if (!visit_recursive(**it, app_terms[size_t(it - expr.inner.begin())])) {
+            if (!visit_recursive(**it, app_terms[static_cast<std::size_t>(it - expr.inner.begin())])) {
                 return false;
             }
         }
@@ -69,7 +69,7 @@ struct match_visitor {
         const auto& app_terms = app_stmt->as_disj().inner;
         // TODO: Use ranges to iterate both arrays at once.
         for (auto it = expr.inner.begin(); it != expr.inner.end(); it++) {
-            if (!visit_recursive(**it, app_terms[size_t(it - expr.inner.begin())])) {
+            if (!visit_recursive(**it, app_terms[static_cast<std::size_t>(it - expr.inner.begin())])) {
                 return false;
             }
         }

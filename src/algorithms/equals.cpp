@@ -64,7 +64,7 @@ struct equals_visitor {
         const auto& app_terms = b_stmt->as_conj().inner;
         // TODO: Use ranges to iterate both arrays at once.
         for (auto it = a.inner.begin(); it != a.inner.end(); it++) {
-            if (!visit_recursive(**it, *app_terms[size_t(it - a.inner.begin())])) {
+            if (!visit_recursive(**it, *app_terms[static_cast<std::size_t>(it - a.inner.begin())])) {
                 return false;
             }
         }
@@ -77,7 +77,7 @@ struct equals_visitor {
         const auto& app_terms = b_stmt->as_disj().inner;
         // TODO: Use ranges to iterate both arrays at once.
         for (auto it = a.inner.begin(); it != a.inner.end(); it++) {
-            if (!visit_recursive(**it, *app_terms[size_t(it - a.inner.begin())])) {
+            if (!visit_recursive(**it, *app_terms[static_cast<std::size_t>(it - a.inner.begin())])) {
                 return false;
             }
         }
