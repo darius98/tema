@@ -112,16 +112,14 @@ TEMA_EXPORT statement_ptr var_stmt(variable_ptr var) {
     return std::make_shared<const statement>(statement::private_tag{}, statement::var_stmt{std::move(var)});
 }
 
-TEMA_EXPORT statement_ptr rel_stmt(relationship rel) {
-    return std::make_shared<const statement>(statement::private_tag{}, std::move(rel));
-}
-
 TEMA_EXPORT statement_ptr rel_stmt(expr_ptr left, rel_type type, expr_ptr right) {
-    return rel_stmt({
-            .type = type,
-            .left = std::move(left),
-            .right = std::move(right),
-    });
+    return std::make_shared<const statement>(
+            statement::private_tag{},
+            relationship{
+                    .type = type,
+                    .left = std::move(left),
+                    .right = std::move(right),
+            });
 }
 
 }  // namespace tema

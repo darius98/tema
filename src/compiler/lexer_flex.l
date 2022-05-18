@@ -48,13 +48,7 @@ string_literal \"([^\\\"]|\\.)*\"
 "\\"                   { return tema::token::tok_set_difference; }
 "⊖"                    { return tema::token::tok_set_sym_difference; }
 
-{identifier}           {
-    const auto k = tema::keyword_table.find(yytext);
-    if (k != tema::keyword_table.end()) {
-        return k->second;
-    }
-    return tema::token::tok_identifier;
-}
+{identifier}           { return tema::get_keyword_or_identifier(yytext); }
 {string_literal}       { return tema::token::tok_string_literal; }
 
 "#".*                    { }

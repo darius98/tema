@@ -15,6 +15,12 @@ private:
 public:
     explicit precompiled_module(const std::filesystem::path& dll_path);
 
+    precompiled_module(const precompiled_module&) = delete;
+    precompiled_module& operator=(const precompiled_module&) = delete;
+
+    precompiled_module(precompiled_module&& other) noexcept;
+    precompiled_module& operator=(precompiled_module&& other) noexcept;
+
     ~precompiled_module();
 
     module load_module();

@@ -10,17 +10,34 @@ namespace tema {
 
 // TODO: Optimize? Not very important.
 
-const std::map<std::string, int, std::less<>> keyword_table{
-        {"var", tok_var},
-        {"export", tok_export},
-        {"definition", tok_definition},
-        {"theorem", tok_theorem},
-        {"exercise", tok_exercise},
-        {"proof", tok_proof},
-        {"missing", tok_missing},
-};
+namespace {
+
+const std::map<std::string, int, std::less<>>& get_keyword_table() {
+    static const std::map<std::string, int, std::less<>> keyword_table{
+            {"var", tok_var},
+            {"export", tok_export},
+            {"definition", tok_definition},
+            {"theorem", tok_theorem},
+            {"exercise", tok_exercise},
+            {"proof", tok_proof},
+            {"missing", tok_missing},
+    };
+    return keyword_table;
+}
+
+}  // namespace
+
+int get_keyword_or_identifier(const char* token_text) {
+    const auto& keyword_table = get_keyword_table();
+    const auto k = keyword_table.find(token_text);
+    if (k != keyword_table.end()) {
+        return k->second;
+    }
+    return token::tok_identifier;
+}
 
 bool is_keyword_token(int tok) {
+    const auto& keyword_table = get_keyword_table();
     return std::find_if(keyword_table.begin(), keyword_table.end(), [tok](const auto& pair) {
                return pair.second == tok;
            }) != keyword_table.end();

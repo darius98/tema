@@ -11,92 +11,107 @@ namespace tema {
 
 namespace {
 
-const std::map<int, int> token_priority_map{
-        {tok_set_union, 1},
-        {tok_set_intersection, 1},
-        {tok_set_difference, 1},
-        {tok_set_sym_difference, 1},
+auto& get_token_priority_map() {
+    static const std::map<int, int> table{
+            {tok_set_union, 1},
+            {tok_set_intersection, 1},
+            {tok_set_difference, 1},
+            {tok_set_sym_difference, 1},
 
-        {tok_eq, 2},
-        {tok_n_eq, 2},
-        {tok_less, 2},
-        {tok_n_less, 2},
-        {tok_eq_less, 2},
-        {tok_n_eq_less, 2},
-        {tok_greater, 2},
-        {tok_n_greater, 2},
-        {tok_eq_greater, 2},
-        {tok_n_eq_greater, 2},
-        {tok_in, 2},
-        {tok_n_in, 2},
-        {tok_includes, 2},
-        {tok_n_includes, 2},
-        {tok_eq_includes, 2},
-        {tok_n_eq_includes, 2},
-        {tok_is_included, 2},
-        {tok_n_is_included, 2},
-        {tok_eq_is_included, 2},
-        {tok_n_eq_is_included, 2},
+            {tok_eq, 2},
+            {tok_n_eq, 2},
+            {tok_less, 2},
+            {tok_n_less, 2},
+            {tok_eq_less, 2},
+            {tok_n_eq_less, 2},
+            {tok_greater, 2},
+            {tok_n_greater, 2},
+            {tok_eq_greater, 2},
+            {tok_n_eq_greater, 2},
+            {tok_in, 2},
+            {tok_n_in, 2},
+            {tok_includes, 2},
+            {tok_n_includes, 2},
+            {tok_eq_includes, 2},
+            {tok_n_eq_includes, 2},
+            {tok_is_included, 2},
+            {tok_n_is_included, 2},
+            {tok_eq_is_included, 2},
+            {tok_n_eq_is_included, 2},
 
-        {tok_neg, 3},
-        {tok_implies, 4},
-        {tok_equiv, 4},
-        {tok_conj, 4},
-        {tok_disj, 4},
+            {tok_neg, 3},
+            {tok_implies, 4},
+            {tok_equiv, 4},
+            {tok_conj, 4},
+            {tok_disj, 4},
 
-        {tok_open_paren, 5},
-};
+            {tok_open_paren, 5},
+    };
+    return table;
+}
 
-const std::map<int, statement_ptr (*)(statement_ptr)> token_unary_stmt_factory_map{
-        {tok_neg, [](statement_ptr a) {
-             return neg(std::move(a));
-         }},
-};
+auto& get_token_unary_stmt_factory_map() {
+    static const std::map<int, statement_ptr (*)(statement_ptr)> table{
+            {tok_neg, [](statement_ptr a) {
+                 return neg(std::move(a));
+             }},
+    };
+    return table;
+}
 
-const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> token_binary_stmt_factory_map{
-        {tok_implies, [](statement_ptr a, statement_ptr b) {
-             return implies(std::move(a), std::move(b));
-         }},
-        {tok_equiv, [](statement_ptr a, statement_ptr b) {
-             return equiv(std::move(a), std::move(b));
-         }},
-        {tok_conj, [](statement_ptr a, statement_ptr b) {
-             return conj({std::move(a), std::move(b)});
-         }},
-        {tok_disj, [](statement_ptr a, statement_ptr b) {
-             return disj({std::move(a), std::move(b)});
-         }},
-};
+auto& get_token_binary_stmt_factory_map() {
+    static const std::map<int, statement_ptr (*)(statement_ptr, statement_ptr)> table{
+            {tok_implies, [](statement_ptr a, statement_ptr b) {
+                 return implies(std::move(a), std::move(b));
+             }},
+            {tok_equiv, [](statement_ptr a, statement_ptr b) {
+                 return equiv(std::move(a), std::move(b));
+             }},
+            {tok_conj, [](statement_ptr a, statement_ptr b) {
+                 return conj({std::move(a), std::move(b)});
+             }},
+            {tok_disj, [](statement_ptr a, statement_ptr b) {
+                 return disj({std::move(a), std::move(b)});
+             }},
+    };
+    return table;
+}
 
-const std::map<int, binop_type> token_binary_expr_op_map{
-        {tok_set_union, binop_type::set_union},
-        {tok_set_intersection, binop_type::set_intersection},
-        {tok_set_difference, binop_type::set_difference},
-        {tok_set_sym_difference, binop_type::set_sym_difference},
-};
+auto& get_token_binary_expr_op_map() {
+    static const std::map<int, binop_type> table{
+            {tok_set_union, binop_type::set_union},
+            {tok_set_intersection, binop_type::set_intersection},
+            {tok_set_difference, binop_type::set_difference},
+            {tok_set_sym_difference, binop_type::set_sym_difference},
+    };
+    return table;
+}
 
-const std::map<int, rel_type> token_rel_op_map{
-        {tok_eq, rel_type::eq},
-        {tok_n_eq, rel_type::n_eq},
-        {tok_less, rel_type::less},
-        {tok_n_less, rel_type::n_less},
-        {tok_eq_less, rel_type::eq_less},
-        {tok_n_eq_less, rel_type::n_eq_less},
-        {tok_greater, rel_type::greater},
-        {tok_n_greater, rel_type::n_greater},
-        {tok_eq_greater, rel_type::eq_greater},
-        {tok_n_eq_greater, rel_type::n_eq_greater},
-        {tok_in, rel_type::in},
-        {tok_n_in, rel_type::n_in},
-        {tok_includes, rel_type::includes},
-        {tok_n_includes, rel_type::n_includes},
-        {tok_eq_includes, rel_type::eq_includes},
-        {tok_n_eq_includes, rel_type::n_eq_includes},
-        {tok_is_included, rel_type::is_included},
-        {tok_n_is_included, rel_type::n_is_included},
-        {tok_eq_is_included, rel_type::eq_is_included},
-        {tok_n_eq_is_included, rel_type::n_eq_is_included},
-};
+auto& get_token_rel_op_map() {
+    static const std::map<int, rel_type> table{
+            {tok_eq, rel_type::eq},
+            {tok_n_eq, rel_type::n_eq},
+            {tok_less, rel_type::less},
+            {tok_n_less, rel_type::n_less},
+            {tok_eq_less, rel_type::eq_less},
+            {tok_n_eq_less, rel_type::n_eq_less},
+            {tok_greater, rel_type::greater},
+            {tok_n_greater, rel_type::n_greater},
+            {tok_eq_greater, rel_type::eq_greater},
+            {tok_n_eq_greater, rel_type::n_eq_greater},
+            {tok_in, rel_type::in},
+            {tok_n_in, rel_type::n_in},
+            {tok_includes, rel_type::includes},
+            {tok_n_includes, rel_type::n_includes},
+            {tok_eq_includes, rel_type::eq_includes},
+            {tok_n_eq_includes, rel_type::n_eq_includes},
+            {tok_is_included, rel_type::is_included},
+            {tok_n_is_included, rel_type::n_is_included},
+            {tok_eq_is_included, rel_type::eq_is_included},
+            {tok_n_eq_is_included, rel_type::n_eq_is_included},
+    };
+    return table;
+}
 
 using partial_statement = std::variant<variable_ptr, expr_ptr, statement_ptr>;
 
@@ -129,7 +144,8 @@ class reverse_polish_notation_builder {
         partials.pop_back();
         if (holds_alternative<As>(partial)) {
             return get<As>(std::move(partial));
-        } else if (holds_alternative<variable_ptr>(partial)) {
+        }
+        if (holds_alternative<variable_ptr>(partial)) {
             if constexpr (std::is_same_v<As, statement_ptr>) {
                 return var_stmt(get<variable_ptr>(std::move(partial)));
             } else {
@@ -147,24 +163,24 @@ class reverse_polish_notation_builder {
     }
 
     statement_ptr try_reduce_unary_stmt(int operator_token) {
-        const auto it = token_unary_stmt_factory_map.find(operator_token);
-        if (it == token_unary_stmt_factory_map.end()) {
+        const auto it = get_token_unary_stmt_factory_map().find(operator_token);
+        if (it == get_token_unary_stmt_factory_map().end()) {
             return nullptr;
         }
         return (it->second)(pop_last_partial<statement_ptr>());
     }
 
     statement_ptr try_reduce_binary_stmt(int operator_token) {
-        const auto it = token_binary_stmt_factory_map.find(operator_token);
-        if (it == token_binary_stmt_factory_map.end()) {
+        const auto it = get_token_binary_stmt_factory_map().find(operator_token);
+        if (it == get_token_binary_stmt_factory_map().end()) {
             return nullptr;
         }
         return std::apply(it->second, pop_last_2_partials<statement_ptr>());
     }
 
     expr_ptr try_reduce_binary_expr(int operator_token) {
-        const auto it = token_binary_expr_op_map.find(operator_token);
-        if (it == token_binary_expr_op_map.end()) {
+        const auto it = get_token_binary_expr_op_map().find(operator_token);
+        if (it == get_token_binary_expr_op_map().end()) {
             return nullptr;
         }
         auto [expr1, expr2] = pop_last_2_partials<expr_ptr>();
@@ -172,8 +188,8 @@ class reverse_polish_notation_builder {
     }
 
     statement_ptr try_reduce_relationship(int operator_token) {
-        const auto it = token_rel_op_map.find(operator_token);
-        if (it == token_rel_op_map.end()) {
+        const auto it = get_token_rel_op_map().find(operator_token);
+        if (it == get_token_rel_op_map().end()) {
             return nullptr;
         }
         auto [expr1, expr2] = pop_last_2_partials<expr_ptr>();
@@ -254,9 +270,9 @@ public:
         } else {
             check_expectation(expectation::expect_operator, expectation::expect_operand);
         }
-        int token_priority = token_priority_map.find(operator_token)->second;
+        int token_priority = get_token_priority_map().find(operator_token)->second;
         reduce_operators_until([this, token_priority] {
-            return token_priority_map.find(operators.back())->second < token_priority;
+            return get_token_priority_map().find(operators.back())->second < token_priority;
         });
         operators.push_back(operator_token);
     }
@@ -265,7 +281,7 @@ public:
 // This function uses a "reverse polish notation"-based algorithm to parse statements,
 // except when encountering a forall node where it does a recursive call.
 // Similar to the "shunting-yard algorithm".
-statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_scope, bool allow_extend) {
+statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_scope, bool allow_extend) {  // NOLINT(misc-no-recursion)
     // This keeps a reference to the location, so is always up to date.
     reverse_polish_notation_builder rpn_builder(scanner.current_loc(), std::string{scanner.get_file_name()});
     while (true) {
@@ -403,8 +419,8 @@ bool parse_decl(flex_lexer_scanner& scanner, module& mod) {
 
 }  // namespace
 
-module parse_module(std::istream& in, const std::filesystem::path& file_name) {
-    flex_lexer_scanner scanner(in, file_name);
+module parse_module(std::istream& stream, const std::filesystem::path& file_name) {
+    flex_lexer_scanner scanner(stream, file_name);
     module mod(file_name.stem(), file_name);
     while (parse_decl(scanner, mod)) {
     }

@@ -42,8 +42,8 @@ public:
     [[nodiscard]] const std::vector<statement_ptr>& own_statements() const;
 
     // Mutation
-    void add_var(variable_ptr var);
-    void add_statement(statement_ptr statement);
+    void add_var(const variable_ptr& var);
+    void add_statement(statement_ptr stmt);
 };
 
 }  // namespace tema

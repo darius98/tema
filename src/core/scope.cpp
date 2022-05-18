@@ -57,7 +57,7 @@ TEMA_EXPORT bool scope::has_var(const variable_ptr& var) const {
     return false;
 }
 
-TEMA_EXPORT void scope::add_var(variable_ptr var) {
+TEMA_EXPORT void scope::add_var(const variable_ptr& var) {
     // TODO: Maybe check that it doesn't exist already? Not sure, this is a
     //  low level API atm, will see how usage evolves.
     vars_by_symbol.emplace(var->name, var);

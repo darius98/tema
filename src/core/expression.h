@@ -55,18 +55,16 @@ public:
 
     template<class R, class V>
     R accept_r(V&& visitor) const {
-        return std::visit<R>(std::forward<V>(visitor), data);
+        return std::visit(std::forward<V>(visitor), data);
     }
 
-    friend expr_ptr var_expr(variable_ptr var);
-    friend expr_ptr binop(expression::binop content);
+    friend expr_ptr var_expr(const variable_ptr& var);
+    friend expr_ptr binop(expr_ptr left, binop_type type, expr_ptr right);
 };
 
 using expr_ptr = expression::expr_ptr;
 
-[[nodiscard]] expr_ptr var_expr(variable_ptr var);
-
-[[nodiscard]] expr_ptr binop(expression::binop content);
+[[nodiscard]] expr_ptr var_expr(const variable_ptr& var);
 [[nodiscard]] expr_ptr binop(expr_ptr left, binop_type type, expr_ptr right);
 
 }  // namespace tema

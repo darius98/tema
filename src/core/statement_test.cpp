@@ -160,26 +160,15 @@ TEST_CASE("statement") {
     test("relationship", [] {
         const auto x = var("x");
         const auto y = var("y");
-        const auto a = rel_stmt(relationship{rel_type::eq, var_expr(x), var_expr(y)});
+        const auto rel = rel_stmt(var_expr(x), rel_type::eq, var_expr(y));
 
-        expect(a->is_rel(), isTrue);
-        expect(a->as_rel().left->is_var(), isTrue);
-        expect(a->as_rel().left->as_var(), x);
-        expect(a->as_rel().right->is_var(), isTrue);
-        expect(a->as_rel().right->as_var(), y);
+        expect(rel->is_rel(), isTrue);
+        expect(rel->as_rel().left->is_var(), isTrue);
+        expect(rel->as_rel().left->as_var(), x);
+        expect(rel->as_rel().right->is_var(), isTrue);
+        expect(rel->as_rel().right->as_var(), y);
 
-        expect(a->is_var(), isFalse);
-        expect([&] { (void) a->as_var(); }, throwsA<std::bad_variant_access>);
-
-        const auto b = rel_stmt(var_expr(x), rel_type::eq, var_expr(y));
-
-        expect(b->is_rel(), isTrue);
-        expect(b->as_rel().left->is_var(), isTrue);
-        expect(b->as_rel().left->as_var(), x);
-        expect(b->as_rel().right->is_var(), isTrue);
-        expect(b->as_rel().right->as_var(), y);
-
-        expect(b->is_var(), isFalse);
-        expect([&] { (void) b->as_var(); }, throwsA<std::bad_variant_access>);
+        expect(rel->is_var(), isFalse);
+        expect([&] { (void) rel->as_var(); }, throwsA<std::bad_variant_access>);
     });
 }

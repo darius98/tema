@@ -1,5 +1,6 @@
 #include "compiler/print_cxx.h"
 
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -16,8 +17,8 @@ namespace tema {
 
 namespace {
 
-std::string_view to_cxx(rel_type type) noexcept {
-    static constexpr std::string_view table[] = {
+std::string_view to_cxx(rel_type type) {
+    static constexpr std::array table = {
             "eq",                // eq = 0
             "n_eq",              // n_eq = 1
             "less",              // less = 2
@@ -39,26 +40,26 @@ std::string_view to_cxx(rel_type type) noexcept {
             "eq_is_included",    // eq_is_included = 18
             "n_eq_is_included",  // n_eq_is_included = 19
     };
-    return table[static_cast<std::underlying_type_t<rel_type>>(type)];
+    return table.at(static_cast<std::size_t>(static_cast<std::underlying_type_t<rel_type>>(type)));
 }
 
-std::string_view to_cxx(binop_type type) noexcept {
-    static constexpr std::string_view table[] = {
+std::string_view to_cxx(binop_type type) {
+    static constexpr std::array table = {
             "set_union",           // set_union = 0,
             "set_intersection",    // set_intersection = 1,
             "set_difference",      // set_difference = 2,
             "set_sym_difference",  // set_sym_difference = 3,
     };
-    return table[static_cast<std::underlying_type_t<binop_type>>(type)];
+    return table.at(static_cast<std::size_t>(static_cast<std::underlying_type_t<binop_type>>(type)));
 }
 
-std::string_view to_cxx(stmt_decl_type type) noexcept {
-    static constexpr std::string_view table[] = {
+std::string_view to_cxx(stmt_decl_type type) {
+    static constexpr std::array table = {
             "definition",
             "theorem",
             "exercise",
     };
-    return table[static_cast<std::underlying_type_t<stmt_decl_type>>(type)];
+    return table.at(static_cast<std::size_t>(static_cast<std::underlying_type_t<stmt_decl_type>>(type)));
 }
 
 struct print_cxx_visitor {

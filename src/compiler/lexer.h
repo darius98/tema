@@ -12,7 +12,7 @@ class yyFlexLexer;
 namespace tema {
 
 // Used in the flex lexer definition file.
-extern const std::map<std::string, int, std::less<>> keyword_table;
+int get_keyword_or_identifier(const char* token_text);
 
 bool is_keyword_token(int tok);
 
@@ -95,6 +95,10 @@ class flex_lexer_scanner {
 public:
     flex_lexer_scanner(std::istream& in, std::string file_name);
 
+    flex_lexer_scanner(const flex_lexer_scanner&) = delete;
+    flex_lexer_scanner(flex_lexer_scanner&&) = delete;
+    flex_lexer_scanner& operator=(const flex_lexer_scanner&) = delete;
+    flex_lexer_scanner& operator=(flex_lexer_scanner&&) = delete;
     ~flex_lexer_scanner();
 
     [[nodiscard]] std::pair<token, std::string_view> consume_token(bool allow_eof = false);

@@ -47,7 +47,7 @@ struct apply_vars_visitor {
             if (new_child != nullptr) {
                 new_children.resize(expr.inner.size());
                 // TODO: Figure out how to do this with ranges without a conversion
-                new_children[size_t(it - expr.inner.begin())] = new_child;
+                new_children[static_cast<size_t>(it - expr.inner.begin())] = new_child;
             }
         }
         if (new_children.empty()) {
@@ -56,7 +56,7 @@ struct apply_vars_visitor {
         for (auto it = new_children.begin(); it != new_children.end(); it++) {
             if (*it == nullptr) {
                 // TODO: Figure out how to do this with ranges without a conversion
-                *it = expr.inner[size_t(it - new_children.begin())];
+                *it = expr.inner[static_cast<size_t>(it - new_children.begin())];
             }
         }
         return conj(std::move(new_children));
@@ -68,7 +68,7 @@ struct apply_vars_visitor {
             if (new_child != nullptr) {
                 new_children.resize(expr.inner.size());
                 // TODO: Figure out how to do this with ranges without a conversion
-                new_children[size_t(it - expr.inner.begin())] = new_child;
+                new_children[static_cast<size_t>(it - expr.inner.begin())] = new_child;
             }
         }
         if (new_children.empty()) {
@@ -77,7 +77,7 @@ struct apply_vars_visitor {
         for (auto it = new_children.begin(); it != new_children.end(); it++) {
             if (*it == nullptr) {
                 // TODO: Figure out how to do this with ranges without a conversion
-                *it = expr.inner[size_t(it - new_children.begin())];
+                *it = expr.inner[static_cast<size_t>(it - new_children.begin())];
             }
         }
         return disj(std::move(new_children));

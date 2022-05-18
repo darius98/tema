@@ -119,7 +119,7 @@ struct equals_visitor {
             // Optimize the case when it's the same pointer
             return true;
         }
-        auto old_b = std::exchange(b_stmt, &new_b);
+        const auto* old_b = std::exchange(b_stmt, &new_b);
         const auto result = a.template accept_r<bool>(*this);
         b_stmt = old_b;
         return result;
@@ -130,7 +130,7 @@ struct equals_visitor {
             // Optimize the case when it's the same pointer
             return true;
         }
-        auto old_b = std::exchange(b_expr, &new_b);
+        const auto* old_b = std::exchange(b_expr, &new_b);
         const auto result = a.template accept_r<bool>(*this);
         b_expr = old_b;
         return result;

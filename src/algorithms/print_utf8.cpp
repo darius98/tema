@@ -1,11 +1,12 @@
 #include "algorithms/print_utf8.h"
 
+#include <array>
 #include <sstream>
 
 namespace tema {
 
-std::string_view to_utf8(rel_type type) noexcept {
-    static constexpr std::string_view table[] = {
+std::string_view to_utf8(rel_type type) {
+    static constexpr std::array table{
             "=",  // eq = 0
             "≠",  // n_eq = 1
             "<",  // less = 2
@@ -27,17 +28,17 @@ std::string_view to_utf8(rel_type type) noexcept {
             "⊆",  // eq_is_included = 18
             "⊈",  // n_eq_is_included = 19
     };
-    return table[static_cast<std::underlying_type_t<rel_type>>(type)];
+    return table.at(static_cast<std::size_t>(static_cast<std::underlying_type_t<rel_type>>(type)));
 }
 
-std::string_view to_utf8(binop_type type) noexcept {
-    static constexpr std::string_view table[] = {
+std::string_view to_utf8(binop_type type) {
+    static constexpr std::array table{
             "∪",   // set_union = 0,
             "∩",   // set_intersection = 1,
             "\\",  // set_difference = 2,
             "⊖",   // set_sym_difference = 3,
     };
-    return table[static_cast<std::underlying_type_t<binop_type>>(type)];
+    return table.at(static_cast<std::size_t>(static_cast<std::underlying_type_t<binop_type>>(type)));
 }
 
 struct print_utf8_visitor {

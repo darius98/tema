@@ -1,10 +1,33 @@
 name: Check
+
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+
 jobs:
+  check-gcc:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        build_type: [ Debug, Release ]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 11
+          platform: x64
+
+      - name: Check
+        run: ${{github.workspace}}/ci-check.sh
+        env:
+          CC: gcc
+          CXX: g++
+          CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
+
   check-clang-macos:
     runs-on: macos-latest
     strategy:
@@ -13,14 +36,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: SetUpDeps
-      run: ${{github.workspace}}/setup-deps.sh
-
     - name: Check
-      run: ${{github.workspace}}/check.sh ${{ matrix.build_type }}
+      run: ${{github.workspace}}/ci-check.sh
       env:
         CC: clang
         CXX: clang++
+        CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
 
   check-clang-linux:
     runs-on: ubuntu-20.04
@@ -36,34 +57,27 @@ jobs:
           version: "14.0"
           directory: ${{github.workspace}}/llvm
 
-      - name: SetUpDeps
-        run: ${{github.workspace}}/setup-deps.sh
-
       - name: Check
-        run: ${{github.workspace}}/check.sh ${{ matrix.build_type }}
+        run: ${{github.workspace}}/ci-check.sh
         env:
           CC: clang
           CXX: clang++
+          CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
 
-  check-gcc:
+  static-analysis:
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        build_type: [ Debug, Release ]
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up GCC
-        uses: egor-tensin/setup-gcc@v1
+      - name: Install LLVM
+        uses: KyleMayes/install-llvm-action@v1
         with:
-          version: 11
-          platform: x64
-
-      - name: SetUpDeps
-        run: ${{github.workspace}}/setup-deps.sh
+          version: "14.0"
+          directory: ${{github.workspace}}/llvm
 
       - name: Check
-        run: ${{github.workspace}}/check.sh ${{ matrix.build_type }}
+        run: ${{github.workspace}}/ci-check.sh analyze
         env:
-          CC: gcc
-          CXX: g++
+          CC: clang
+          CXX: clang++
+          CMAKE_BUILD_TYPE: Debug

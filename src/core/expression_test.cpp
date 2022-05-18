@@ -37,11 +37,7 @@ TEST_CASE("expression") {
         const auto x = var("X");
         const auto y = var("Y");
 
-        const auto expr = binop(expression::binop{
-                .type = binop_type::set_union,
-                .left = var_expr(x),
-                .right = var_expr(y),
-        });
+        const auto expr = binop(var_expr(x), binop_type::set_union, var_expr(y));
         expect(expr->is_binop(), isTrue);
         expect(expr->as_binop().type, binop_type::set_union);
         expect(expr->as_binop().left->is_var(), isTrue);

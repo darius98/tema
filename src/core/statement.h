@@ -3,8 +3,8 @@
 #include <memory>
 #include <vector>
 
-#include <mcga/meta/tpack.hpp>
 #include <mcga/meta/cvref_same_as.hpp>
+#include <mcga/meta/tpack.hpp>
 
 #include "core/expression.h"
 #include "core/relationship.h"
@@ -105,7 +105,7 @@ public:
 
     template<class R, class V>
     R accept_r(V&& visitor) const {
-        return std::visit<R>(std::forward<V>(visitor), data);
+        return std::visit(std::forward<V>(visitor), data);
     }
 
     friend statement_ptr truth();
@@ -117,7 +117,7 @@ public:
     friend statement_ptr disj(std::vector<statement_ptr> stmts);
     friend statement_ptr forall(variable_ptr var, statement_ptr inner);
     friend statement_ptr var_stmt(variable_ptr var);
-    friend statement_ptr rel_stmt(relationship rel);
+    friend statement_ptr rel_stmt(expr_ptr left, rel_type type, expr_ptr right);
 };
 
 using statement_ptr = statement::statement_ptr;
@@ -148,7 +148,6 @@ using statement_ptr = statement::statement_ptr;
 
 [[nodiscard]] statement_ptr var_stmt(variable_ptr var);
 
-[[nodiscard]] statement_ptr rel_stmt(relationship rel);
 [[nodiscard]] statement_ptr rel_stmt(expr_ptr left, rel_type type, expr_ptr right);
 
 }  // namespace tema
