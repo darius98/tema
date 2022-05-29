@@ -75,51 +75,45 @@ TEMA_EXPORT const relationship& statement::as_rel() const {
 }
 
 TEMA_EXPORT statement_ptr truth() {
-    static statement_ptr universal_truth = std::make_shared<const statement>(statement::private_tag{}, statement::truth{});
+    static statement_ptr universal_truth = statement::make(statement::truth{});
     return universal_truth;
 }
 
 TEMA_EXPORT statement_ptr contradiction() {
-    static statement_ptr universal_contradiction = std::make_shared<const statement>(statement::private_tag{}, statement::contradiction{});
+    static statement_ptr universal_contradiction = statement::make(statement::contradiction{});
     return universal_contradiction;
 }
 
 TEMA_EXPORT statement_ptr implies(statement_ptr from, statement_ptr to) {
-    return std::make_shared<const statement>(statement::private_tag{}, statement::implies{std::move(from), std::move(to)});
+    return statement::make(statement::implies{std::move(from), std::move(to)});
 }
 
 TEMA_EXPORT statement_ptr equiv(statement_ptr left, statement_ptr right) {
-    return std::make_shared<const statement>(statement::private_tag{}, statement::equiv{std::move(left), std::move(right)});
+    return statement::make(statement::equiv{std::move(left), std::move(right)});
 }
 
 TEMA_EXPORT statement_ptr neg(statement_ptr stmt) {
-    return std::make_shared<const statement>(statement::private_tag{}, statement::neg{std::move(stmt)});
+    return statement::make(statement::neg{std::move(stmt)});
 }
 
 TEMA_EXPORT statement_ptr conj(std::vector<statement_ptr> stmts) {
-    return std::make_shared<const statement>(statement::private_tag{}, statement::conj{std::move(stmts)});
+    return statement::make(statement::conj{std::move(stmts)});
 }
 
 TEMA_EXPORT statement_ptr disj(std::vector<statement_ptr> stmts) {
-    return std::make_shared<const statement>(statement::private_tag{}, statement::disj{std::move(stmts)});
+    return statement::make(statement::disj{std::move(stmts)});
 }
 
 TEMA_EXPORT statement_ptr forall(variable_ptr var, statement_ptr inner) {
-    return std::make_shared<const statement>(statement::private_tag{}, statement::forall{std::move(var), std::move(inner)});
+    return statement::make(statement::forall{std::move(var), std::move(inner)});
 }
 
 TEMA_EXPORT statement_ptr var_stmt(variable_ptr var) {
-    return std::make_shared<const statement>(statement::private_tag{}, statement::var_stmt{std::move(var)});
+    return statement::make(statement::var_stmt{std::move(var)});
 }
 
 TEMA_EXPORT statement_ptr rel_stmt(expr_ptr left, rel_type type, expr_ptr right) {
-    return std::make_shared<const statement>(
-            statement::private_tag{},
-            relationship{
-                    .type = type,
-                    .left = std::move(left),
-                    .right = std::move(right),
-            });
+    return statement::make(relationship{type, std::move(left), std::move(right)});
 }
 
 }  // namespace tema

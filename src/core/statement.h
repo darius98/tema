@@ -55,12 +55,16 @@ struct statement {
 private:
     mcga::meta::variant_for<types> data;
 
-    // Ensure that statements are only created through the friend factories below
+    // Ensure that statements are only created through the make factory below
     struct private_tag {};
 
 public:
-    statement(private_tag, mcga::meta::one_of_pack<types> auto t)
-        : data(std::move(t)) {}
+    statement(private_tag, mcga::meta::one_of_pack<types> auto data)
+        : data(std::move(data)) {}
+
+    static statement_ptr make(mcga::meta::one_of_pack<types> auto data) {
+        return std::make_shared<const statement>(private_tag{}, std::move(data));
+    }
 
     statement(const statement&) = delete;
     statement& operator=(const statement&) = delete;
@@ -107,17 +111,6 @@ public:
     R accept_r(V&& visitor) const {
         return std::visit(std::forward<V>(visitor), data);
     }
-
-    friend statement_ptr truth();
-    friend statement_ptr contradiction();
-    friend statement_ptr implies(statement_ptr from, statement_ptr to);
-    friend statement_ptr equiv(statement_ptr left, statement_ptr right);
-    friend statement_ptr neg(statement_ptr stmt);
-    friend statement_ptr conj(std::vector<statement_ptr> stmts);
-    friend statement_ptr disj(std::vector<statement_ptr> stmts);
-    friend statement_ptr forall(variable_ptr var, statement_ptr inner);
-    friend statement_ptr var_stmt(variable_ptr var);
-    friend statement_ptr rel_stmt(expr_ptr left, rel_type type, expr_ptr right);
 };
 
 using statement_ptr = statement::statement_ptr;
