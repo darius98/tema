@@ -15,7 +15,7 @@ proof missing
 theorem "Affirming the conclusion" q→(p→q)
 proof missing
 
-theorem "Contradiction" ¬(p∧¬p)
+theorem "Contradiction" (p∧¬p)→⊥
 proof missing
 
 theorem "Double negation" ¬¬p⟷p
