@@ -5,12 +5,11 @@
 #include <stdexcept>
 #include <string>
 
-#include "core/export.h"
 #include "core/module.h"
 
 namespace tema {
 
-struct TEMA_EXPORT parse_error : std::runtime_error {
+struct parse_error : std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 

@@ -18,11 +18,6 @@ AddTemaLibrary(tema_core
         core/scope_test.cpp
         core/variable_test.cpp)
 
-# These headers are required for pre-compiling modules.
-file(GLOB tema_core_headers core/*.h)
-install(FILES ${tema_core_headers} DESTINATION include/tema/core/)
-install(DIRECTORY ${mcga_meta_SOURCE_DIR}/include DESTINATION .)
-
 AddTemaLibrary(tema_algorithms
         SOURCES
         algorithms/apply_vars.cpp
@@ -45,24 +40,15 @@ AddFlexLibrary(tema_compiler_lexer compiler/lexer_flex.l)
 target_link_libraries(tema_compiler_lexer PUBLIC tema_core)
 AddTemaLibrary(tema_compiler
         SOURCES
-        compiler/compile.cpp
         compiler/lexer.cpp
         compiler/parser.cpp
-        compiler/precompiled_module.cpp
-        compiler/print_cxx.cpp
 
         DEPS
-        tema_compiler_lexer mcga_proc
+        tema_compiler_lexer
 
         TESTS
-        compiler/compile_test.cpp
         compiler/lexer_test.cpp
         compiler/parser_test.cpp
-        compiler/precompiled_module_test.cpp
-        compiler/print_cxx_test.cpp
 
         TESTS_DEPS
         tema_algorithms)
-if (NOT APPLE)
-    target_link_libraries(tema_compiler PRIVATE dl)
-endif ()

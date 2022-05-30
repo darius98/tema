@@ -1,25 +1,13 @@
 #include <filesystem>
+#include <fstream>
 
 #include <mcga/test_ext/matchers.hpp>
 
-#include "compiler/compile.h"
-#include "compiler/precompiled_module.h"
-#include "compiler/print_cxx.h"
+#include "compiler/parser.h"
 
 using namespace tema;
 using namespace mcga::test;
 using namespace mcga::matchers;
-
-void compile_and_load_module(const std::filesystem::path& module_path) {
-    auto cxx_file = tema::translate_module(module_path);
-    expect(cxx_file, std::filesystem::path{module_path}.replace_extension(".tema.cc"));
-    const auto dll_file = tema::compile_module(cxx_file);
-    expect(dll_file, std::filesystem::path{module_path}.replace_extension(get_compiled_module_extension()));
-
-    tema::precompiled_module module(dll_file);
-    const auto mod = module.load_module();
-    (void) mod;
-}
 
 TEST_CASE("compile & load pre-built modules") {
     for (const auto& entry: std::filesystem::directory_iterator("./modules")) {
@@ -31,7 +19,9 @@ TEST_CASE("compile & load pre-built modules") {
                              .timeTicksLimit = 100.0,
                      },
                      [&] {
-                         compile_and_load_module(module_path);
+                         std::ifstream file_stream(module_path);
+                         const auto mod = tema::parse_module(file_stream, module_path);
+                         (void) mod;
                      });
             }
         }
