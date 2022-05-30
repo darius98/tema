@@ -125,12 +125,11 @@ class reverse_polish_notation_builder {
     std::vector<partial_statement> partials;
     std::vector<int> operators;
 
-    const file_location& loc;
-    std::string file_name;
+    flex_lexer_scanner& scanner;
 
     void check_expectation(expectation from, expectation to) {
         if (state != from) {
-            throw_unexpected_token_error(file_name, loc);
+            scanner.throw_unexpected_token_error();
         }
         state = to;
     }
@@ -138,7 +137,7 @@ class reverse_polish_notation_builder {
     template<mcga::meta::one_of<statement_ptr, expr_ptr> As>
     [[nodiscard]] As pop_last_partial() {
         if (partials.empty()) {
-            throw_unexpected_token_error(file_name, loc);
+            scanner.throw_unexpected_token_error();
         }
         auto partial = std::move(partials.back());
         partials.pop_back();
@@ -152,7 +151,7 @@ class reverse_polish_notation_builder {
                 return var_expr(get<variable_ptr>(std::move(partial)));
             }
         }
-        throw_unexpected_token_error(file_name, loc);
+        scanner.throw_unexpected_token_error();
     }
 
     template<mcga::meta::one_of<statement_ptr, expr_ptr> As>
@@ -209,7 +208,7 @@ class reverse_polish_notation_builder {
         if (auto stmt = try_reduce_relationship(operator_token); stmt) {
             return stmt;
         }
-        throw_unexpected_token_error(file_name, loc);
+        scanner.throw_unexpected_token_error();
     }
 
     void reduce_operators_until(auto predicate) {
@@ -221,10 +220,8 @@ class reverse_polish_notation_builder {
     }
 
 public:
-    reverse_polish_notation_builder(
-            const file_location& loc,
-            std::string file_name)
-        : loc(loc), file_name(std::move(file_name)) {}
+    explicit reverse_polish_notation_builder(flex_lexer_scanner& scanner)
+        : scanner(scanner) {}
 
     bool can_finish() {
         return operators.empty() &&
@@ -236,7 +233,7 @@ public:
     statement_ptr finish() {
         reduce_operators_until([] { return true; });
         if (!can_finish()) {
-            throw_unexpected_token_error(file_name, loc);
+            scanner.throw_unexpected_token_error();
         }
         if (holds_alternative<variable_ptr>(partials[0])) {
             return var_stmt(get<variable_ptr>(std::move(partials[0])));
@@ -258,7 +255,7 @@ public:
         check_expectation(expectation::expect_operator, expectation::expect_operator);
         reduce_operators_until([this] { return operators.back() != tok_open_paren; });
         if (operators.empty()) {
-            throw_unexpected_token_error(file_name, loc);
+            scanner.throw_unexpected_token_error();
         }
         operators.pop_back();  // Remove the open paren.
     }
@@ -283,7 +280,7 @@ public:
 // Similar to the "shunting-yard algorithm".
 statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_scope, bool allow_extend) {  // NOLINT(misc-no-recursion)
     // This keeps a reference to the location, so is always up to date.
-    reverse_polish_notation_builder rpn_builder(scanner.current_loc(), std::string{scanner.get_file_name()});
+    reverse_polish_notation_builder rpn_builder(scanner);
     while (true) {
         if (!allow_extend && rpn_builder.can_finish()) {
             return rpn_builder.finish();
@@ -308,9 +305,7 @@ statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_sco
                 try {
                     var = enclosing_scope.get_var(symbol_view{text});
                 } catch (const var_not_found&) {
-                    throw_parse_error(std::string{scanner.get_file_name()},
-                                      scanner.current_loc(),
-                                      "Unknown variable '" + std::string(text) + "'.");
+                    scanner.throw_parse_error("Unknown variable '" + std::string(text) + "'.");
                 }
                 rpn_builder.add_partial(std::move(var));
                 break;
@@ -362,9 +357,7 @@ std::optional<scope> parse_proof(flex_lexer_scanner& scanner, const module&) {
         return std::nullopt;
     }
     // TODO: Set up a syntax for proofs and parse it here.
-    throw_parse_error(std::string{scanner.get_file_name()},
-                      scanner.current_loc(),
-                      "Statement proofs are not currently supported. Use the 'proof missing' keyword.");
+    scanner.throw_parse_error("Statement proofs are not currently supported. Use the 'proof missing' keyword.");
 }
 
 void parse_stmt_decl(flex_lexer_scanner& scanner, module& mod, stmt_decl_type stmt_type) {
@@ -410,9 +403,7 @@ bool parse_decl(flex_lexer_scanner& scanner, module& mod) {
             parse_stmt_decl(scanner, mod, stmt_decl_type::exercise);
             break;
         default:
-            throw_parse_error(std::string{scanner.get_file_name()},
-                              scanner.current_loc(),
-                              "Expected variable or statement declaration.");
+            scanner.throw_parse_error("Expected variable or statement declaration.");
     }
     return true;
 }

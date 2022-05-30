@@ -12,18 +12,6 @@ TEST("is_keyword_token") {
     expect(is_keyword_token(tok_open_paren), isFalse);
 }
 
-TEST("throw_parse_error and throw_unexpected_token_error") {
-    expect([&] {
-        throw_parse_error("", {}, "msg");
-    },
-           throwsA<parse_error>);
-
-    expect([&] {
-        throw_unexpected_token_error("", {});
-    },
-           throwsA<parse_error>);
-}
-
 TEST_CASE("flex_lexer_scanner") {
     std::unique_ptr<std::stringstream> stream;
     std::unique_ptr<flex_lexer_scanner> scanner;
@@ -103,5 +91,19 @@ TEST_CASE("flex_lexer_scanner") {
         expect(scanner->current_loc(), file_location{3, 26});
         (void) scanner->consume_token();
         expect(scanner->current_loc(), file_location{3, 27});
+    });
+
+    test("throw_parse_error", [&] {
+        expect([&] {
+            scanner->throw_parse_error("msg");
+        },
+               throwsA<parse_error>);
+    });
+
+    test("throw_unexpected_token_error", [&] {
+        expect([&] {
+            scanner->throw_unexpected_token_error();
+        },
+               throwsA<parse_error>);
     });
 }

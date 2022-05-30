@@ -79,10 +79,6 @@ enum token {
     tok_whitespace,
 };
 
-[[noreturn]] void throw_parse_error(std::string file_name, file_location loc, std::string msg);
-
-[[noreturn]] void throw_unexpected_token_error(std::string file_name, file_location loc);
-
 class flex_lexer_scanner {
     std::unique_ptr<yyFlexLexer> lexer;
     std::string file_name;
@@ -108,8 +104,10 @@ public:
     // Note: this only works for one token.
     void unconsume_last_token();
 
-    [[nodiscard]] std::string_view get_file_name() const;
     [[nodiscard]] const file_location& current_loc() const;
+
+    [[noreturn]] void throw_parse_error(std::string msg);
+    [[noreturn]] void throw_unexpected_token_error();
 };
 
 }  // namespace tema
