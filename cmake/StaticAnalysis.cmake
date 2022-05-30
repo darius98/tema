@@ -7,7 +7,6 @@ find_program(CLANG_TIDY clang-tidy PATHS ${clang_tidy_extra_paths})
 
 function (AddStaticAnalysisTargets)
     get_property(source_files GLOBAL PROPERTY SOURCE_FILES)
-    message(STATUS "${CLANG_TIDY} ${ARGN}")
     if (CLANG_TIDY)
         add_custom_target(tidy ${CLANG_TIDY} "--warnings-as-errors=*" -p ${CMAKE_BINARY_DIR} ${source_files}
                 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}

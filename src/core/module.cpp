@@ -7,19 +7,6 @@ namespace tema {
 module::module(std::string name, std::string file_name)
     : name(std::move(name)), file_name(std::move(file_name)) {}
 
-module::module(std::string name, std::string file_name, std::vector<decl> decls)
-    : name(std::move(name)), file_name(std::move(file_name)) {
-    // TODO: Optimize.
-    this->decls.reserve(decls.size());
-    for (auto& decl: decls) {
-        if (holds_alternative<var_decl>(decl)) {
-            add_variable_decl(get<var_decl>(std::move(decl)));
-        } else {
-            add_statement_decl(get<stmt_decl>(std::move(decl)));
-        }
-    }
-}
-
 std::string_view module::get_name() const {
     return name;
 }
