@@ -4,7 +4,7 @@ set -e
 
 case "$(uname -s)" in
    Darwin)
-     brew install flex
+     brew install coreutils flex
      ;;
 
    Linux)

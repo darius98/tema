@@ -26,6 +26,7 @@ case "${CHECK_TYPE}" in
 
     echo "\nLLVM Coverage Report:\n"
     cmake --build ${CMAKE_BUILD_DIR} --target coverage
+    echo "\nFull coverage available at file://$(realpath ${CMAKE_BUILD_DIR}/coverage.html)"
     ;;
 
   analyze)

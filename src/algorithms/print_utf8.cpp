@@ -119,7 +119,7 @@ struct print_utf8_visitor {
             } else {
                 first = false;
             }
-            visit_sub_expr(*param);
+            param->accept(*this);
         });
         to << ")";
     }

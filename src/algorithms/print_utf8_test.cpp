@@ -77,7 +77,7 @@ TEST_CASE("algorithms.print_utf8") {
                                                                   var_expr(z),
                                                                   var_expr(y)
                                                           });
-        expect(print_utf8(*x_call_y_union_z_z), "X((Y∪Z),Z,Y)");
+        expect(print_utf8(*x_call_y_union_z_z), "X(Y∪Z,Z,Y)");
 
         const auto x_union_y_call_y_union_z_z = call(binop(var_expr(y), binop_type::set_union, var_expr(z)), {var_expr(y)});
         expect(print_utf8(*x_union_y_call_y_union_z_z), "(Y∪Z)(Y)");

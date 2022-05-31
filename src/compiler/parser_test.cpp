@@ -127,6 +127,10 @@ TEST_CASE("compiler parser") {
                         "∀xyz (xyz∨¬xyz)",
                         "A⊆B ⟷ (∀t (t∈A → t∈B))",
                         "elem∈A∪B ⟷ (elem∈A ∨ elem∈B)",
+                        "A((elem))∈B((A), A∪(B), p(p, q))",
+                        "A((elem))∈B(((A)), (((A∪(B)))), (p(p, (q))))",
+                        "A(p, q, p∪q)∈B",
+                        "A(p∪q)∈B",
                 });
         const auto& scope = mod.get_internal_scope();
         const auto p = scope.get_var("p");
@@ -159,6 +163,34 @@ TEST_CASE("compiler parser") {
                       equiv(rel_stmt(var_expr(elem), rel_type::in, binop(var_expr(a), binop_type::set_union, var_expr(b))),
                             disj(rel_stmt(var_expr(elem), rel_type::in, var_expr(a)),
                                  rel_stmt(var_expr(elem), rel_type::in, var_expr(b)))));
+
+        expect_equals(scope.own_statements()[9],
+                      rel_stmt(call(var_expr(a), {var_expr(elem)}),
+                               rel_type::in,
+                               call(var_expr(b), {
+                                                         var_expr(a),
+                                                         binop(var_expr(a), binop_type::set_union, var_expr(b)),
+                                                         call(var_expr(p), {var_expr(p), var_expr(q)}),
+                                                 })));
+
+        expect_equals(scope.own_statements()[10],
+                      rel_stmt(call(var_expr(a), {var_expr(elem)}),
+                               rel_type::in,
+                               call(var_expr(b), {
+                                                         var_expr(a),
+                                                         binop(var_expr(a), binop_type::set_union, var_expr(b)),
+                                                         call(var_expr(p), {var_expr(p), var_expr(q)}),
+                                                 })));
+
+        expect_equals(scope.own_statements()[11],
+                      rel_stmt(call(var_expr(a), {var_expr(p), var_expr(q), binop(var_expr(p), binop_type::set_union, var_expr(q))}),
+                               rel_type::in,
+                               var_expr(b)));
+
+        expect_equals(scope.own_statements()[12],
+                      rel_stmt(call(var_expr(a), {binop(var_expr(p), binop_type::set_union, var_expr(q))}),
+                               rel_type::in,
+                               var_expr(b)));
     });
 
     test("invalid statements", [] {
@@ -166,20 +198,34 @@ TEST_CASE("compiler parser") {
                             {
                                     "¬¬",
                                     "⊤⊤¬",
-                                    "p q",                       // No operator between two identifiers
-                                    "∨ p q",                     // Prefix notation
-                                    "p q ∨",                     // Postfix notation
-                                    "(p∨)¬q",                    // Mismatched parens
-                                    "(p∨¬q",                     // Unclosed paren
-                                    "(p",                        // Unclosed paren
-                                    "p∨q∨(",                     // Trailing open paren
-                                    "p∨¬q)",                     // Unopened paren
-                                    "p∨()¬q",                    // Random paired parens
-                                    "p∪q∪q∪q",                   // Top-level expression
-                                    "(p∨¬r)",                    // Unknown variable
-                                    "∀xyz (xyz∨¬r)",             // Unknown variable inside forall
-                                    "e∈q∪(p∨¬p) ⟷ (e∈p ∨ e∈q)",  // Statement inside expression
-                                    "e∈q∪() ⟷ (e∈p ∨ e∈q)",      // Empty parens inside expression
+                                    "p q",                         // No operator between two identifiers
+                                    "∨ p q",                       // Prefix notation
+                                    "p q ∨",                       // Postfix notation
+                                    "(p∨)¬q",                      // Mismatched parens
+                                    "(p∨¬q",                       // Unclosed paren
+                                    "(p",                          // Unclosed paren
+                                    "(p∨)",                        // Unmatched binary operator
+                                    "p∨q∨(",                       // Trailing open paren
+                                    "p∨¬q)",                       // Unopened paren
+                                    "p∨()¬q",                      // Random paired parens
+                                    "p∪q∪q∪q",                     // Top-level expression
+                                    "(p∨¬r)",                      // Unknown variable
+                                    "(p∨¬r(p))",                   // Function call at statement level
+                                    "∀xyz (xyz∨¬r)",               // Unknown variable inside forall
+                                    "e∈q∪(p∨¬p) ⟷ (e∈p ∨ e∈q)",    // Statement inside expression
+                                    "e∈q∪() ⟷ (e∈p ∨ e∈q)",        // Empty parens inside expression
+                                    "e∈q() ⟷ (e∈p ∨ e∈q)",         // Empty call
+                                    "e∈q(q(q,q,)) ⟷ (e∈p ∨ e∈q)",  // Empty last call parameter
+                                    "e∈q(q,q,) ⟷ (e∈p ∨ e∈q)",     // Empty last call parameter
+                                    "e∈q(,q,q) ⟷ (e∈p ∨ e∈q)",     // Empty first call parameter
+                                    "e∈p(q(q,,q)) ⟷ (e∈p ∨ e∈q)",  // Empty middle call parameter
+                                    "e∈q((q,q,q))",                // Double parens on call
+                                    "e∈(q(q,q,q),p)",              // Comma inside normal parens
+                                    "e∈q(q,q,q),p",                // Comma outside call
+                                    "e∈,",                         // Just a comma
+                                    "e∈(p∪q",                      // Unclosed paren in expression
+                                    "e∈(p∪)",                      // Unmatched binary operator in expression
+                                    "p∪",                          // Unmatched binary operator in expression outside statement
                             });
     });
 }

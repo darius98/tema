@@ -46,6 +46,8 @@ auto& get_token_priority_map() {
             {tok_disj, 4},
 
             {tok_open_paren, 5},
+            {tok_open_paren_call, 5},
+            {tok_comma, 5},
     };
     return table;
 }
@@ -246,18 +248,55 @@ public:
         partials.push_back(std::move(partial));
     }
 
-    void open_paren() {
-        check_expectation(expectation::expect_operand, expectation::expect_operand);
-        operators.push_back(tok_open_paren);
-    }
-
-    void close_paren() {
-        check_expectation(expectation::expect_operator, expectation::expect_operator);
-        reduce_operators_until([this] { return operators.back() != tok_open_paren; });
+    void comma() {
+        check_expectation(expectation::expect_operator, expectation::expect_operand);
+        reduce_operators_until([this] {
+            return operators.back() != tok_comma && operators.back() != tok_open_paren_call;
+        });
         if (operators.empty()) {
             scanner.throw_unexpected_token_error();
         }
+        operators.push_back(tok_comma);
+    }
+
+    void open_paren() {
+        if (state == expectation::expect_operand) {
+            operators.push_back(tok_open_paren);
+        } else {
+            operators.push_back(tok_open_paren_call);
+        }
+        state = expectation::expect_operand;
+    }
+
+    void close_paren() {
+        if (state != expectation::expect_operator) {
+            scanner.throw_unexpected_token_error();
+        }
+        std::vector<expr_ptr> params;
+        while (!operators.empty() &&
+               operators.back() != tok_open_paren &&
+               operators.back() != tok_open_paren_call) {
+            reduce_operators_until([this] {
+                return operators.back() != tok_comma &&
+                       operators.back() != tok_open_paren &&
+                       operators.back() != tok_open_paren_call;
+            });
+            if (!operators.empty() && operators.back() == tok_comma) {
+                params.push_back(pop_last_partial<expr_ptr>());
+                operators.pop_back();
+            }
+        }
+        if (operators.empty()) {
+            scanner.throw_unexpected_token_error();
+        }
+        if (operators.back() == tok_open_paren_call) {
+            params.push_back(pop_last_partial<expr_ptr>());
+            // Construct the call expression.
+            std::reverse(params.begin(), params.end());
+            partials.emplace_back(call(pop_last_partial<expr_ptr>(), std::move(params)));
+        }
         operators.pop_back();  // Remove the open paren.
+        state = expectation::expect_operator;
     }
 
     void add_operator(int operator_token) {
@@ -316,6 +355,10 @@ statement_ptr parse_stmt(flex_lexer_scanner& scanner, const scope& enclosing_sco
             }
             case tok_contradiction: {
                 rpn_builder.add_partial(contradiction());
+                break;
+            }
+            case tok_comma: {
+                rpn_builder.comma();
                 break;
             }
             case tok_open_paren: {

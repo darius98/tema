@@ -25,7 +25,7 @@ InitTemaTests()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
-AddTemaCoverageTarget()
+AddCoverageTarget()
 
 add_custom_target(check CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ${CMAKE_SOURCE_DIR}/check.sh
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
