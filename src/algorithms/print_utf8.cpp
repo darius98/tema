@@ -109,6 +109,20 @@ struct print_utf8_visitor {
         to << to_utf8(binop.type);
         visit_sub_expr(*binop.right);
     }
+    void operator()(const expression::call& call) const {
+        visit_sub_expr(*call.callee);
+        to << "(";
+        bool first = true;
+        std::for_each(call.params.begin(), call.params.end(), [&](const expr_ptr& param) {
+            if (!first) {
+                to << ",";
+            } else {
+                first = false;
+            }
+            visit_sub_expr(*param);
+        });
+        to << ")";
+    }
 
     void visit_sub_expr(const expression& expr) const {
         if (expr.is_var()) {

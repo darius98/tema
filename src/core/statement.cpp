@@ -5,56 +5,56 @@ namespace tema {
 bool statement::is_truth() const noexcept {
     return holds_alternative<truth>(data);
 }
-const statement::truth& statement::as_truth() const {
+auto statement::as_truth() const -> const truth& {
     return get<truth>(data);
 }
 
 bool statement::is_contradiction() const noexcept {
     return holds_alternative<contradiction>(data);
 }
-const statement::contradiction& statement::as_contradiction() const {
+auto statement::as_contradiction() const -> const contradiction& {
     return get<contradiction>(data);
 }
 
 bool statement::is_implies() const noexcept {
     return holds_alternative<implies>(data);
 }
-const statement::implies& statement::as_implies() const {
+auto statement::as_implies() const -> const implies& {
     return get<implies>(data);
 }
 
 bool statement::is_equiv() const noexcept {
     return holds_alternative<equiv>(data);
 }
-const statement::equiv& statement::as_equiv() const {
+auto statement::as_equiv() const -> const equiv& {
     return get<equiv>(data);
 }
 
 bool statement::is_neg() const noexcept {
     return holds_alternative<neg>(data);
 }
-const statement::neg& statement::as_neg() const {
+auto statement::as_neg() const -> const neg& {
     return get<neg>(data);
 }
 
 bool statement::is_conj() const noexcept {
     return holds_alternative<conj>(data);
 }
-const statement::conj& statement::as_conj() const {
+auto statement::as_conj() const -> const conj& {
     return get<conj>(data);
 }
 
 bool statement::is_disj() const noexcept {
     return holds_alternative<disj>(data);
 }
-const statement::disj& statement::as_disj() const {
+auto statement::as_disj() const -> const disj& {
     return get<disj>(data);
 }
 
 bool statement::is_forall() const noexcept {
     return holds_alternative<forall>(data);
 }
-const statement::forall& statement::as_forall() const {
+auto statement::as_forall() const -> const forall& {
     return get<forall>(data);
 }
 

@@ -189,5 +189,23 @@ TEST_CASE("algorithms.equals") {
                           binop(var_expr(x), binop_type::set_union, var_expr(x)));
         expect_not_equals(x_union_y_expr,
                           binop(var_expr(y), binop_type::set_union, var_expr(y)));
+
+        expect_equals(call(var_expr(x), {var_expr(y), var_expr(z)}),
+                      call(var_expr(x), {var_expr(y), var_expr(z)}));
+        expect_equals(call(var_expr(x), {x_union_y_expr, var_expr(z), var_expr(z)}),
+                      call(var_expr(x), {binop(var_expr(x), binop_type::set_union, var_expr(y)), var_expr(z), var_expr(z)}));
+
+        expect_not_equals(var_expr(x), call(var_expr(x), {var_expr(y), var_expr(z)}));
+        expect_not_equals(call(var_expr(x), {var_expr(y), var_expr(z)}), var_expr(x));
+        expect_not_equals(call(var_expr(x), {var_expr(y), var_expr(z)}),
+                          call(var_expr(y), {var_expr(y), var_expr(z)}));
+        expect_not_equals(call(var_expr(x), {var_expr(y), var_expr(z), var_expr(z)}),
+                          call(var_expr(x), {var_expr(y), var_expr(z)}));
+        expect_not_equals(call(var_expr(x), {var_expr(y), var_expr(z)}),
+                          call(var_expr(x), {var_expr(y), var_expr(z), var_expr(z)}));
+        expect_not_equals(call(var_expr(x), {var_expr(y), var_expr(z)}),
+                          call(var_expr(x), {var_expr(z), var_expr(z)}));
+        expect_not_equals(call(var_expr(x), {var_expr(y), var_expr(z)}),
+                          call(var_expr(x), {var_expr(y), var_expr(y)}));
     });
 }

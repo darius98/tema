@@ -138,6 +138,36 @@ struct apply_vars_visitor {
         right = right ? right : op.right;
         return binop(std::move(left), op.type, std::move(right));
     }
+    expr_ptr operator()(const expression::call& expr) {
+        auto callee = expr.callee->accept_r<expr_ptr>(*this);
+
+        std::vector<expr_ptr> new_params;
+        for (auto it = expr.params.begin(); it != expr.params.end(); it++) {
+            auto new_param = (*it)->accept_r<expr_ptr>(*this);
+            if (new_param != nullptr) {
+                new_params.resize(expr.params.size());
+                // TODO: Figure out how to do this with ranges without a conversion
+                new_params[static_cast<size_t>(it - expr.params.begin())] = new_param;
+            }
+        }
+        if (callee == nullptr && new_params.empty()) {
+            return nullptr;
+        }
+        if (callee == nullptr) {
+            callee = expr.callee;
+        }
+        if (new_params.empty()) {
+            new_params = expr.params;
+        } else {
+            for (auto it = new_params.begin(); it != new_params.end(); it++) {
+                if (*it == nullptr) {
+                    // TODO: Figure out how to do this with ranges without a conversion
+                    *it = expr.params[static_cast<size_t>(it - new_params.begin())];
+                }
+            }
+        }
+        return call(std::move(callee), std::move(new_params));
+    }
 };
 
 apply_vars_result apply_vars(const statement_ptr& law, const match_result& replacements) {

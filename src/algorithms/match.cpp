@@ -130,6 +130,21 @@ struct match_visitor {
                visit_recursive(*expr.left, app_expr->as_binop().left) &&
                visit_recursive(*expr.right, app_expr->as_binop().right);
     }
+    bool operator()(const expression::call& expr) {
+        if (!app_expr->is_call() ||
+            expr.params.size() != app_expr->as_call().params.size() ||
+            !visit_recursive(*expr.callee, app_expr->as_call().callee)) {
+            return false;
+        }
+        const auto& app_params = app_expr->as_call().params;
+        // TODO: Use ranges to iterate both arrays at once.
+        for (auto it = expr.params.begin(); it != expr.params.end(); it++) {
+            if (!visit_recursive(**it, app_params[static_cast<std::size_t>(it - expr.params.begin())])) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     [[nodiscard]] bool visit_recursive(const statement& a, statement_ptr new_app_stmt) {
         return visit_recursive(a, app_stmt, std::move(new_app_stmt));

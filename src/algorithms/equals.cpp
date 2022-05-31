@@ -61,10 +61,10 @@ struct equals_visitor {
         if (!b_stmt->is_conj() || a.inner.size() != b_stmt->as_conj().inner.size()) {
             return false;
         }
-        const auto& app_terms = b_stmt->as_conj().inner;
+        const auto& b_terms = b_stmt->as_conj().inner;
         // TODO: Use ranges to iterate both arrays at once.
         for (auto it = a.inner.begin(); it != a.inner.end(); it++) {
-            if (!visit_recursive(**it, *app_terms[static_cast<std::size_t>(it - a.inner.begin())])) {
+            if (!visit_recursive(**it, *b_terms[static_cast<std::size_t>(it - a.inner.begin())])) {
                 return false;
             }
         }
@@ -74,10 +74,10 @@ struct equals_visitor {
         if (!b_stmt->is_disj() || a.inner.size() != b_stmt->as_disj().inner.size()) {
             return false;
         }
-        const auto& app_terms = b_stmt->as_disj().inner;
+        const auto& b_terms = b_stmt->as_disj().inner;
         // TODO: Use ranges to iterate both arrays at once.
         for (auto it = a.inner.begin(); it != a.inner.end(); it++) {
-            if (!visit_recursive(**it, *app_terms[static_cast<std::size_t>(it - a.inner.begin())])) {
+            if (!visit_recursive(**it, *b_terms[static_cast<std::size_t>(it - a.inner.begin())])) {
                 return false;
             }
         }
@@ -106,6 +106,21 @@ struct equals_visitor {
     }
     bool operator()(const variable_ptr& a) const {
         return var_equals(bound_vars, a.get(), b_expr);
+    }
+    bool operator()(const expression::call& a) {
+        if (!b_expr->is_call() ||
+            !visit_recursive(*a.callee, *b_expr->as_call().callee) ||
+            a.params.size() != b_expr->as_call().params.size()) {
+            return false;
+        }
+        const auto& b_params = b_expr->as_call().params;
+        // TODO: Use ranges to iterate both arrays at once.
+        for (auto it = a.params.begin(); it != a.params.end(); it++) {
+            if (!visit_recursive(**it, *b_params[static_cast<std::size_t>(it - a.params.begin())])) {
+                return false;
+            }
+        }
+        return true;
     }
     bool operator()(const expression::binop& a) {
         return b_expr->is_binop() &&

@@ -269,6 +269,14 @@ TEST_CASE("algorithms.match") {
                             {x, var_expr(s)},
                             {y, binop(var_expr(s), binop_type::set_sym_difference, var_expr(t))},
                     });
+
+            expect_matches(
+                    call(var_expr(x), {var_expr(y), var_expr(y)}),
+                    call(binop(var_expr(s), binop_type::set_sym_difference, var_expr(t)), {var_expr(t), var_expr(t)}), {},
+                    {
+                            {x, binop(var_expr(s), binop_type::set_sym_difference, var_expr(t))},
+                            {y, var_expr(t)},
+                    });
         });
 
         group("not a match expression", [&] {
@@ -282,13 +290,35 @@ TEST_CASE("algorithms.match") {
                         binop(var_expr(s), binop_type::set_intersection, var_expr(s)));
             });
 
-            test("same variable mapped to several", [&] {
+            test("same variable mapped to several (binop)", [&] {
                 expect_not_matches(
                         binop(var_expr(x), binop_type::set_union, var_expr(x)),
                         binop(binop(var_expr(s), binop_type::set_sym_difference, var_expr(t)), binop_type::set_union, var_expr(t)));
                 expect_not_matches(
                         binop(binop(var_expr(x), binop_type::set_difference, var_expr(x)), binop_type::set_union, var_expr(x)),
                         binop(binop(var_expr(s), binop_type::set_difference, var_expr(t)), binop_type::set_union, var_expr(t)));
+            });
+
+            test("not a call node", [&] {
+                expect_not_matches(
+                        call(var_expr(x), {var_expr(y)}),
+                        binop(var_expr(x), binop_type::set_union, var_expr(y)));
+            });
+
+            test("different arity of call", [&] {
+                expect_not_matches(
+                        call(var_expr(x), {var_expr(y)}),
+                        call(var_expr(x), {var_expr(y), var_expr(y)}));
+            });
+
+            test("same variable mapped to several (call)", [&] {
+                expect_not_matches(
+                        call(var_expr(x), {var_expr(x)}),
+                        call(var_expr(s), {var_expr(y)}));
+
+                expect_not_matches(
+                        call(binop(var_expr(x), binop_type::set_union, var_expr(y)), {var_expr(y)}),
+                        call(var_expr(s), {var_expr(t)}));
             });
         });
     });

@@ -5,8 +5,15 @@ namespace tema {
 bool expression::is_binop() const noexcept {
     return holds_alternative<binop>(data);
 }
-const expression::binop& expression::as_binop() const {
+auto expression::as_binop() const -> const binop& {
     return get<binop>(data);
+}
+
+bool expression::is_call() const noexcept {
+    return holds_alternative<call>(data);
+}
+auto expression::as_call() const -> const call& {
+    return get<call>(data);
 }
 
 bool expression::is_var() const noexcept {
@@ -17,17 +24,19 @@ variable_ptr expression::as_var() const {
 }
 
 expr_ptr var_expr(const variable_ptr& var) {
-    return std::make_shared<const expression>(expression::private_tag{}, var);
+    return expression::make(var);
+}
+
+expr_ptr call(expr_ptr callee, std::vector<expr_ptr> params) {
+    return expression::make(expression::call{std::move(callee), std::move(params)});
 }
 
 expr_ptr binop(expr_ptr left, binop_type type, expr_ptr right) {
-    return std::make_shared<const expression>(
-            expression::private_tag{},
-            expression::binop{
-                    type,
-                    std::move(left),
-                    std::move(right),
-            });
+    return expression::make(expression::binop{
+            type,
+            std::move(left),
+            std::move(right),
+    });
 }
 
 }  // namespace tema
