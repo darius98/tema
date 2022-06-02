@@ -12,7 +12,7 @@ struct match_result {
     std::map<variable_ptr, expr_ptr> expr_replacements;
 };
 
-[[nodiscard]] std::optional<match_result> match(const expression& law, expr_ptr application);
-[[nodiscard]] std::optional<match_result> match(const statement& law, statement_ptr application);
+[[nodiscard]] std::optional<match_result> match(const expression& law, expr_ptr application, match_result existing_replacements = {});
+[[nodiscard]] std::optional<match_result> match(const statement& law, statement_ptr application, match_result existing_replacements = {});
 
 }  // namespace tema

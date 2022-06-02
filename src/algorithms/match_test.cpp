@@ -13,13 +13,10 @@ void expect_matches(const auto& law,
                     const auto& application,
                     const std::map<variable_ptr, statement_ptr>& expected_stmt_repls,
                     const std::map<variable_ptr, expr_ptr>& expected_expr_repls = {},
+                    const match_result& existing_replacements = {},
                     const Context& context = Context()) {
-    const auto result = match(*law, application);
-    expectMsg(result.has_value(),
-              print_utf8(*application) +
-                      " matches " +
-                      print_utf8(*law),
-              context);
+    const auto result = match(*law, application, existing_replacements);
+    expectMsg(result.has_value(), print_utf8(*application) + " does not match " + print_utf8(*law), context);
     for (const auto& [var, repl]: result.value().stmt_replacements) {
         expectMsg(expected_stmt_repls.contains(var), "Unexpected replacement " + var->name + " (replaced with '" + print_utf8(*repl) + "')", context);
         expect(equals(*repl, *expected_stmt_repls.find(var)->second), context);
@@ -35,11 +32,12 @@ void expect_matches(const auto& law,
 
 void expect_not_matches(const auto& law,
                         const auto& application,
+                        const match_result& existing_replacements = {},
                         Context context = Context()) {
-    const auto result = match(*law, application);
+    const auto result = match(*law, application, existing_replacements);
     expectMsg(!result.has_value(),
               print_utf8(*application) +
-                      " does not match " +
+                      " matches " +
                       print_utf8(*law),
               std::move(context));
 }
@@ -83,6 +81,14 @@ TEST_CASE("algorithms.match") {
             const auto law = equiv(var_stmt(q), forall(p, disj(var_stmt(p), neg(var_stmt(q)))));
             const auto application = equiv(truth(), forall(p, disj(var_stmt(p), neg(truth()))));
             expect_matches(law, application, {{q, truth()}});
+        });
+
+        test("with predetermined replacements", [&] {
+            const auto law = equiv(var_stmt(p), neg(neg(var_stmt(p))));
+            const auto application = equiv(var_stmt(q), neg(neg(var_stmt(q))));
+            expect_matches(law, application, {{p, var_stmt(q)}}, {}, {
+                                                                             .stmt_replacements = {{p, var_stmt(q)}},
+                                                                     });
         });
     });
 
@@ -174,6 +180,12 @@ TEST_CASE("algorithms.match") {
             const auto law = implies(disj(var_stmt(p), var_stmt(q)), disj(var_stmt(q), var_stmt(p)));
             const auto application = implies(disj(truth(), contradiction()), disj(truth(), contradiction()));
             expect_not_matches(law, application);
+        });
+
+        test("with invalid predetermined replacement", [&] {
+            expect_not_matches(equiv(var_stmt(p), neg(neg(var_stmt(p)))),
+                               equiv(var_stmt(q), neg(neg(var_stmt(q)))),
+                               {.stmt_replacements = {{p, var_stmt(var("X"))}}});
         });
     });
 
@@ -319,6 +331,12 @@ TEST_CASE("algorithms.match") {
                 expect_not_matches(
                         call(binop(var_expr(x), binop_type::set_union, var_expr(y)), {var_expr(y)}),
                         call(var_expr(s), {var_expr(t)}));
+            });
+
+            test("with invalid predetermined mapping", [&] {
+                expect_not_matches(disj(var_stmt(p), rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y))),
+                                   disj(contradiction(), rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(t))),
+                                   {.expr_replacements = {{x, var_expr(t)}}});
             });
         });
     });

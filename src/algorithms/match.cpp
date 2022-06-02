@@ -23,11 +23,11 @@ struct match_visitor {
     // TODO: This will contain like 1-2 variables at most, do a flat map / vector for it.
     var_mapping bound_vars;  // For forall
 
-    explicit match_visitor(statement_ptr app_stmt)
-        : app_stmt(std::move(app_stmt)) {}
+    match_visitor(statement_ptr app_stmt, match_result result)
+        : app_stmt(std::move(app_stmt)), result(std::move(result)) {}
 
-    explicit match_visitor(expr_ptr app_expr)
-        : app_expr(std::move(app_expr)) {}
+    match_visitor(expr_ptr app_expr, match_result result)
+        : app_expr(std::move(app_expr)), result(std::move(result)) {}
 
     bool operator()(const statement::truth&) const {
         return app_stmt->is_truth();
@@ -165,16 +165,16 @@ struct match_visitor {
     }
 };
 
-std::optional<match_result> match(const expression& law, expr_ptr application) {
-    match_visitor visitor(std::move(application));
+std::optional<match_result> match(const expression& law, expr_ptr application, match_result existing_replacements) {
+    match_visitor visitor(std::move(application), std::move(existing_replacements));
     if (!law.accept_r<bool>(visitor)) {
         return std::nullopt;
     }
     return std::move(visitor.result);
 }
 
-std::optional<match_result> match(const statement& law, statement_ptr application) {
-    match_visitor visitor(std::move(application));
+std::optional<match_result> match(const statement& law, statement_ptr application, match_result existing_replacements) {
+    match_visitor visitor(std::move(application), std::move(existing_replacements));
     if (!law.accept_r<bool>(visitor)) {
         return std::nullopt;
     }
