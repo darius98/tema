@@ -86,9 +86,11 @@ TEST_CASE("algorithms.match") {
         test("with predetermined replacements", [&] {
             const auto law = equiv(var_stmt(p), neg(neg(var_stmt(p))));
             const auto application = equiv(var_stmt(q), neg(neg(var_stmt(q))));
-            expect_matches(law, application, {{p, var_stmt(q)}}, {}, {
-                                                                             .stmt_replacements = {{p, var_stmt(q)}},
-                                                                     });
+            expect_matches(law,
+                           application,
+                           {{p, var_stmt(q)}},
+                           {},
+                           {{{p, var_stmt(q)}}, {}});
         });
     });
 
@@ -185,7 +187,7 @@ TEST_CASE("algorithms.match") {
         test("with invalid predetermined replacement", [&] {
             expect_not_matches(equiv(var_stmt(p), neg(neg(var_stmt(p)))),
                                equiv(var_stmt(q), neg(neg(var_stmt(q)))),
-                               {.stmt_replacements = {{p, var_stmt(var("X"))}}});
+                               {{{p, var_stmt(var("X"))}}, {}});
         });
     });
 
@@ -336,7 +338,7 @@ TEST_CASE("algorithms.match") {
             test("with invalid predetermined mapping", [&] {
                 expect_not_matches(disj(var_stmt(p), rel_stmt(var_expr(x), rel_type::eq_is_included, var_expr(y))),
                                    disj(contradiction(), rel_stmt(var_expr(s), rel_type::eq_is_included, var_expr(t))),
-                                   {.expr_replacements = {{x, var_expr(t)}}});
+                                   {{}, {{x, var_expr(t)}}});
             });
         });
     });
