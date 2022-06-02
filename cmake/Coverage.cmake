@@ -32,23 +32,26 @@ function(AddCoverageTarget)
             list(APPEND BINARY_FILE_ARGS ${binary_file})
         endforeach ()
 
-        add_custom_target(coverage_report COMMAND ${LLVM_COV} show ${BINARY_FILE_ARGS}
+        set(coverage_flags ${BINARY_FILE_ARGS}
                 -instr-profile=${CMAKE_BINARY_DIR}/merged.profdata
+                -ignore-filename-regex=\".*FlexLexer.*\"
+                -ignore-filename-regex=\".*_deps.*\")
+
+        add_custom_target(coverage_report COMMAND ${LLVM_COV} show ${coverage_flags}
                 -show-branches=count
                 -show-line-counts
                 -use-color -Xdemangler c++filt -Xdemangler -n
                 -line-coverage-lt=100
-                -ignore-filename-regex=".*FlexLexer.*"
-                -ignore-filename-regex=".*_deps.*"
-                -format=html > ${CMAKE_BINARY_DIR}/coverage.html)
+                -format=html
+                > ${CMAKE_BINARY_DIR}/coverage.html)
         add_dependencies(coverage_report coverage_collect)
-        add_custom_target(coverage COMMAND ${LLVM_COV} report ${BINARY_FILE_ARGS}
-                -instr-profile=${CMAKE_BINARY_DIR}/merged.profdata
-                -show-region-summary=0
-                -ignore-filename-regex=".*FlexLexer.*"
-                -ignore-filename-regex=".*_deps.*"
-                )
-        add_dependencies(coverage coverage_report)
+        add_custom_target(coverage COMMAND ${LLVM_COV} report ${coverage_flags}
+                -show-region-summary=0)
+
+        add_custom_target(coverage_export COMMAND ${LLVM_COV} export ${coverage_flags}
+                > ${CMAKE_BINARY_DIR}/coverage_export.json)
+
+        add_dependencies(coverage coverage_report coverage_export)
     else ()
         add_custom_target(coverage COMMAND echo "coverage not supported in this build")
     endif ()

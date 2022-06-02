@@ -28,30 +28,17 @@ jobs:
           CXX: g++
           CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
 
-  check-clang-macos:
-    runs-on: macos-latest
+  check-clang:
     strategy:
       matrix:
+        os: [ubuntu-20.04, macos-latest]
         build_type: [ Debug, Release ]
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Check
-      run: ${{github.workspace}}/ci-check.sh
-      env:
-        CC: clang
-        CXX: clang++
-        CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
-
-  check-clang-linux:
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        build_type: [ Debug, Release ]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
 
       - name: Install LLVM
+        if: ${{ matrix.os == 'ubuntu-20.04' }}
         uses: KyleMayes/install-llvm-action@v1
         with:
           version: "14.0"
@@ -63,3 +50,10 @@ jobs:
           CC: clang
           CXX: clang++
           CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
+
+      - uses: codecov/codecov-action@v2
+        if: ${{ matrix.build_type == 'Debug' && matrix.os == 'ubuntu-20.04' }}
+        with:
+          files: ${{github.workspace}}/.build/Debug/coverage_export.json
+          fail_ci_if_error: true
+          verbose: true
