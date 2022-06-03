@@ -52,8 +52,8 @@ jobs:
           CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
 
       - uses: codecov/codecov-action@v2
-        if: ${{ matrix.build_type == 'Debug' && matrix.os == 'ubuntu-20.04' }}
+        if: ${{ matrix.build_type == 'Debug' && matrix.os == 'macos-latest' }}
         with:
-          files: ${{github.workspace}}/.build/Debug/coverage_export.json
+          files: ${{github.workspace}}/.build/Debug/coverage.txt
           fail_ci_if_error: true
           verbose: true

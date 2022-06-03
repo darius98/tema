@@ -38,16 +38,13 @@ function(AddCoverageTarget)
                 -ignore-filename-regex=\".*_deps.*\")
 
         add_custom_target(coverage_report COMMAND ${LLVM_COV} show ${COVERAGE_COMMON_ARGS}
-                -show-branches=count
-                -show-line-counts
-                -use-color -Xdemangler c++filt -Xdemangler -n
-                -line-coverage-lt=100
-                -format=html
-                > ${CMAKE_BINARY_DIR}/coverage.html)
+                -show-branches=count -show-line-counts -Xdemangler c++filt -Xdemangler -n
+                -line-coverage-lt=100 -use-color -format=html > ${CMAKE_BINARY_DIR}/coverage.html)
         add_dependencies(coverage_report coverage_collect)
 
-        add_custom_target(coverage_export COMMAND ${LLVM_COV} export ${COVERAGE_COMMON_ARGS}
-                > ${CMAKE_BINARY_DIR}/coverage_export.json)
+        add_custom_target(coverage_export COMMAND ${LLVM_COV} show ${COVERAGE_COMMON_ARGS}
+                -show-branches=count -show-line-counts -Xdemangler c++filt -Xdemangler -n
+                > ${CMAKE_BINARY_DIR}/coverage.txt)
         add_dependencies(coverage_export coverage_collect)
 
         add_custom_target(coverage COMMAND ${LLVM_COV} report ${COVERAGE_COMMON_ARGS}
