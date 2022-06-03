@@ -52,7 +52,6 @@ function(AddCoverageTarget)
 
         add_custom_target(coverage COMMAND ${LLVM_COV} report ${COVERAGE_COMMON_ARGS}
                 -show-region-summary=0)
-
         add_dependencies(coverage coverage_report coverage_export)
     else ()
         add_custom_target(coverage COMMAND echo "coverage not supported in this build")
